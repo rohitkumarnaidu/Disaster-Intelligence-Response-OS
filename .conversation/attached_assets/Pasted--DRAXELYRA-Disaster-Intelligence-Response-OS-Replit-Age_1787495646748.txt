@@ -1,0 +1,306 @@
+# DRAXELYRA — Disaster Intelligence & Response OS
+### Replit Agent Build Brief — paste this entire document into Replit Agent
+
+> **Scope decisions locked in for this brief** (so Replit Agent has zero ambiguity):
+> - **Disaster scenario:** urban flood, historical/demo-only — modeled loosely on a Chennai-type monsoon urban flood (AOI ≈ 13.00–13.15 N, 80.15–80.30 E). No live/real-time claims; all imagery and detections are seeded demo data, clearly labeled.
+> - **Stack:** single-language TypeScript full stack (React + Node/Express) instead of a split Python/Node stack — faster to scaffold in Replit, easier to debug as a solo builder, and the AI layer is still isolated behind an interface so a real Python/PyTorch model can be swapped in later without touching the rest of the app.
+> - **Geometry:** GeoJSON stored in Postgres `jsonb` columns (no PostGIS dependency) — avoids infra friction, documented as a future migration path.
+> - **Auth:** custom email/password + session, not Replit Auth — because the app needs seeded, role-specific demo accounts a judge can one-click into, not a real OAuth login.
+
+---
+
+## 1. APP OVERVIEW
+
+**App name:** DRAXELYRA
+**One-line description:** DRAXELYRA turns post-disaster drone/satellite imagery into evidence-backed cases, ranks them by an explainable priority score (not raw AI confidence), routes verified cases to accountable field response, and closes the loop with a permanent audit trail.
+
+**Core problem it solves:** After a disaster, the bottleneck isn't detecting damage — it's everything after detection: deciding which findings are real, which ones matter most, who owns the response, and whether it actually got done. AI models produce candidate damage findings, but a confident detection on a low-stakes structure is not more urgent than a moderate-confidence finding next to a hospital. Today that judgment call lives in someone's head, a shared spreadsheet, or a WhatsApp thread — with no traceability. DRAXELYRA is the operational layer that sits between "the model found something" and "a verified, accountable action happened," built to be an evidence-to-action pipeline, not a detector demo.
+
+**Target user:** Disaster management officers, GIS/assessment analysts, and field verification teams working with a national/state emergency management authority (e.g., NDEM/SDMA-style bodies) — plus, secondarily, an executive/coordinator who just needs the top-line picture. It is explicitly a complement to systems like NDEM, NDMA SACHET, and Copernicus EMS, not a replacement for any of them.
+
+---
+
+## 2. FULL FEATURE LIST
+
+### Tier 1 — Core loop (must work end-to-end; this is what gets graded)
+- Email/password auth with 6 seeded role accounts (Admin, Disaster Officer, Assessment Analyst, Field Verifier, Response Coordinator, Executive Viewer) and backend-enforced RBAC (never just hidden UI)
+- Incident management: create/open/edit an incident, define its AOI on a map
+- Demo Replay mode: "Load Demo Incident" and "Reset Demo" buttons that deterministically populate a full, internally-consistent scenario (imagery, detections, cases, reviews, tasks, one overdue task, one false positive, one completed field verification)
+- Geospatial workspace: before/after imagery, critical-asset markers, candidate case markers, filters, layer toggles
+- Case object as the spine of the data model — every case links imagery → detection → evidence → review → priority → task → field observation → outcome
+- Evidence Review screen: before/after image comparison, confidence, model/version metadata, Confirm / Reject / Uncertain actions (reason required on Reject/Uncertain)
+- Deterministic, explainable Priority Engine (backend-calculated, never LLM-calculated) with a visible factor-by-factor breakdown
+- Priority Queue with filters (priority, severity, asset type, status, owner, SLA) and sortable columns
+- Response Tasking: case → task, assign owner/team, due time, status transitions, SLA countdown, auto-escalation on breach
+- Field Verification PWA: assigned tasks, GPS capture, photo/evidence upload, notes, confirm/reject, **explicit offline queue with a visible "Pending Sync" state and no silent overwrite on conflict**
+- Outcome capture: every case ends in a stored, typed result (Resolved / Partially Resolved / False Positive / No Access / Escalated)
+- Full audit trail: every status transition is logged with actor, timestamp, and reason, and is viewable per case
+- Analytics page: backlog, confirmation rate, false-positive rate, avg. time-to-assess/verify/task, SLA compliance
+
+### Tier 2 — Differentiators (these are what actually win the round; don't cut these for time)
+- **Priority Ledger** UI — the priority score rendered as an itemized, monospace, receipt-style breakdown (`+25 critical facility`, `+22.5 severe change`, `~ +5.5 moderate confidence (55%)` etc.) so a judge can see in one glance that confidence is only one input among several
+- **Confidence-vs-Priority scatter chart** on Analytics: every case plotted with model confidence on the X-axis and final priority on the Y-axis — visually proves the "a moderate-confidence hospital case can outrank a high-confidence low-stakes case" thesis without a word of explanation
+- **DEMO REPLAY / MOCK INFERENCE / MODEL INFERENCE** badges shown on every detection so the app never overstates what's real vs. seeded
+- Before/after imagery as a **draggable comparison slider**, not two static side-by-side images
+- SLA countdown badges that visibly tick down and flip to "Overdue" + escalation badge in real time during the demo
+- Case Timeline: a horizontal, stage-by-stage visual (Detected → Reviewed → Prioritized → Tasked → Field-Verified → Closed) with a "step through" control for the Demo Replay case — this is the single best 90-second demo moment
+- A persistent one-line thesis strip in the Command Center header: *"Evidence → Explainable Priority → Owned Action → Verified Outcome"*
+
+### Tier 3 — Nice-to-have (only after everything above is solid and tested)
+- Weather context chip on Incident Detail (Open-Meteo, no key required)
+- Real historical satellite tile overlay via NASA GIBS for authenticity (separate from the mock detection layer — labeled "reference imagery")
+- CSV/PDF export of the Analytics summary
+- Dark/light theme toggle (dark is the default and the one to polish; light is optional)
+- Comment threads on a Case (lightweight, not a full chat system)
+
+---
+
+## 3. TECH STACK
+
+Keep this a **single-language TypeScript stack** end to end — fastest to build and debug solo in Replit.
+
+| Layer | Choice | Why |
+|---|---|---|
+| Frontend | React 18 + TypeScript + Vite | Fast HMR, standard Replit template |
+| Styling | Tailwind CSS + a small custom design-token layer (see §5) | Fast, but must NOT ship default/unthemed component looks |
+| Routing | React Router v6 | Standard, simple nested routes |
+| Server state | TanStack Query | Caching, background refetch, avoids manual loading-state spaghetti |
+| Client UI state | Zustand (tiny) or React Context | Selected incident, filters, sidebar state |
+| Maps | MapLibre GL JS | Free, no vendor lock-in, works with plain GeoJSON |
+| Charts | Recharts | Priority-vs-confidence scatter, SLA/analytics charts |
+| Icons | lucide-react | Consistent line-icon set, no cartoon icon packs |
+| Backend | Node.js + Express + TypeScript | One language across the stack; fast to scaffold in Replit |
+| ORM | Drizzle ORM | Type-safe schema, plays well with Replit's built-in Postgres/Neon |
+| Database | PostgreSQL (Replit-provisioned) | Geometry stored as GeoJSON in `jsonb` — no PostGIS dependency for MVP |
+| Auth | express-session + connect-pg-simple (session store) + bcryptjs | Backend-enforced sessions, not just a frontend flag |
+| Validation | Zod | Shared request/response schemas frontend+backend |
+| File uploads | Multer → local `/uploads` directory behind a `StorageService` interface | Swap to S3-compatible storage later without touching call sites |
+| Offline (Field PWA) | vite-plugin-pwa + Workbox + `idb` (IndexedDB wrapper) | Cache assigned tasks, queue unsynced observations |
+| Testing | Vitest (unit) + Supertest (API integration) | Fast, TS-native |
+| Dev tooling | ESLint + Prettier | Consistency, not a blocker |
+| Deployment | Replit Deployments (Autoscale) | One-click from the same repo |
+
+**Key npm packages:** `express`, `drizzle-orm`, `drizzle-kit`, `pg`, `express-session`, `connect-pg-simple`, `bcryptjs`, `zod`, `multer`, `maplibre-gl`, `react-router-dom`, `@tanstack/react-query`, `recharts`, `lucide-react`, `date-fns`, `nanoid`, `idb`, `vite-plugin-pwa`, `vitest`, `supertest`.
+
+**AI seam (build this even though it's mocked):**
+```ts
+interface DamageAssessmentProvider {
+  assess(before: ImageRef, after: ImageRef, aoi: GeoJSON): Promise<DetectionResult[]>;
+}
+class MockDamageAssessmentProvider implements DamageAssessmentProvider { /* returns seeded, deterministic results */ }
+// Future: class RemoteInferenceProvider implements DamageAssessmentProvider {
+//   // calls a small Python/PyTorch microservice over HTTP — same interface, zero refactor
+// }
+```
+
+---
+
+## 4. PAGES & USER FLOW
+
+| # | Page | Purpose | Reached from | Key actions |
+|---|---|---|---|---|
+| 1 | **Login** | Email/password + a role quick-select strip for demo speed | Entry point | Login, "Log in as \<Role\>" demo buttons |
+| 2 | **Command Center** | Single-glance operational status: active incident, backlog, high-priority cases, open/overdue tasks, live map | Post-login home | Open incident, jump to Priority Queue, jump to a case |
+| 3 | **Incidents** | List/search all incidents | Nav sidebar | Create incident, open incident |
+| 4 | **Incident Detail** | Incident metadata, AOI map, timeline, attached imagery, processing state | Incidents list, Command Center | Edit incident, define AOI, go to Geospatial Assessment |
+| 5 | **Geospatial Assessment** | Full map workspace: before/after layers, candidate cases, critical assets, filters | Incident Detail | Select a case → Evidence Review |
+| 6 | **Evidence Review** | Before/after slider, detection metadata, confidence, model/version, contextual factors | Geospatial Assessment, Case Detail | Confirm / Reject / Uncertain (reason required) |
+| 7 | **Priority Queue** | Sortable/filterable table of all cases ranked by priority | Nav sidebar, Command Center | Open case, bulk filter, sort |
+| 8 | **Case Detail** | The full case record: imagery, detection, evidence, review history, Priority Ledger, linked task, outcome, audit trail | Priority Queue, Evidence Review, Tasks | Create task, view audit history |
+| 9 | **Tasks** | List of all response tasks with SLA/status | Nav sidebar | Assign, reassign, escalate |
+| 10 | **Task Detail** | Task info, linked case, assignment, SLA countdown, comments | Tasks list, Case Detail | Update status, add evidence, close |
+| 11 | **Field Verification (PWA)** | Mobile-first: assigned tasks, GPS, photo capture, notes, offline queue | Task Detail (as Field Verifier role) | Confirm/reject on-site, complete task, sync |
+| 12 | **Analytics** | Backlog/confirmation/SLA metrics, confidence-vs-priority scatter, predicted-vs-verified-vs-actioned funnel | Nav sidebar | Filter by incident/date range |
+| 13 | **Data / Imagery** | Imagery asset list, upload, processing status | Nav sidebar, Incident Detail | Upload before/after pair, view processing log |
+| 14 | **Settings / Users** | Seeded users, roles, integration adapters (all shown as "Disconnected / Mock Mode" for NDEM/SACHET/Copernicus/Sentinel) | Nav sidebar (Admin only) | Manage users, view adapter status |
+| 15 | **Demo Replay** | Load/reset the seeded scenario, step through the Case Timeline | Nav sidebar, Command Center | Load Demo Incident, Reset Demo, Step Timeline |
+
+**Primary judged flow:** Login → Command Center → Geospatial Assessment → Evidence Review (confirm) → Case Detail (Priority Ledger) → Task created → Field Verification (offline complete) → Outcome recorded → Analytics reflects it.
+
+---
+
+## 5. UI & DESIGN INSTRUCTIONS
+
+**The single biggest risk to this project is looking like a generic AI-generated dashboard. Follow this section literally.**
+
+### Explicitly avoid these tells
+- ❌ Warm cream background with a terracotta/clay accent and a big serif hero headline
+- ❌ Near-pure-black background with one single bright acid-green or neon-vermilion accent
+- ❌ Purple-to-blue gradient hero banners or gradient buttons
+- ❌ Glassmorphism / frosted-blur cards used everywhere
+- ❌ Default unstyled shadcn/Bootstrap look — every component must be re-skinned to the tokens below, not left at defaults
+- ❌ Rounded-3xl corners on every card, stock illustration art (undraw-style), emoji used as icons
+- ❌ Soft drop-shadows on every single element (use hairline borders + subtle elevation instead)
+
+This is a **command-center / mission-control** product (think Palantir Foundry, Grafana, Linear, ArcGIS — not a marketing SaaS landing page). Density and precision are the aesthetic, not whitespace and friendliness.
+
+### Design tokens
+| Token | Value | Use |
+|---|---|---|
+| `--bg-base` | `#14171C` (charcoal, not pure black) | App background |
+| `--bg-surface` | `#1C2027` | Cards, panels |
+| `--bg-surface-raised` | `#242933` | Modals, popovers |
+| `--border-hairline` | `#2A2F38` | All dividers/borders |
+| `--text-primary` | `#E7E5E0` (off-white) | Body/headings |
+| `--text-muted` | `#8B93A1` | Secondary text, labels |
+| `--accent-gold` | `#C9A227` (muted/desaturated — never bright/neon) | Primary actions, active states, brand mark |
+| `--status-success` | `#5B8C5B` (muted moss green) | Confirmed / resolved |
+| `--status-warning` | `#C68A3B` (muted amber) | Needs review / SLA warning |
+| `--status-critical` | `#B5453C` (muted brick red) | Severe / overdue / rejected |
+| `--status-inactive` | `#5B6270` (slate gray) | Closed / disabled |
+
+Spacing: strict 8px grid (4px only for icon-to-label gaps). Radius: 4–8px only, never fully rounded pills except tiny status dots. No `border-radius: 9999px` buttons.
+
+### Typography
+- **UI/body face:** Inter — for everything a user reads and clicks
+- **Data/mono face:** JetBrains Mono (or IBM Plex Mono) — for case IDs, coordinates, timestamps, confidence %, SLA countdowns, and the Priority Ledger. This pairing (clean grotesque + monospace) is the deliberate signature: it makes the product feel like an instrument panel, not a website.
+- Section labels use small-caps "eyebrow" style (e.g. `PRIORITY QUEUE`, letter-spaced, `--text-muted`) above page titles.
+- Numbered pipeline stages (1 Imagery → 2 Assessment → 3 Priority → 4 Review → 5 Task → 6 Outcome) are the one place numbering is used — because that content genuinely is a sequence, not decoration.
+
+### Signature element: the Priority Ledger
+Render every case's priority score as an itemized monospace ledger, not a bare number:
+```
+PRIORITY  83
+──────────────────────────────
++ Critical facility (Hospital)      +25.0
++ Severe observed change             +22.5
++ High population exposure           +18.0
++ Time-sensitive / access limited    +12.0
+~ Moderate model confidence (55%)     +5.5
+──────────────────────────────
+TOTAL                                83.0
+```
+This single component carries the whole product thesis — build it carefully, it is the thing judges will screenshot.
+
+### Layout patterns
+- **Command Center / Geospatial Assessment:** map-first, full-bleed canvas with a slide-over right panel for details (no modals for primary content)
+- **Priority Queue / Tasks:** dense data tables (compact row height, monospace numeric columns), not padded card grids
+- **Evidence Review:** a draggable before/after slider divider (real interaction, not decoration) with metadata in a fixed side panel
+- **Field PWA:** single-column, large tap targets, bottom action bar — this is the one screen designed mobile-first, everything else is desktop-first with responsive fallbacks
+
+### Motion — spend it in one place
+- Skeleton loaders for data fetches (quiet, not shimmering rainbow)
+- One real orchestrated moment: the Case Timeline "step through" animation on the Demo Replay page
+- Respect `prefers-reduced-motion` everywhere else. No confetti, no bouncing icons, no page-load fade-ins on every element.
+
+### Copy voice
+Active voice, plain language, named by what the user does: "Confirm finding" not "Submit detection," "Assign task" not "Create tasking record." Empty states are instructions, not apologies: *"No cases need review yet — cases will appear here once imagery finishes processing."* Errors state what happened and what to do: *"Imagery processing failed — retry the job from Data/Imagery."*
+
+---
+
+## 6. DATA & APIS
+
+### Core schema (Drizzle/TypeScript shape)
+```ts
+User            { id, name, email, passwordHash, role, organizationId, createdAt }
+Organization    { id, name, type }
+Incident        { id, name, disasterType, status, startTime, endTime, aoi: GeoJSON, source, description, severity, createdBy, createdAt, updatedAt }
+ImageryAsset    { id, incidentId, filename, source, acquisitionTime, captureType, geometry: GeoJSON, qualityStatus, storagePath, metadata, processingStatus }
+Detection       { id, incidentId, imageryId, geometry: GeoJSON, class, severity, confidence, modelName, modelVersion, inferenceTimestamp }
+CriticalAsset   { id, name, type, location: GeoJSON, criticalityScore, populationExposureTier }
+Case            { id, incidentId, detectionId, assetId, status, priorityScore, priorityBreakdown (json), reviewState, owner, createdAt, updatedAt }
+Evidence        { id, caseId, type, uri, source, timestamp, metadata }
+Review          { id, caseId, reviewer, decision, reason, notes, createdAt }
+Task            { id, caseId, title, priority, assignedTeam, assignedUser, status, createdAt, dueAt, escalationAt, completedAt }
+FieldObservation{ id, caseId, taskId, location: GeoJSON, media[], notes, verificationStatus, syncStatus, createdAt }
+Outcome         { id, caseId, action, result, evidence, completedBy, completedAt }
+CaseStatusHistory { id, caseId, fromStatus, toStatus, user, reason, timestamp }
+AuditEvent      { id, actorId, entityType, entityId, action, metadata, timestamp }
+```
+
+### Deterministic priority formula (implement exactly — never route this through an LLM)
+```
+severityScore     : No damage=0 · Minor=20 · Moderate=45 · Severe=75 · Destroyed=100 · Uncertain=35
+criticalityScore  : Hospital/Emergency=100 · Bridge=85 · Gov/Utility=75 · School=70 · Residential=40 · Commercial=30 · Other=15
+exposureScore     : High-density zone=90 · Medium=55 · Low=20   (each CriticalAsset is tagged with a zone tier in seed data)
+urgencyScore      : clamp(100 − (hoursSinceIncidentStart / 72 × 100), 0, 100) + (accessConstrained ? 20 : 0), capped at 100
+confidenceInput   : confidence(0–1) × 100
+
+priorityScore = round(
+  0.30 × severityScore +
+  0.25 × criticalityScore +
+  0.20 × exposureScore +
+  0.15 × urgencyScore +
+  0.10 × confidenceInput
+)
+```
+**Worked example (use this as the canonical Demo Replay hero case):** Severe damage near a hospital, high-exposure zone, access constrained, only 55% model confidence →
+`0.30×75 + 0.25×100 + 0.20×90 + 0.15×80 + 0.10×55 = 22.5+25+18+12+5.5 = 83`. A moderate-confidence finding still lands in the top priority tier — this is the entire product thesis, made concrete.
+
+**SLA bands (demo/configurable — label them as such, not as official standards):** priority ≥ 75 → 30-minute response target · 45–74 → 2 hours · <45 → 8 hours. Escalate and badge "Overdue" automatically when `dueAt` passes without a status update.
+
+### Free/public APIs (exact endpoints, no paid keys required)
+| API | Endpoint | Use | Notes |
+|---|---|---|---|
+| **Overpass API** (OpenStreetMap) | `POST https://overpass-api.de/api/interpreter` | One-time seed: pull real hospitals/schools/bridges inside the AOI as `CriticalAsset` rows | Body is raw Overpass QL, e.g. `[out:json];node["amenity"="hospital"](13.00,80.15,13.15,80.30);out;` — no key, but cache results, don't poll live |
+| **Nominatim** (OSM geocoding) | `GET https://nominatim.openstreetmap.org/search?q={query}&format=json&polygon_geojson=1` | Turn a typed place name into an AOI bounding box | Requires a real `User-Agent` header; ~1 req/sec limit; no key |
+| **CARTO basemap tiles** | `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png` | Dark basemap tiles matching the design language | No key; attribute "© OpenStreetMap contributors © CARTO" |
+| **NASA GIBS** (optional) | `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/{Layer}/default/{Date}/{TileMatrixSet}/{z}/{y}/{x}.jpg` | Real public-domain MODIS/VIIRS imagery tile for a real historical date, as a "reference imagery" backdrop layer (kept separate from the mock detection layer) | No key; free/public domain; optional/stretch |
+| **Open-Meteo** (optional) | `GET https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true` | Context weather chip on Incident Detail | No key |
+
+**Explicitly not integrated live** (per the source problem statement — these require institutional/registered access): NDEM, NDMA SACHET, Copernicus EMS, Sentinel Hub/Copernicus Data Space, Google Flood Hub. Build each as a disabled adapter card in Settings ("Disconnected — Mock Mode"), never as a hard MVP dependency.
+
+### Seed / demo data
+One seeded incident: **"Chennai Urban Flood — Demo Replay"** (fictionalized historical-flood scenario, AOI ≈ the bounding box above). Seed **16–18 cases** spanning: multiple severities and confidence levels, a hospital case with moderate confidence and high priority (the hero case above), at least one false positive, one uncertain case, several needing review, several confirmed, several tasks (including one deliberately overdue), and one fully completed field verification with synced evidence. Seed all 6 demo users with clearly-labeled demo passwords (e.g. `demo1234`) — call out in Settings/README that these are demo-only credentials.
+
+---
+
+## 7. STEP-BY-STEP BUILD INSTRUCTIONS FOR REPLIT AGENT
+
+Build in this exact order. Do not start Phase *n+1* until Phase *n* runs in the browser without errors.
+
+**Phase 1 — Foundation**
+1. Scaffold a Vite + React + TypeScript frontend and an Express + TypeScript backend in one repo (`/client`, `/server`, `/shared` for shared Zod schemas/types).
+2. Provision Postgres, wire up Drizzle ORM, write the schema from §6, run the first migration.
+3. Build session-based auth: signup is disabled (seed-only), login sets an httpOnly session cookie via `express-session` + `connect-pg-simple`, passwords hashed with `bcryptjs`.
+4. Build backend RBAC middleware (`requireRole([...])`) and apply it to every route from the start — never rely on frontend hiding.
+5. Build the app shell: sidebar nav, top bar, protected route wrapper, the design tokens from §5 as CSS variables/Tailwind config.
+6. Write the seed script (users, org, the demo incident skeleton) and a `npm run seed` command.
+
+**Phase 2 — Incident + Geospatial**
+7. Incidents list + Incident Detail pages; AOI drawn/edited on a MapLibre map, stored as GeoJSON.
+8. Imagery asset model + Data/Imagery page (upload via Multer behind a `StorageService` interface; processing states as in §6).
+9. Geospatial Assessment page: map with layer toggles (AOI, critical assets, cases), filters.
+10. Run the Overpass API query once for the AOI to seed real `CriticalAsset` rows (hospitals/schools/bridges).
+
+**Phase 3 — Cases + Evidence**
+11. Implement `MockDamageAssessmentProvider` behind the `DamageAssessmentProvider` interface from §3; it returns deterministic seeded detections for the demo incident.
+12. Build the Case object linking detection → evidence → asset, per §6.
+13. Build Evidence Review page with the draggable before/after slider, confidence/model metadata, and Confirm/Reject/Uncertain actions (reason required on reject/uncertain), writing to `CaseStatusHistory`.
+
+**Phase 4 — Priority**
+14. Implement the exact deterministic priority formula from §6 as a pure backend function with unit tests covering the worked example.
+15. Build the Priority Ledger component (§5 signature element) and wire it into Case Detail.
+16. Build the Priority Queue page with filters/sorting.
+
+**Phase 5 — Operations**
+17. Build Tasks: case → task creation, assignment, status transitions, SLA countdown badges, auto-escalation cron/interval check.
+18. Build Task Detail with comments/evidence attachment.
+19. Build the Field Verification PWA: `vite-plugin-pwa` config, IndexedDB-backed offline queue (`idb`) for assigned tasks and pending observations, an explicit "Pending Sync" indicator, a manual "Retry Sync" action, and **explicit conflict surfacing** (if the server case state changed while offline, show both versions — never silently overwrite).
+
+**Phase 6 — Outcome + Learning**
+20. Build Outcome capture, linked to task completion.
+21. Build the Audit Timeline component on Case Detail (every `CaseStatusHistory`/`AuditEvent` row, human-readable).
+22. Build Analytics: backlog/confirmation/SLA metrics, the confidence-vs-priority scatter chart, and the predicted-vs-verified-vs-actioned funnel.
+
+**Phase 7 — Demo Replay polish**
+23. Build the Demo Replay page: "Load Demo Incident" (idempotent seed), "Reset Demo," and the Case Timeline step-through control for the hero hospital case.
+24. Add DEMO REPLAY / MOCK INFERENCE badges wherever detections are shown.
+25. Add the Command Center thesis strip and finish the map-first dashboard layout (active incident, backlog, high-priority cases, open/overdue tasks).
+
+**Phase 8 — Quality pass (do not skip)**
+26. Unit tests: priority formula, status transitions, RBAC checks. Integration tests: incident creation, detection→case creation, review flow, task creation, field observation sync. One end-to-end walk of the full judged flow from §4.
+27. Security pass: rate-limit `/auth/login`, validate all inputs with Zod, verify no route trusts frontend-only role checks, verify file upload type/size limits.
+28. Run typecheck, lint, tests, and a production build; fix everything red before calling it done.
+29. Write the README: overview, architecture, setup, env vars, demo credentials, demo script (see below), and an explicit **MVP Limitations** section (demo imagery, mock inference, synthetic data, no real emergency dispatch, no live NDEM/SACHET/Copernicus connection).
+30. Deploy via Replit Deployments and confirm the deployed URL runs the full demo flow, not just localhost.
+
+---
+
+### Bonus: 90-second demo script for judges
+1. Log in as **Assessment Analyst** → land on Command Center → point at the thesis strip.
+2. Open the flagged hospital case in the Geospatial Assessment map → open Evidence Review → drag the before/after slider → hit **Confirm**.
+3. Jump to Case Detail → point at the **Priority Ledger**: "83 out of 100, even though the model was only 55% confident — because it's a hospital, in a high-exposure zone, with limited access."
+4. Show the auto-created **Task** with its SLA countdown.
+5. Switch to **Field Verifier** → open Field Verification → toggle offline (devtools) → complete the task → show "Pending Sync" → go back online → **Retry Sync**.
+6. Land on **Analytics** → point at the confidence-vs-priority scatter chart: "This is the whole product in one chart."

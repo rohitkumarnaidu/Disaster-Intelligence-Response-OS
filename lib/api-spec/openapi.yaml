@@ -10,6 +10,16 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: command
+    description: Command center operations
+  - name: incidents
+    description: Incident operations
+  - name: cases
+    description: Case operations
+  - name: tasks
+    description: Response task operations
+  - name: demo
+    description: Deterministic demo replay operations
 paths:
   /healthz:
     get:
@@ -24,7 +34,222 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /command/summary:
+    get:
+      operationId: getCommandSummary
+      tags: [command]
+      summary: Get command center summary
+      responses:
+        "200":
+          description: Current operational summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommandSummary"
+  /incidents:
+    get:
+      operationId: listIncidents
+      tags: [incidents]
+      summary: List incidents
+      responses:
+        "200":
+          description: Incident list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Incident"
+    post:
+      operationId: createIncident
+      tags: [incidents]
+      summary: Create an incident
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentInput"
+      responses:
+        "201":
+          description: Created incident
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Incident"
+  /incidents/{id}:
+    get:
+      operationId: getIncident
+      tags: [incidents]
+      summary: Get an incident
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Incident
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Incident"
+    patch:
+      operationId: updateIncident
+      tags: [incidents]
+      summary: Update an incident
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentUpdate"
+      responses:
+        "200":
+          description: Updated incident
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Incident"
+  /cases:
+    get:
+      operationId: listCases
+      tags: [cases]
+      summary: List cases
+      parameters:
+        - in: query
+          name: incidentId
+          schema:
+            type: [string, "null"]
+        - in: query
+          name: status
+          schema:
+            type: [string, "null"]
+      responses:
+        "200":
+          description: Case list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Case"
+  /cases/{id}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Get a case
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Case detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Case"
+  /cases/{id}/review:
+    post:
+      operationId: reviewCase
+      tags: [cases]
+      summary: Confirm, reject, or mark a case uncertain
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "200":
+          description: Reviewed case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Case"
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List response tasks
+      responses:
+        "200":
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a response task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /tasks/{id}:
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a response task
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /demo/load:
+    post:
+      operationId: loadDemo
+      tags: [demo]
+      summary: Load the deterministic demo scenario
+      responses:
+        "200":
+          description: Demo replay state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoState"
+  /demo/reset:
+    post:
+      operationId: resetDemo
+      tags: [demo]
+      summary: Reset the deterministic demo scenario
+      responses:
+        "200":
+          description: Reset replay state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoState"
 components:
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +258,143 @@ components:
           type: string
       required:
         - status
+    Incident:
+      type: object
+      required: [id, name, disasterType, status, severity, source, aoi, updatedAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        disasterType: { type: string }
+        status: { type: string }
+        severity: { type: string }
+        source: { type: string }
+        description: { type: string }
+        aoi: {}
+        startTime: { type: ["string", "null"], format: date-time }
+        updatedAt: { type: string, format: date-time }
+    IncidentInput:
+      type: object
+      required: [name, disasterType, severity]
+      properties:
+        name: { type: string, minLength: 1 }
+        disasterType: { type: string }
+        severity: { type: string }
+        description: { type: string }
+    IncidentUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        status: { type: string }
+        severity: { type: string }
+        description: { type: string }
+    PriorityFactor:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: number }
+    Case:
+      type: object
+      required: [id, incidentId, title, assetType, assetName, severity, confidence, priorityScore, reviewState, status, inferenceBadge, factors]
+      properties:
+        id: { type: string }
+        incidentId: { type: string }
+        title: { type: string }
+        assetType: { type: string }
+        assetName: { type: string }
+        severity: { type: string }
+        confidence: { type: number }
+        priorityScore: { type: number }
+        reviewState: { type: string }
+        status: { type: string }
+        inferenceBadge: { type: string }
+        location: {}
+        factors:
+          type: array
+          items: { $ref: "#/components/schemas/PriorityFactor" }
+        imagery:
+          type: object
+          properties:
+            before: { type: string }
+            after: { type: string }
+          required: [before, after]
+        owner: { type: ["string", "null"] }
+        dueAt: { type: ["string", "null"], format: date-time }
+    ReviewInput:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [confirmed, rejected, uncertain] }
+        reason: { type: string }
+        notes: { type: string }
+    Task:
+      type: object
+      required: [id, caseId, title, assignedTeam, status, priority, dueAt, slaLabel]
+      properties:
+        id: { type: string }
+        caseId: { type: string }
+        title: { type: string }
+        assignedTeam: { type: string }
+        assignedUser: { type: ["string", "null"] }
+        status: { type: string }
+        priority: { type: number }
+        dueAt: { type: string, format: date-time }
+        slaLabel: { type: string }
+        escalation: { type: boolean }
+    TaskInput:
+      type: object
+      required: [caseId, title, assignedTeam]
+      properties:
+        caseId: { type: string }
+        title: { type: string }
+        assignedTeam: { type: string }
+        assignedUser: { type: string }
+    TaskUpdate:
+      type: object
+      properties:
+        status: { type: string }
+        assignedTeam: { type: string }
+        assignedUser: { type: string }
+    CommandSummary:
+      type: object
+      required: [incident, metrics, cases, tasks, activity]
+      properties:
+        incident: { $ref: "#/components/schemas/Incident" }
+        metrics:
+          type: object
+          required: [backlog, highPriority, openTasks, overdueTasks, confirmationRate, slaCompliance]
+          properties:
+            backlog: { type: number }
+            highPriority: { type: number }
+            openTasks: { type: number }
+            overdueTasks: { type: number }
+            confirmationRate: { type: number }
+            slaCompliance: { type: number }
+        cases:
+          type: array
+          items: { $ref: "#/components/schemas/Case" }
+        tasks:
+          type: array
+          items: { $ref: "#/components/schemas/Task" }
+        activity:
+          type: array
+          items:
+            type: object
+            required: [title, time]
+            properties:
+              title: { type: string }
+              time: { type: string }
+              tone: { type: string }
+    DemoState:
+      type: object
+      required: [incident, cases, tasks, heroCaseId]
+      properties:
+        incident: { $ref: "#/components/schemas/Incident" }
+        cases:
+          type: array
+          items: { $ref: "#/components/schemas/Case" }
+        tasks:
+          type: array
+          items: { $ref: "#/components/schemas/Task" }
+        heroCaseId: { type: string }
 

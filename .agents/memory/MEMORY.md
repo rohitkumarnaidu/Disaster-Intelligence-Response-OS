@@ -1,0 +1,1 @@
+- [Demo boundary](demo-boundary.md) — keep Chennai replay data clearly synthetic and separate from any future live emergency integrations.

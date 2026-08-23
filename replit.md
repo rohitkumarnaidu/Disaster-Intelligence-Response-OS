@@ -1,6 +1,6 @@
-# [Project name]
+# DRAXELYRA
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+DRAXELYRA turns post-disaster imagery into explainable priorities, accountable response tasks, and verified outcomes for emergency management teams.
 
 ## Run & Operate
 
@@ -22,23 +22,30 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/draxelyra` — React/Vite command-center web app and shared dark operations-console theme.
+- `artifacts/api-server/src/routes/operations.ts` — demo operations API.
+- `artifacts/api-server/src/routes/demo-data.ts` — deterministic Chennai flood replay dataset.
+- `lib/api-spec/openapi.yaml` — source of truth for generated API hooks and schemas.
+- `lib/db/src/schema` — reserved for persistent Drizzle schema as the demo moves beyond in-memory replay.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first usable slice keeps the replay data in the API process so the judged flow works without a database migration blocking the UI; the API contract remains OpenAPI-first.
+- The demo is explicitly historical/synthetic and uses a Chennai-type urban flood AOI; it does not claim live emergency intelligence.
+- Priority is represented as deterministic factor data so the UI can show the evidence-to-action rationale rather than a black-box confidence number.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+The app includes a command center, incident and map workspaces, priority queue, evidence review, response tasking, field verification/offline states, analytics, deterministic replay, and settings for mock adapters.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No explicit preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing `lib/api-spec/openapi.yaml`, run `pnpm --filter @workspace/api-spec run codegen`.
+- API routes are mounted under `/api`; the web artifact is routed at `/`.
 
 ## Pointers
 
