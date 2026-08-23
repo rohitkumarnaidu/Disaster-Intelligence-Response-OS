@@ -19,6 +19,7 @@ router.use("/tasks", tasksRouter);
 router.use("/analytics", analyticsRouter);
 router.use("/demo", demoRouter);
 router.use("/evidence", evidenceRouter);
-router.use("/operations", operationsRouter);
+router.use("/", operationsRouter);
 
 export default router;
+
