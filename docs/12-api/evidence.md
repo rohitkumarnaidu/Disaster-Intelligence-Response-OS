@@ -1,20 +1,13 @@
-# Evidence API Reference
+# Evidence API
+
+<span className="badge-implemented">Implemented</span>
 
 ### `POST /api/evidence/upload`
-Upload a binary media artifact with cryptographic and signature verification.
+- **Description**: Ingests ground-truth photos and tactical attachments.
 - **Content-Type**: `multipart/form-data`
-- **Form Fields**: `caseId`, `type` (`photo` / `sensor`), `source`, `file`
-- **Response (200)**:
-```json
-{
-  "success": true,
-  "evidence": {
-    "id": "ev-174000...",
-    "caseId": "C-1048",
-    "uri": "/uploads/ev-174000-a1b2c3d4.jpg",
-    "mimeType": "image/jpeg",
-    "size": 421050,
-    "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-  }
-}
-```
+- **Validation Pipeline**:
+  1. Size limit: Maximum 50 MB.
+  2. MIME type whitelist: `image/jpeg`, `image/png`, `image/webp`, `video/mp4`.
+  3. Binary magic-byte header inspection.
+  4. Computes SHA-256 checksum.
+  5. Stores file to `uploads/` with randomized GUID filename.

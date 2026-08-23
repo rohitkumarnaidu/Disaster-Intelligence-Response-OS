@@ -1,6 +1,5 @@
-# Database Recovery Runbook
+# Database Recovery Procedures
 
-```bash
-# Restore PostgreSQL dump
-pg_restore -d draxelyra --clean /backups/draxelyra-backup.dump
-```
+<span className="badge-implemented">Implemented</span>
+
+Standard procedure for restoring PostgreSQL backups using `pg_restore`.

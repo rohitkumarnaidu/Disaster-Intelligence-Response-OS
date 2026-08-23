@@ -1,7 +1,5 @@
-# Cloud & Hosted Environment Setup
+# Cloud Sandbox Deployment
 
 <span className="badge-implemented">Implemented</span>
 
-Configured via `.replit` to run the unified dev server on port 5000:
-- `run = "pnpm run dev"`
-- Automatically provisions PostgreSQL connectors and environment variables.
+Configured for unified reverse-proxy execution where Express serves both API routes and static frontend bundles.

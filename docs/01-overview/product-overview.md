@@ -2,7 +2,7 @@
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA operates as a centralized web application and tactical field client designed for disaster management cells. The application organizes the response lifecycle into interconnected workspaces.
+DRAXELYRA organizes emergency disaster operations into interconnected tactical workspaces designed for high-density command center displays and mobile field units.
 
 ```mermaid
 graph TD

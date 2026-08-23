@@ -1,3 +1,5 @@
-# Complete Permissions Matrix
+# Permissions Reference
 
-Exhaustive role-to-endpoint access mapping across all operational roles.
+<span className="badge-implemented">Implemented</span>
+
+Detailed role-to-permission mapping table across all system actions.

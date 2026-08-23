@@ -1,5 +1,5 @@
-# Code Style Guidelines
+# Code Style & Standards
 
-- Format code with Prettier (`pnpm run lint`).
-- Maintain strict TypeScript type annotations; avoid `any`.
-- Keep domain models synchronized with OpenAPI schemas.
+<span className="badge-implemented">Implemented</span>
+
+TypeScript strict mode, ESLint, Prettier formatting, and conventional commit messages.

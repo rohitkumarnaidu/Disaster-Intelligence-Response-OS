@@ -1,22 +1,25 @@
-# Docker & Containerization
+# Docker & Compose Architecture
 
 <span className="badge-implemented">Implemented</span>
 
-The bundled `docker-compose.yml` provisions PostgreSQL:
+The `docker-compose.yml` configuration:
 
 ```yaml
 version: '3.8'
 services:
-  db:
+  postgres:
     image: postgres:15-alpine
+    container_name: draxelyra-postgres
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: draxelyra
     ports:
       - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
 volumes:
-  pgdata:
+  postgres-data:
 ```

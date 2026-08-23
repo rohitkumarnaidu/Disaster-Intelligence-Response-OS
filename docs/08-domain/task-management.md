@@ -1,4 +1,4 @@
-# Task Management & SLA Escalations
+# Task Management & SLAs
 
 <span className="badge-implemented">Implemented</span>
 

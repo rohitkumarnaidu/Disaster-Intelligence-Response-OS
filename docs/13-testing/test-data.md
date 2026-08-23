@@ -1,5 +1,5 @@
-# Test Data & Replay Fixtures
+# Test Data & Seed Fixtures
 
-<span className="badge-dev">Development Replay</span>
+<span className="badge-implemented">Implemented</span>
 
-Deterministic fixtures are defined in `artifacts/api-server/src/routes/demo-data.ts`, containing the Chennai Urban Flood dataset with 7 realistic infrastructure cases.
+The canonical test fixtures in `artifacts/api-server/src/routes/demo-data.ts` provide deterministic coordinates, asset geometries, and imagery metadata.

@@ -2,16 +2,15 @@
 
 <span className="badge-implemented">Implemented</span>
 
-To deploy DRAXELYRA on a local developer workstation or on-premises disaster operations server:
+Local deployment runs PostgreSQL via Docker Compose, Express backend on port 5000, and Vite frontend on port 5173.
 
 ```bash
-# 1. Start PostgreSQL
+# 1. Start database
 docker compose up -d
 
-# 2. Push Schema
+# 2. Push schema
 pnpm --filter @workspace/db run push
 
-# 3. Build & Run Production Bundle
-pnpm run build
-pnpm start
+# 3. Start development servers
+pnpm run dev
 ```

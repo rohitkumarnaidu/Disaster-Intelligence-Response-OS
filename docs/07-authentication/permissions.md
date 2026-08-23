@@ -1,4 +1,4 @@
-# Granular Permissions Matrix
+# Permissions Matrix
 
 <span className="badge-implemented">Implemented</span>
 

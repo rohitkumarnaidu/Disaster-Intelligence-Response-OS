@@ -1,3 +1,5 @@
-# Comprehensive Glossary
+# Glossary of Terms
 
-A-Z directory of technical, geospatial, emergency management, and AI terminology used in DRAXELYRA.
+<span className="badge-implemented">Implemented</span>
+
+Standardized definitions for disaster management and software engineering terms.

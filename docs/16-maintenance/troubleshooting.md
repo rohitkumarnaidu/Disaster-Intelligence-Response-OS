@@ -1,11 +1,13 @@
-# Operational Troubleshooting
+# Troubleshooting Runbook
 
 <span className="badge-implemented">Implemented</span>
 
-### 1. Database Connection Errors
-*Symptom*: `ECONNREFUSED 127.0.0.1:5433`
-*Resolution*: Verify Docker Compose is running (`docker compose ps`) and that port 5433 is not occupied.
+### Common Operational Issues
 
-### 2. Version Conflict (HTTP 409)
-*Symptom*: `VERSION_CONFLICT: The record changed on the server.`
-*Resolution*: Refresh the case in the UI to load the latest server version and reapply the triage decision.
+1. **Database Connection Refused**:
+   - Verify PostgreSQL container is running: `docker compose ps`
+   - Check `DATABASE_URL` matches port `5433`.
+2. **Session Expired / 401 Unauthorized**:
+   - Clear browser cookies and re-authenticate at `/login`.
+3. **409 Version Conflict on Case Review**:
+   - Another operator modified the case. Refresh the page to load the updated entity version before resubmitting.

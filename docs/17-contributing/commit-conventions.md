@@ -1,8 +1,5 @@
-# Conventional Commits
+# Commit Conventions
 
-Use standard conventional commit prefixes:
-- `feat:` New feature
-- `fix:` Bugfix
-- `docs:` Documentation changes
-- `refactor:` Code refactoring
-- `test:` Adding or updating tests
+<span className="badge-implemented">Implemented</span>
+
+Conventional Commits standard: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`.

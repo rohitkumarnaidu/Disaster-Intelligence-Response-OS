@@ -1,16 +1,28 @@
-# Incidents API Reference
+# Incidents API
 
-### `GET /api/incidents`
-List all disaster incidents ordered by update time descending.
+<span className="badge-implemented">Implemented</span>
 
-### `POST /api/incidents`
-Create a new disaster incident.
-- **Permissions**: System Admin, Organization Admin, Disaster Officer
-- **Request Body**: `{ "name": "Skagit Valley Flood", "disasterType": "River Flood", "severity": "high", "aoi": { ... } }`
-- **Response (201)**: `{ "id": "inc-174000...", "name": "...", ... }`
+### 1. `GET /api/incidents`
+- **Description**: Lists all recorded disaster incidents.
+- **Access**: Authenticated users.
+- **Response (`200 OK`)**: Array of incident objects.
 
-### `GET /api/incidents/:id`
-Retrieve full operational details for an incident.
+### 2. `POST /api/incidents`
+- **Description**: Registers a new operational incident and AOI boundary.
+- **Access**: `system_admin`, `commander`, `org_admin`.
+- **Request Body**:
+  ```json
+  {
+    "name": "Chennai Urban Flood Response",
+    "disasterType": "Urban flood",
+    "severity": "critical",
+    "aoi": {
+      "type": "Polygon",
+      "coordinates": [[[80.15, 13.0], [80.30, 13.0], [80.30, 13.15], [80.15, 13.15], [80.15, 13.0]]]
+    }
+  }
+  ```
 
-### `GET /api/incidents/:id/map`
-Returns aggregated GeoJSON layers (`aoi`, `cases`, `criticalAssets`, `detections`, `fieldObservations`).
+### 3. `GET /api/incidents/:id/map`
+- **Description**: Returns aggregated GeoJSON FeatureCollections for the incident AOI, critical assets, detections, prioritized cases, and field observations.
+- **Access**: Authenticated users.

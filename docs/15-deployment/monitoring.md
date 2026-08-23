@@ -1,6 +1,7 @@
-# Monitoring & Observability
+# Monitoring & Telemetry
 
 <span className="badge-implemented">Implemented</span>
 
-- **Healthcheck Probe**: `GET /api/health` returns `{ "status": "healthy" }`.
-- **Structured Logs**: Pino logs can be ingested by Datadog, Grafana Loki, or Elasticsearch.
+- Healthcheck endpoint: `GET /api/health`
+- Structured JSON logging: **Pino** output stream
+- Uptime SLA monitoring on key REST endpoints

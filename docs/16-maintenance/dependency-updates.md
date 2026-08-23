@@ -1,4 +1,6 @@
-# Dependency Updates & Policy
+# Dependency Maintenance
 
-- `pnpm-workspace.yaml` enforces supply chain safety (`minimumReleaseAge: 1440`).
-- Upgrade dependencies using: `pnpm update --interactive --latest`.
+<span className="badge-implemented">Implemented</span>
+
+- Supply chain verification: `pnpm-workspace.yaml` enforces 24h package release age.
+- Update dependencies: `pnpm update`.

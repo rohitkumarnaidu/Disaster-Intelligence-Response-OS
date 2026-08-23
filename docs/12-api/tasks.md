@@ -1,14 +1,24 @@
-# Tasks API Reference
+# Tasks API
 
-### `GET /api/tasks`
-List all response tasks with dynamic SLA labels and escalation booleans.
+<span className="badge-implemented">Implemented</span>
 
-### `POST /api/tasks`
-Create an action order and transition the parent case to `TASKED`.
-- **Request Body**: `{ "caseId": "C-1048", "title": "Check hospital access", "assignedTeam": "Field Team 1", "version": 1 }`
-- **Response (201)**: `{ "id": "task-174000...", "status": "UNASSIGNED", "priority": 83, ... }`
+### 1. `GET /api/tasks`
+- **Description**: Lists response tasks with SLA status.
+- **Access**: Authenticated users.
 
-### `PATCH /api/tasks/:id`
-Update task status.
-- **Request Body**: `{ "status": "VERIFIED", "version": 1 }`
-- **Response (200)**: `{ "success": true, "version": 2 }`
+### 2. `POST /api/tasks`
+- **Description**: Dispatches a new field response task linked to a confirmed case.
+- **Access**: `manager`, `commander`, `system_admin`.
+- **Request Body**:
+  ```json
+  {
+    "caseId": "C-1048",
+    "title": "Hospital Power & Access Inspection",
+    "priority": 83,
+    "assignedTeam": "Public Works & Hazmat",
+    "dueAt": "2026-08-25T12:00:00Z"
+  }
+  ```
+
+### 3. `PATCH /api/tasks/:id`
+- **Description**: Updates task status (`IN_PROGRESS`, `BLOCKED`, `COMPLETED`, `VERIFIED`) with OCC version check.

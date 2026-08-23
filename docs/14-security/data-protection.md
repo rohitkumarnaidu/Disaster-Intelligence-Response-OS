@@ -2,5 +2,4 @@
 
 <span className="badge-implemented">Implemented</span>
 
-- Passwords are never logged by the Pino HTTP serializer.
-- Database access uses parameterized queries via Drizzle ORM, eliminating SQL injection.
+Encryption in transit (TLS) and strict isolation of sensitive operational data.

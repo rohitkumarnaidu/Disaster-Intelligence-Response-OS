@@ -1,5 +1,7 @@
 # Git Branching Model
 
-- `main`: Production-ready release branch.
-- `develop`: Integration branch.
-- Feature branches: `feat/<feature-name>`, `fix/<bug-name>`.
+<span className="badge-implemented">Implemented</span>
+
+- `main`: Production-ready branch.
+- Feature branches: `feat/feature-name`, `fix/bug-name`.
+- Documentation: `docs/doc-name`.

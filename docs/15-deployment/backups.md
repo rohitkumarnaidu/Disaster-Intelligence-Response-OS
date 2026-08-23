@@ -1,9 +1,5 @@
-# Backup Strategies
+# Backup & Disaster Recovery
 
 <span className="badge-implemented">Implemented</span>
 
-- **Daily Automated pg_dump**:
-  ```bash
-  pg_dump -Fc -d draxelyra > /backups/draxelyra-$(date +%F).dump
-  ```
-- **Evidence Storage Mirroring**: Sync `/uploads` directory to secondary geographic bucket storage.
+Automated backup scripts for PostgreSQL and uploaded media artifacts in `uploads/`.

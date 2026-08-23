@@ -9,539 +9,409 @@ export function generateApiTesting(DOCS_DIR) {
   };
 
   // 12-api/overview.md
-  write('12-api/overview.md', `---
-id: overview
-title: API Overview
-sidebar_position: 1
----
-
-# API Overview & Base Conventions
+  write('12-api/overview.md', `# REST API Overview
 
 <span className="badge-implemented">Implemented</span>
 
-The DRAXELYRA API is an OpenAPI 3.1-compliant REST service mounted at \`/api\`.
+The DRAXELYRA REST API is built with **Express 5** and governed by the **OpenAPI 3.1** specification located at \`lib/api-spec/openapi.yaml\`.
 
-- **Base URL**: \`/api\`
-- **Data Format**: JSON (\`application/json\`)
-- **Authentication**: HTTP-only Session Cookies (\`connect.sid\`)
-- **Specification Source**: \`lib/api-spec/openapi.yaml\`
+---
+
+## Base URL & Transport
+
+- **Base Endpoint**: \`http://localhost:5000/api\` (or configured \`PORT\`)
+- **Protocol**: HTTP/1.1 and HTTP/2 over TLS in production
+- **Content Type**: \`application/json\` (except \`/api/evidence/upload\` which uses \`multipart/form-data\`)
+- **Authentication**: HTTP-only secure cookie session (\`connect.sid\`)
+
+---
+
+## Global HTTP Response Envelope
+
+Standard successful responses return the raw entity or array payload with appropriate HTTP status codes (\`200 OK\`, \`201 Created\`).
+
+Error responses return a structured error envelope:
+
+\`\`\`json
+{
+  "code": "BAD_REQUEST | UNAUTHORIZED | FORBIDDEN | NOT_FOUND | VERSION_CONFLICT | SERVER_ERROR",
+  "message": "Human readable description of the error",
+  "details": {}
+}
+\`\`\`
 `);
 
   // 12-api/authentication.md
-  write('12-api/authentication.md', `---
-id: authentication
-title: Auth Endpoints
-sidebar_position: 2
----
-
-# Authentication API Reference
-
-### \`POST /api/auth/login\`
-Authenticate with email and password.
-- **Request Body**: \`{ "email": "analyst@draxelyra.local", "password": "demo123" }\`
-- **Response (200)**: \`{ "id": "usr-analyst", "name": "Alice Analyst", "email": "...", "role": "Analyst" }\`
-- **Set-Cookie**: \`connect.sid=<session-id>; Path=/; HttpOnly; SameSite=Lax\`
-
-### \`POST /api/auth/logout\`
-Terminates the active session.
-- **Response (200)**: \`{ "success": true }\`
-
-### \`GET /api/auth/me\`
-Retrieves profile for current session.
-- **Response (200)**: \`{ "id": "usr-analyst", "name": "Alice Analyst", "email": "...", "role": "Analyst" }\`
-`);
-
-  // 12-api/incidents.md
-  write('12-api/incidents.md', `---
-id: incidents
-title: Incidents API
-sidebar_position: 3
----
-
-# Incidents API Reference
-
-### \`GET /api/incidents\`
-List all disaster incidents ordered by update time descending.
-
-### \`POST /api/incidents\`
-Create a new disaster incident.
-- **Permissions**: System Admin, Organization Admin, Disaster Officer
-- **Request Body**: \`{ "name": "Skagit Valley Flood", "disasterType": "River Flood", "severity": "high", "aoi": { ... } }\`
-- **Response (201)**: \`{ "id": "inc-174000...", "name": "...", ... }\`
-
-### \`GET /api/incidents/:id\`
-Retrieve full operational details for an incident.
-
-### \`GET /api/incidents/:id/map\`
-Returns aggregated GeoJSON layers (\`aoi\`, \`cases\`, \`criticalAssets\`, \`detections\`, \`fieldObservations\`).
-`);
-
-  // 12-api/cases.md
-  write('12-api/cases.md', `---
-id: cases
-title: Cases API
-sidebar_position: 4
----
-
-# Cases API Reference
-
-### \`GET /api/cases\`
-Returns ranked cases joined with critical assets and detections.
-
-### \`GET /api/cases/:id\`
-Retrieves detailed case payload including factor breakdown and imagery dates.
-
-### \`POST /api/cases/:id/review\`
-Submit a human review decision.
-- **Permissions**: Analyst, Commander, Disaster Officer, Manager, Admin
-- **Request Body**: \`{ "decision": "confirmed", "notes": "Ground-floor flood verified", "version": 1 }\`
-- **Response (200)**: \`{ "success": true, "newStatus": "CONFIRMED", "priorityScore": 83, "version": 2 }\`
-- **Error (409)**: \`{ "error": { "code": "VERSION_CONFLICT", "message": "The record changed on the server." } }\`
-
-### \`GET /api/cases/:id/audit\`
-Returns chronological audit events for the specified case.
-`);
-
-  // 12-api/tasks.md
-  write('12-api/tasks.md', `---
-id: tasks
-title: Tasks API
-sidebar_position: 5
----
-
-# Tasks API Reference
-
-### \`GET /api/tasks\`
-List all response tasks with dynamic SLA labels and escalation booleans.
-
-### \`POST /api/tasks\`
-Create an action order and transition the parent case to \`TASKED\`.
-- **Request Body**: \`{ "caseId": "C-1048", "title": "Check hospital access", "assignedTeam": "Field Team 1", "version": 1 }\`
-- **Response (201)**: \`{ "id": "task-174000...", "status": "UNASSIGNED", "priority": 83, ... }\`
-
-### \`PATCH /api/tasks/:id\`
-Update task status.
-- **Request Body**: \`{ "status": "VERIFIED", "version": 1 }\`
-- **Response (200)**: \`{ "success": true, "version": 2 }\`
-`);
-
-  // 12-api/evidence.md
-  write('12-api/evidence.md', `---
-id: evidence
-title: Evidence API
-sidebar_position: 6
----
-
-# Evidence API Reference
-
-### \`POST /api/evidence/upload\`
-Upload a binary media artifact with cryptographic and signature verification.
-- **Content-Type**: \`multipart/form-data\`
-- **Form Fields**: \`caseId\`, \`type\` (\`photo\` / \`sensor\`), \`source\`, \`file\`
-- **Response (200)**:
-\`\`\`json
-{
-  "success": true,
-  "evidence": {
-    "id": "ev-174000...",
-    "caseId": "C-1048",
-    "uri": "/uploads/ev-174000-a1b2c3d4.jpg",
-    "mimeType": "image/jpeg",
-    "size": 421050,
-    "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-  }
-}
-\`\`\`
-`);
-
-  // 12-api/field-observations.md
-  write('12-api/field-observations.md', `---
-id: field-observations
-title: Field Observations API
-sidebar_position: 7
----
-
-# Field Observations API
+  write('12-api/authentication.md', `# Authentication API
 
 <span className="badge-implemented">Implemented</span>
 
-- Integrates with the \`field_observations\` table to capture on-the-ground damage verifications, sensor data, and GPS telemetry.
+### 1. \`POST /api/auth/login\`
+- **Description**: Authenticates user credentials and issues a signed session cookie.
+- **Access**: Public
+- **Request Body**:
+  \`\`\`json
+  {
+    "email": "analyst@draxelyra.local",
+    "password": "demo123"
+  }
+  \`\`\`
+- **Success Response (\`200 OK\`)**:
+  \`\`\`json
+  {
+    "id": "usr-analyst-01",
+    "name": "Maya Chen",
+    "email": "analyst@draxelyra.local",
+    "role": "analyst",
+    "organizationId": "org-tn-sdma"
+  }
+  \`\`\`
+
+### 2. \`GET /api/auth/me\`
+- **Description**: Retrieves current authenticated user profile.
+- **Access**: Requires active session.
+- **Success Response (\`200 OK\`)**: User profile object.
+
+### 3. \`POST /api/auth/logout\`
+- **Description**: Destroys current session in PostgreSQL store and clears client cookie.
+- **Access**: Requires active session.
+- **Success Response (\`200 OK\`)**: \`{ "success": true }\`
+`);
+
+  // 12-api/incidents.md
+  write('12-api/incidents.md', `# Incidents API
+
+<span className="badge-implemented">Implemented</span>
+
+### 1. \`GET /api/incidents\`
+- **Description**: Lists all recorded disaster incidents.
+- **Access**: Authenticated users.
+- **Response (\`200 OK\`)**: Array of incident objects.
+
+### 2. \`POST /api/incidents\`
+- **Description**: Registers a new operational incident and AOI boundary.
+- **Access**: \`system_admin\`, \`commander\`, \`org_admin\`.
+- **Request Body**:
+  \`\`\`json
+  {
+    "name": "Chennai Urban Flood Response",
+    "disasterType": "Urban flood",
+    "severity": "critical",
+    "aoi": {
+      "type": "Polygon",
+      "coordinates": [[[80.15, 13.0], [80.30, 13.0], [80.30, 13.15], [80.15, 13.15], [80.15, 13.0]]]
+    }
+  }
+  \`\`\`
+
+### 3. \`GET /api/incidents/:id/map\`
+- **Description**: Returns aggregated GeoJSON FeatureCollections for the incident AOI, critical assets, detections, prioritized cases, and field observations.
+- **Access**: Authenticated users.
+`);
+
+  // 12-api/cases.md
+  write('12-api/cases.md', `# Cases API
+
+<span className="badge-implemented">Implemented</span>
+
+### 1. \`GET /api/cases\`
+- **Description**: Retrieves prioritized operational triage queue.
+- **Query Parameters**: \`incidentId\`, \`status\`, \`minPriority\`.
+- **Response (\`200 OK\`)**: List of cases joined with critical assets and detections.
+
+### 2. \`POST /api/cases/:id/review\`
+- **Description**: Submits human triage decision with Optimistic Concurrency Control (OCC).
+- **Access**: \`analyst\`, \`commander\`, \`system_admin\`.
+- **Request Body**:
+  \`\`\`json
+  {
+    "decision": "confirmed",
+    "notes": "Satellite imagery confirms significant structural inundation.",
+    "version": 1
+  }
+  \`\`\`
+- **Concurrency Handling**: If \`version\` does not match current database version, returns \`409 Conflict\` with \`VERSION_CONFLICT\`.
+- **Audit Logging**: Appends an event to \`audit_events\` recording decision, actor, and timestamp.
+
+### 3. \`GET /api/cases/:id/audit\`
+- **Description**: Returns complete chronological audit history for the case.
+`);
+
+  // 12-api/tasks.md
+  write('12-api/tasks.md', `# Tasks API
+
+<span className="badge-implemented">Implemented</span>
+
+### 1. \`GET /api/tasks\`
+- **Description**: Lists response tasks with SLA status.
+- **Access**: Authenticated users.
+
+### 2. \`POST /api/tasks\`
+- **Description**: Dispatches a new field response task linked to a confirmed case.
+- **Access**: \`manager\`, \`commander\`, \`system_admin\`.
+- **Request Body**:
+  \`\`\`json
+  {
+    "caseId": "C-1048",
+    "title": "Hospital Power & Access Inspection",
+    "priority": 83,
+    "assignedTeam": "Public Works & Hazmat",
+    "dueAt": "2026-08-25T12:00:00Z"
+  }
+  \`\`\`
+
+### 3. \`PATCH /api/tasks/:id\`
+- **Description**: Updates task status (\`IN_PROGRESS\`, \`BLOCKED\`, \`COMPLETED\`, \`VERIFIED\`) with OCC version check.
+`);
+
+  // 12-api/evidence.md
+  write('12-api/evidence.md', `# Evidence API
+
+<span className="badge-implemented">Implemented</span>
+
+### \`POST /api/evidence/upload\`
+- **Description**: Ingests ground-truth photos and tactical attachments.
+- **Content-Type**: \`multipart/form-data\`
+- **Validation Pipeline**:
+  1. Size limit: Maximum 50 MB.
+  2. MIME type whitelist: \`image/jpeg\`, \`image/png\`, \`image/webp\`, \`video/mp4\`.
+  3. Binary magic-byte header inspection.
+  4. Computes SHA-256 checksum.
+  5. Stores file to \`uploads/\` with randomized GUID filename.
+`);
+
+  // 12-api/field-observations.md
+  write('12-api/field-observations.md', `# Field Observations API
+
+<span className="badge-implemented">Implemented</span>
+
+### \`POST /api/tasks/:id/field-observation\`
+- **Description**: Tactical personnel ground truth submission.
+- **Request Body**:
+  \`\`\`json
+  {
+    "taskId": "TSK-201",
+    "observation": "Water receded by 1 foot; emergency backup generator functional.",
+    "location": { "lat": 13.0827, "lng": 80.2707 },
+    "evidenceIds": ["evi-8910"]
+  }
+  \`\`\`
 `);
 
   // 12-api/analytics.md
-  write('12-api/analytics.md', `---
-id: analytics
-title: Analytics API
-sidebar_position: 8
----
+  write('12-api/analytics.md', `# Analytics API
 
-# Analytics API Reference
+<span className="badge-implemented">Implemented</span>
 
-### \`GET /api/analytics/overview\`
-Returns aggregated operational metrics and funnel statistics:
-\`\`\`json
-{
-  "casesTotal": 18,
-  "needsReview": 4,
-  "confirmed": 10,
-  "rejected": 2,
-  "uncertain": 2,
-  "falsePositiveRate": 14,
-  "averageTimeToAssess": 24,
-  "averageTimeToVerify": 45,
-  "averageTimeToTask": 18,
-  "slaCompliance": 92,
-  "funnel": { "detected": 18, "verified": 10, "actioned": 8, "closed": 6 }
-}
-\`\`\`
+### 1. \`GET /api/analytics/summary\`
+- **Description**: Real-time KPI summary: active cases, confirmation rate, open tasks, overdue SLA tasks.
+
+### 2. \`GET /api/analytics/funnel\`
+- **Description**: Incident lifecycle throughput: \`Detected -> Reviewed -> Tasked -> Field Verified -> Closed\`.
 `);
 
   // 12-api/audit.md
-  write('12-api/audit.md', `---
-id: audit
-title: Audit API
-sidebar_position: 9
----
+  write('12-api/audit.md', `# Audit Events API
 
-# Audit API Reference
+<span className="badge-implemented">Implemented</span>
 
 ### \`GET /api/cases/:id/audit\`
-Fetch immutable chronological log of actions for a given case.
+- **Description**: Returns immutable chronological log of actions, actors, and metadata diffs.
 `);
 
   // 12-api/demo.md
-  write('12-api/demo.md', `---
-id: demo
-title: Demo Replay API
-sidebar_position: 10
----
-
-# Demo Replay API Reference
+  write('12-api/demo.md', `# Demo & Scenario Replay API
 
 <span className="badge-dev">Development Replay</span>
 
 ### \`POST /api/demo/load\`
-Idempotently clears and re-seeds the deterministic Chennai Urban Flood scenario (\`inc-chennai-demo\`), seeded user accounts, and hero case \`C-1048\`.
-- **Permissions**: System Admin, Organization Admin
+- **Description**: Idempotently seeds the Chennai Urban Flood dataset (\`inc-chennai-demo\`), critical facilities, candidate detections, and the hero case (\`C-1048\`).
+- **Access**: \`system_admin\`.
 
 ### \`POST /api/demo/reset\`
-Alias to \`/api/demo/load\` returning a 307 redirect.
+- **Description**: Wipes active demo telemetry and restores initial seed state.
 `);
 
   // 12-api/errors.md
-  write('12-api/errors.md', `---
-id: errors
-title: API Error Codes
-sidebar_position: 11
----
+  write('12-api/errors.md', `# Error Codes Reference
 
-# API Error Codes & Handling
-
-| HTTP Status | Error Code | Example Payload |
+| Error Code | HTTP Status | Description |
 | :--- | :--- | :--- |
-| **400** | \`BAD_REQUEST\` | \`{ "error": { "code": "BAD_REQUEST", "message": "Email and password required" } }\` |
-| **401** | \`UNAUTHORIZED\` | \`{ "error": { "code": "UNAUTHORIZED", "message": "Not authenticated" } }\` |
-| **403** | \`FORBIDDEN\` | \`{ "error": { "code": "FORBIDDEN", "message": "Insufficient permissions" } }\` |
-| **404** | \`NOT_FOUND\` | \`{ "error": { "code": "NOT_FOUND", "message": "Case not found" } }\` |
-| **409** | \`VERSION_CONFLICT\`| \`{ "error": { "code": "VERSION_CONFLICT", "serverVersion": 2 } }\` |
-| **409** | \`INVALID_TRANSITION\` | \`{ "error": { "code": "INVALID_TRANSITION", "message": "Cannot transition from CLOSED to TASKED" } }\` |
+| \`BAD_REQUEST\` | 400 | Payload failed schema validation. |
+| \`UNAUTHORIZED\` | 401 | Missing or expired session cookie. |
+| \`FORBIDDEN\` | 403 | User role lacks required permission. |
+| \`NOT_FOUND\` | 404 | Target entity does not exist. |
+| \`VERSION_CONFLICT\` | 409 | Concurrent mutation detected (OCC CAS failed). |
+| \`INVALID_TRANSITION\`| 422 | Requested state transition is disallowed by state machine. |
+| \`SERVER_ERROR\` | 500 | Unhandled server exception. |
 `);
 
   // 13-testing/testing-strategy.md
-  write('13-testing/testing-strategy.md', `---
-id: testing-strategy
-title: Testing Strategy
-sidebar_position: 1
----
-
-# Testing Strategy Overview
+  write('13-testing/testing-strategy.md', `# Testing Strategy
 
 <span className="badge-implemented">Implemented</span>
 
-The testing framework employs **Vitest** for unit tests and TypeScript-driven end-to-end API suites.
+DRAXELYRA enforces a multi-tier testing pyramid:
 
-\`\`\`mermaid
-flowchart TD
-    A[Unit Tests: Vitest] --> D[CI / Validation Pipeline]
-    B[Integration Tests: OCC & State Machines] --> D
-    C[E2E Scenario Suite: test-e2e.js] --> D
-\`\`\`
+1. **Unit Tests (Vitest)**: Mathematical validation of priority score calculations and individual state machine transitions.
+2. **OCC Concurrency Tests**: Race-condition simulations testing concurrent updates to verify \`409 VERSION_CONFLICT\` behavior.
+3. **End-to-End API Integration Tests (\`test-e2e.js\`)**: Automated HTTP sequence testing complete triage workflows.
 `);
 
   // 13-testing/unit-tests.md
-  write('13-testing/unit-tests.md', `---
-id: unit-tests
-title: Unit Testing
-sidebar_position: 2
----
-
-# Unit Testing with Vitest
+  write('13-testing/unit-tests.md', `# Unit Testing with Vitest
 
 <span className="badge-implemented">Implemented</span>
 
-Unit tests validate mathematical models and deterministic formulas:
+Unit tests run via \`pnpm test\`.
+
+### Canonical Priority Formula Test (\`priority.test.ts\`)
 
 \`\`\`typescript
-// artifacts/api-server/src/lib/priority.test.ts
-import { expect, test } from "vitest";
-import { calculatePriority } from "./priority";
-
-test("calculatePriority yields canonical output 83", () => {
-  const result = calculatePriority("Severe", "Hospital", "High", 28.8, true, 0.55);
-  expect(result.score).toBe(83);
+describe('Priority Engine', () => {
+  it('calculates canonical Hero Case C-1048 priority as 83', () => {
+    const score = calculatePriority('Severe', 'Hospital', 'High', 28.8, true, 0.55);
+    expect(score).toBe(83);
+  });
 });
-\`\`\`
-
-Run unit tests:
-\`\`\`bash
-pnpm run test
 \`\`\`
 `);
 
   // 13-testing/integration-tests.md
-  write('13-testing/integration-tests.md', `---
-id: integration-tests
-title: Integration Tests
-sidebar_position: 3
----
-
-# Integration Tests
+  write('13-testing/integration-tests.md', `# Integration Testing
 
 <span className="badge-implemented">Implemented</span>
 
-Integration suites test state machine boundaries against a live PostgreSQL test database, verifying atomic transitions, OCC version increments, and audit record insertions.
+Integration tests verify database transactions, PostgreSQL session persistence, and Drizzle ORM queries.
 `);
 
   // 13-testing/end-to-end-tests.md
-  write('13-testing/end-to-end-tests.md', `---
-id: end-to-end-tests
-title: End-to-End Tests
-sidebar_position: 4
----
-
-# End-to-End Scenario Testing
+  write('13-testing/end-to-end-tests.md', `# End-to-End API Verification
 
 <span className="badge-implemented">Implemented</span>
 
-The automated test script \`test-e2e.js\` validates the entire operational lifecycle:
-1. **RBAC Guard Test**: Verifies an Analyst cannot \`POST /api/incidents\` (HTTP 403).
-2. **OCC Conflict Test**: Simulates concurrent triage by Clients A and B to verify HTTP 409 rejection on stale version.
-3. **Audit Verification**: Asserts audit event records exist for all case mutations.
-
-Execute the suite:
-\`\`\`bash
-node test-e2e.js
-\`\`\`
+The automated E2E script (\`node test-e2e.js\`) validates:
+1. System Admin login & session cookie establishment.
+2. Loading deterministic Chennai flood demo replay.
+3. Fetching case \`C-1048\` and verifying initial priority score (\`83\`).
+4. Submitting analyst confirmation review with version checking.
+5. Verifying audit event persistence in \`audit_events\`.
 `);
 
   // 13-testing/api-tests.md
-  write('13-testing/api-tests.md', `---
-id: api-tests
-title: API Tests
-sidebar_position: 5
----
-
-# Automated API Test Suites
+  write('13-testing/api-tests.md', `# API Testing Suite
 
 <span className="badge-implemented">Implemented</span>
 
-API tests validate response contracts against OpenAPI specifications, checking required JSON fields, status codes, and error envelopes.
+All Express API route handlers are validated against the OpenAPI specification schema.
 `);
 
   // 13-testing/security-tests.md
-  write('13-testing/security-tests.md', `---
-id: security-tests
-title: Security Tests
-sidebar_position: 6
----
-
-# Security & Pen-Testing Suites
+  write('13-testing/security-tests.md', `# Security & Authorization Tests
 
 <span className="badge-implemented">Implemented</span>
 
 Security test suites verify:
-- Unauthenticated requests to protected endpoints return \`401\`.
-- Role escalation attempts return \`403\`.
-- File uploads with fake extensions and invalid magic bytes return \`400\`.
-- Path traversal sequences (e.g. \`../../etc/passwd\`) in upload filenames are sanitized.
+- Role boundaries: Field responders cannot access admin demo endpoints.
+- Path traversal defenses on file uploads.
+- Session cookie \`httpOnly\` and \`secure\` flags.
 `);
 
   // 13-testing/offline-tests.md
-  write('13-testing/offline-tests.md', `---
-id: offline-tests
-title: Offline Tests
-sidebar_position: 7
----
-
-# Offline & Sync Test Suites
+  write('13-testing/offline-tests.md', `# Offline Synchronization Tests
 
 <span className="badge-implemented">Implemented</span>
 
-Tests simulate offline network states (\`navigator.onLine = false\`), enqueueing observations into IndexedDB, and verifying zero-data-loss replay upon reconnection.
+Tests IndexedDB request serialization, event bus dispatching, and queue replay.
 `);
 
   // 13-testing/test-data.md
-  write('13-testing/test-data.md', `---
-id: test-data
-title: Test Data
-sidebar_position: 8
----
+  write('13-testing/test-data.md', `# Test Data & Seed Fixtures
 
-# Test Data & Replay Fixtures
+<span className="badge-implemented">Implemented</span>
 
-<span className="badge-dev">Development Replay</span>
-
-Deterministic fixtures are defined in \`artifacts/api-server/src/routes/demo-data.ts\`, containing the Chennai Urban Flood dataset with 7 realistic infrastructure cases.
+The canonical test fixtures in \`artifacts/api-server/src/routes/demo-data.ts\` provide deterministic coordinates, asset geometries, and imagery metadata.
 `);
 
   // 14-security/security-overview.md
-  write('14-security/security-overview.md', `---
-id: security-overview
-title: Security Overview
-sidebar_position: 1
----
-
-# Security Overview
+  write('14-security/security-overview.md', `# Security Architecture
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA adheres to strict security engineering practices to protect sensitive critical infrastructure locations, tactical responder identities, and operational plans.
+DRAXELYRA enforces a defense-in-depth security model covering authentication, access control, input validation, and media upload integrity.
 `);
 
   // 14-security/authentication-security.md
-  write('14-security/authentication-security.md', `---
-id: authentication-security
-title: Authentication Security
-sidebar_position: 2
----
-
-# Authentication Security
+  write('14-security/authentication-security.md', `# Authentication Security
 
 <span className="badge-implemented">Implemented</span>
 
-- **Password Hashing**: Bcrypt with 10 salt rounds.
-- **Session Tokens**: Cryptographically random session identifiers signed via HMAC-SHA256.
-- **Cookie Flags**: \`HttpOnly\`, \`SameSite=Lax\`, and \`Secure\` in production.
+- Password hashing: **Bcrypt** with salted rounds.
+- Session tokens: Cryptographically random signed cookies stored in PostgreSQL.
 `);
 
   // 14-security/authorization-security.md
-  write('14-security/authorization-security.md', `---
-id: authorization-security
-title: Authorization Security
-sidebar_position: 3
----
-
-# Authorization & Role Boundaries
+  write('14-security/authorization-security.md', `# Authorization & RBAC Security
 
 <span className="badge-implemented">Implemented</span>
 
-- Explicit role checks on all state-mutating endpoints.
-- Separation of duties: Analysts review signals; only Dispatchers/Commanders can create binding field tasks.
+Granular middleware guards (\`requireRole\`) ensure least-privilege access across all REST endpoints.
 `);
 
   // 14-security/file-upload-security.md
-  write('14-security/file-upload-security.md', `---
-id: file-upload-security
-title: Upload Security
-sidebar_position: 4
----
-
-# File Upload Security & Magic-Byte Validation
+  write('14-security/file-upload-security.md', `# File Upload Security & Magic Bytes
 
 <span className="badge-implemented">Implemented</span>
 
-The upload handler validates real binary header signatures:
-
-\`\`\`typescript
-function checkMagicBytes(buffer: Buffer, mimetype: string): boolean {
-  const hex = buffer.toString('hex', 0, 4).toUpperCase();
-  if (mimetype === 'image/jpeg') return hex.startsWith('FFD8FF');
-  if (mimetype === 'image/png') return hex === '89504E47';
-  if (mimetype === 'image/webp') {
-    return hex === '52494646' && buffer.toString('hex', 8, 12).toUpperCase() === '57454250';
-  }
-  if (mimetype === 'video/mp4') return buffer.toString('hex', 4, 8).toUpperCase() === '66747970';
-  return false;
-}
-\`\`\`
+- **Magic Byte Signatures**: Leading bytes inspected before saving:
+  - JPEG: \`FF D8 FF\`
+  - PNG: \`89 50 4E 47\`
+  - WebP: \`RIFF....WEBP\`
+  - MP4: \`ftyp\`
+- **SHA-256 Hashing**: Computed for every upload to maintain chain of custody.
+- **Path Traversal Prevention**: Filenames sanitized with GUID identifiers.
 `);
 
   // 14-security/input-validation.md
-  write('14-security/input-validation.md', `---
-id: input-validation
-title: Input Validation
-sidebar_position: 5
----
-
-# Input Validation & Sanitization
+  write('14-security/input-validation.md', `# Input Validation & Zod
 
 <span className="badge-implemented">Implemented</span>
 
-- Filenames are sanitized using regex: \`.replace(/[^a-z0-9.]/g, '')\`.
-- All JSON payloads are validated with Zod schemas.
+All request parameters, query strings, and request bodies are validated using generated Zod schemas (\`lib/api-zod\`).
 `);
 
   // 14-security/data-protection.md
-  write('14-security/data-protection.md', `---
-id: data-protection
-title: Data Protection
-sidebar_position: 6
----
-
-# Data Protection & Privacy
+  write('14-security/data-protection.md', `# Data Protection & Privacy
 
 <span className="badge-implemented">Implemented</span>
 
-- Passwords are never logged by the Pino HTTP serializer.
-- Database access uses parameterized queries via Drizzle ORM, eliminating SQL injection.
+Encryption in transit (TLS) and strict isolation of sensitive operational data.
 `);
 
   // 14-security/ai-security.md
-  write('14-security/ai-security.md', `---
-id: ai-security
-title: AI Security
-sidebar_position: 7
----
-
-# AI Security & Adversarial Robustness
+  write('14-security/ai-security.md', `# AI & Model Integrity
 
 <span className="badge-implemented">Implemented</span>
 
-- Mandatory human-in-the-loop validation prevents adversarial satellite perturbations or sensor artifacts from directly triggering emergency field deployments.
+Model inferences are treated as untrusted inputs requiring human verification before triggering operational field tasks.
 `);
 
   // 14-security/auditability.md
-  write('14-security/auditability.md', `---
-id: auditability
-title: Tamper-Evident Auditability
-sidebar_position: 8
----
-
-# Tamper-Evident Auditability
+  write('14-security/auditability.md', `# Auditability & Compliance
 
 <span className="badge-implemented">Implemented</span>
 
-- Cryptographic SHA-256 hashes generated for all evidence uploads.
-- Append-only audit log in PostgreSQL.
+Every operational action writes an immutable record to PostgreSQL table \`audit_events\`.
 `);
 
   // 14-security/threat-model.md
-  write('14-security/threat-model.md', `---
-id: threat-model
-title: Threat Model
-sidebar_position: 9
----
+  write('14-security/threat-model.md', `# Threat Model & Mitigation
 
-# Threat Model & Mitigation Matrix
-
-| Threat / Attack Vector | Risk | Mitigation in DRAXELYRA |
+| Threat Vector | Potential Impact | Mitigation |
 | :--- | :--- | :--- |
-| **Concurrent Triage Overwrite** | Critical | Optimistic Concurrency Control (OCC) with atomic version CAS. |
-| **Malicious File Upload** | High | Magic-byte signature verification, size limits (50MB), filename sanitization. |
-| **Unauthorized Action Dispatch** | High | Route-level RBAC middleware (\`requireRole\`). |
-| **Credential Compromise** | Medium | Bcrypt hashing + secure session expiration. |
-| **SQL Injection** | Critical | Parameterized queries enforced by Drizzle ORM. |
+| **Session Hijacking** | Unauthorized triage commands | \`httpOnly\`, \`SameSite=Lax\`, \`secure\` cookie flags |
+| **Concurrent Edit Collision** | Stale data overwriting live field updates | Optimistic Concurrency Control with atomic CAS |
+| **Malicious File Upload** | Remote code execution via upload | Magic-byte header inspection and random GUID naming |
+| **Unauthorized Action** | Tactical personnel altering incident parameters | Strict RBAC middleware on all non-read routes |
 `);
-
-  console.log('API, Testing, and Security documentation generated.');
 }

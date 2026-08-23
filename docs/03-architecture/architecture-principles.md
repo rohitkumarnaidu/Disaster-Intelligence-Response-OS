@@ -1,9 +1,9 @@
 # Architectural Principles
 
-The engineering of DRAXELYRA is governed by five foundational architectural principles:
+DRAXELYRA's technical architecture is built on five core principles:
 
 ### 1. Explainability Over Black-Box Automation
-AI model inferences must never dictate operational actions without human interpretability. Priority scores are calculated deterministically using weighted operational factors (`0.30*S + 0.25*C + 0.20*E + 0.15*U + 0.10*Conf`) so duty officers can inspect exactly why an asset was ranked high.
+AI model inferences must never dictate operational actions without human interpretability. Priority scores are calculated deterministically using weighted operational factors (`0.30*S + 0.25*C + 0.20*E + 0.15*U + 0.10*K`) so duty officers can inspect exactly why an asset was ranked high.
 
 ### 2. Strict Human-in-the-Loop Triage
 An AI detection is merely a *candidate signal*. It cannot transition to an assigned field task without explicit confirmation (`CONFIRMED`, `REJECTED`, or `UNCERTAIN`) by an authorized analyst or commander with recorded review notes.

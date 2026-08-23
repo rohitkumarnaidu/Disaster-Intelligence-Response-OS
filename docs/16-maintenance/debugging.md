@@ -1,4 +1,5 @@
-# Debugging Guide
+# Debugging & Diagnostics
 
-- Enable verbose Pino logging: `LOG_LEVEL=debug pnpm run dev`
-- Inspect Drizzle SQL queries: Enable `logger: true` in Drizzle DB configuration.
+<span className="badge-implemented">Implemented</span>
+
+Use `LOG_LEVEL=debug` in `.env` for detailed Pino request/response dumps.

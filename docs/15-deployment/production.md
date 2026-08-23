@@ -1,8 +1,10 @@
-# Production Deployment Architecture
+# Production Deployment
 
 <span className="badge-implemented">Implemented</span>
 
-In a production environment:
-1. **Reverse Proxy (Nginx / Cloudflare)**: Terminates TLS, serves static frontend assets from `artifacts/draxelyra/dist`, and proxies `/api` requests to Node.js on port 5000.
-2. **Database Cluster**: Managed PostgreSQL with automated backups and read-replicas.
-3. **Persistent Volume**: Dedicated storage volume mounted at `/uploads` for evidence artifacts.
+In production:
+1. Express API server runs behind an Nginx or Cloudflare reverse proxy with TLS termination.
+2. Production builds:
+   - Backend: `artifacts/api-server/dist/index.cjs`
+   - Frontend: `artifacts/draxelyra/dist/public/`
+3. PostgreSQL connection pool configured for high concurrency.

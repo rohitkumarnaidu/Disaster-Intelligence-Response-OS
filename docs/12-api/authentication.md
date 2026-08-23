@@ -1,15 +1,34 @@
-# Authentication API Reference
+# Authentication API
 
-### `POST /api/auth/login`
-Authenticate with email and password.
-- **Request Body**: `{ "email": "analyst@draxelyra.local", "password": "demo123" }`
-- **Response (200)**: `{ "id": "usr-analyst", "name": "Alice Analyst", "email": "...", "role": "Analyst" }`
-- **Set-Cookie**: `connect.sid=<session-id>; Path=/; HttpOnly; SameSite=Lax`
+<span className="badge-implemented">Implemented</span>
 
-### `POST /api/auth/logout`
-Terminates the active session.
-- **Response (200)**: `{ "success": true }`
+### 1. `POST /api/auth/login`
+- **Description**: Authenticates user credentials and issues a signed session cookie.
+- **Access**: Public
+- **Request Body**:
+  ```json
+  {
+    "email": "analyst@draxelyra.local",
+    "password": "demo123"
+  }
+  ```
+- **Success Response (`200 OK`)**:
+  ```json
+  {
+    "id": "usr-analyst-01",
+    "name": "Maya Chen",
+    "email": "analyst@draxelyra.local",
+    "role": "analyst",
+    "organizationId": "org-tn-sdma"
+  }
+  ```
 
-### `GET /api/auth/me`
-Retrieves profile for current session.
-- **Response (200)**: `{ "id": "usr-analyst", "name": "Alice Analyst", "email": "...", "role": "Analyst" }`
+### 2. `GET /api/auth/me`
+- **Description**: Retrieves current authenticated user profile.
+- **Access**: Requires active session.
+- **Success Response (`200 OK`)**: User profile object.
+
+### 3. `POST /api/auth/logout`
+- **Description**: Destroys current session in PostgreSQL store and clears client cookie.
+- **Access**: Requires active session.
+- **Success Response (`200 OK`)**: `{ "success": true }`

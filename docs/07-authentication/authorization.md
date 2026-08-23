@@ -1,4 +1,4 @@
-# Authorization & Middleware Guards
+# Authorization & RBAC
 
 <span className="badge-implemented">Implemented</span>
 

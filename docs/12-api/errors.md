@@ -1,10 +1,11 @@
-# API Error Codes & Handling
+# Error Codes Reference
 
-| HTTP Status | Error Code | Example Payload |
+| Error Code | HTTP Status | Description |
 | :--- | :--- | :--- |
-| **400** | `BAD_REQUEST` | `{ "error": { "code": "BAD_REQUEST", "message": "Email and password required" } }` |
-| **401** | `UNAUTHORIZED` | `{ "error": { "code": "UNAUTHORIZED", "message": "Not authenticated" } }` |
-| **403** | `FORBIDDEN` | `{ "error": { "code": "FORBIDDEN", "message": "Insufficient permissions" } }` |
-| **404** | `NOT_FOUND` | `{ "error": { "code": "NOT_FOUND", "message": "Case not found" } }` |
-| **409** | `VERSION_CONFLICT`| `{ "error": { "code": "VERSION_CONFLICT", "serverVersion": 2 } }` |
-| **409** | `INVALID_TRANSITION` | `{ "error": { "code": "INVALID_TRANSITION", "message": "Cannot transition from CLOSED to TASKED" } }` |
+| `BAD_REQUEST` | 400 | Payload failed schema validation. |
+| `UNAUTHORIZED` | 401 | Missing or expired session cookie. |
+| `FORBIDDEN` | 403 | User role lacks required permission. |
+| `NOT_FOUND` | 404 | Target entity does not exist. |
+| `VERSION_CONFLICT` | 409 | Concurrent mutation detected (OCC CAS failed). |
+| `INVALID_TRANSITION`| 422 | Requested state transition is disallowed by state machine. |
+| `SERVER_ERROR` | 500 | Unhandled server exception. |

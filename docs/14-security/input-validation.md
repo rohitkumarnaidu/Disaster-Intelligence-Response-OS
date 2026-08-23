@@ -1,6 +1,5 @@
-# Input Validation & Sanitization
+# Input Validation & Zod
 
 <span className="badge-implemented">Implemented</span>
 
-- Filenames are sanitized using regex: `.replace(/[^a-z0-9.]/g, '')`.
-- All JSON payloads are validated with Zod schemas.
+All request parameters, query strings, and request bodies are validated using generated Zod schemas (`lib/api-zod`).

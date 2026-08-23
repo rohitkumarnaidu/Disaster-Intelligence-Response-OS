@@ -9,27 +9,25 @@ export function generateData(DOCS_DIR) {
   };
 
   // 06-database/overview.md
-  write('06-database/overview.md', `---
-id: overview
-title: Database Overview
-sidebar_position: 1
----
-
-# Database Overview
+  write('06-database/overview.md', `# Database Overview
 
 <span className="badge-implemented">Implemented</span>
 
 DRAXELYRA utilizes **PostgreSQL 15** managed through **Drizzle ORM** (\`lib/db\`). The database stores operational entities, geospatial geometries (in GeoJSON format), binary evidence metadata, user sessions, and immutable audit logs.
+
+---
+
+## Technical Stack & Connection Pooling
+
+- **Database Engine**: PostgreSQL 15+
+- **ORM**: Drizzle ORM (\`drizzle-orm\`, \`drizzle-kit\`)
+- **Connection Pooling**: \`pg.Pool\` in \`lib/db/src/index.ts\`
+- **Session Table**: Managed via \`connect-pg-simple\` with automatic cookie expiration cleanup
+- **Schema Location**: \`lib/db/src/schema/index.ts\`
 `);
 
   // 06-database/schema.md
-  write('06-database/schema.md', `---
-id: schema
-title: Database Schema
-sidebar_position: 2
----
-
-# Database Schema Reference
+  write('06-database/schema.md', `# Database Schema Reference
 
 <span className="badge-implemented">Implemented</span>
 
@@ -152,13 +150,7 @@ The complete schema is defined in \`lib/db/src/schema/index.ts\`.
 `);
 
   // 06-database/relationships.md
-  write('06-database/relationships.md', `---
-id: relationships
-title: Relationships & Foreign Keys
-sidebar_position: 3
----
-
-# Relationships & Foreign Keys
+  write('06-database/relationships.md', `# Relationships & Foreign Keys
 
 <span className="badge-implemented">Implemented</span>
 
@@ -177,13 +169,7 @@ export const casesRelations = relations(cases, ({ one, many }) => ({
 `);
 
   // 06-database/migrations.md
-  write('06-database/migrations.md', `---
-id: migrations
-title: Migrations
-sidebar_position: 4
----
-
-# Migrations & Schema Synchronization
+  write('06-database/migrations.md', `# Migrations & Schema Synchronization
 
 <span className="badge-implemented">Implemented</span>
 
@@ -193,13 +179,7 @@ sidebar_position: 4
 `);
 
   // 06-database/indexing.md
-  write('06-database/indexing.md', `---
-id: indexing
-title: Indexing Strategy
-sidebar_position: 5
----
-
-# Indexing & Query Optimization
+  write('06-database/indexing.md', `# Indexing & Query Optimization
 
 <span className="badge-implemented">Implemented</span>
 
@@ -210,13 +190,7 @@ sidebar_position: 5
 `);
 
   // 06-database/transactions.md
-  write('06-database/transactions.md', `---
-id: transactions
-title: Transactions
-sidebar_position: 6
----
-
-# Transactional Integrity
+  write('06-database/transactions.md', `# Transactional Integrity
 
 <span className="badge-implemented">Implemented</span>
 
@@ -224,13 +198,7 @@ Multi-step operational mutations are wrapped in database transactions via \`db.t
 `);
 
   // 06-database/concurrency.md
-  write('06-database/concurrency.md', `---
-id: concurrency
-title: Concurrency Control
-sidebar_position: 7
----
-
-# Optimistic Concurrency Control (OCC)
+  write('06-database/concurrency.md', `# Optimistic Concurrency Control (OCC)
 
 <span className="badge-implemented">Implemented</span>
 
@@ -245,13 +213,7 @@ RETURNING *;
 `);
 
   // 07-authentication/authentication.md
-  write('07-authentication/authentication.md', `---
-id: authentication
-title: Authentication
-sidebar_position: 1
----
-
-# Authentication Architecture
+  write('07-authentication/authentication.md', `# Authentication Architecture
 
 <span className="badge-implemented">Implemented</span>
 
@@ -259,13 +221,7 @@ Session-based authentication backed by PostgreSQL and Bcrypt hashing.
 `);
 
   // 07-authentication/sessions.md
-  write('07-authentication/sessions.md', `---
-id: sessions
-title: Session Management
-sidebar_position: 2
----
-
-# Session Management
+  write('07-authentication/sessions.md', `# Session Management
 
 <span className="badge-implemented">Implemented</span>
 
@@ -273,13 +229,7 @@ Sessions stored in PostgreSQL \`session\` table using \`connect-pg-simple\`.
 `);
 
   // 07-authentication/authorization.md
-  write('07-authentication/authorization.md', `---
-id: authorization
-title: Authorization & RBAC
-sidebar_position: 3
----
-
-# Authorization & Middleware Guards
+  write('07-authentication/authorization.md', `# Authorization & RBAC
 
 <span className="badge-implemented">Implemented</span>
 
@@ -287,13 +237,7 @@ Route guards enforced via \`requireAuth\` and \`requireRole(...roles)\`.
 `);
 
   // 07-authentication/roles.md
-  write('07-authentication/roles.md', `---
-id: roles
-title: User Roles
-sidebar_position: 4
----
-
-# User Roles & Responsibilities
+  write('07-authentication/roles.md', `# User Roles
 
 <span className="badge-implemented">Implemented</span>
 
@@ -301,13 +245,7 @@ Roles: \`System Admin\`, \`Organization Admin\`, \`Commander\`, \`Disaster Offic
 `);
 
   // 07-authentication/permissions.md
-  write('07-authentication/permissions.md', `---
-id: permissions
-title: Permissions Matrix
-sidebar_position: 5
----
-
-# Granular Permissions Matrix
+  write('07-authentication/permissions.md', `# Permissions Matrix
 
 <span className="badge-implemented">Implemented</span>
 
@@ -315,13 +253,7 @@ Maps API routes to authorized role sets.
 `);
 
   // 07-authentication/security-model.md
-  write('07-authentication/security-model.md', `---
-id: security-model
-title: Security Model
-sidebar_position: 6
----
-
-# Security Model Overview
+  write('07-authentication/security-model.md', `# Security Model Overview
 
 <span className="badge-implemented">Implemented</span>
 
@@ -329,13 +261,7 @@ Defense-in-depth architecture covering transport, session, input validation, and
 `);
 
   // 08-domain/incident-management.md
-  write('08-domain/incident-management.md', `---
-id: incident-management
-title: Incident Management
-sidebar_position: 1
----
-
-# Incident Management
+  write('08-domain/incident-management.md', `# Incident Management
 
 <span className="badge-implemented">Implemented</span>
 
@@ -343,13 +269,7 @@ Manages disaster operations, AOI boundaries, hazard classification, and operatio
 `);
 
   // 08-domain/case-management.md
-  write('08-domain/case-management.md', `---
-id: case-management
-title: Case Management
-sidebar_position: 2
----
-
-# Case Management
+  write('08-domain/case-management.md', `# Case Management
 
 <span className="badge-implemented">Implemented</span>
 
@@ -357,13 +277,7 @@ Manages candidate triage cases joining AI detections with critical facilities.
 `);
 
   // 08-domain/case-lifecycle.md
-  write('08-domain/case-lifecycle.md', `---
-id: case-lifecycle
-title: Case Lifecycle & State Machine
-sidebar_position: 3
----
-
-# Case Lifecycle & Finite State Machine
+  write('08-domain/case-lifecycle.md', `# Case Lifecycle & Finite State Machine
 
 <span className="badge-implemented">Implemented</span>
 
@@ -394,13 +308,7 @@ stateDiagram-v2
 `);
 
   // 08-domain/task-management.md
-  write('08-domain/task-management.md', `---
-id: task-management
-title: Task Management & SLAs
-sidebar_position: 4
----
-
-# Task Management & SLA Escalations
+  write('08-domain/task-management.md', `# Task Management & SLAs
 
 <span className="badge-implemented">Implemented</span>
 
@@ -424,13 +332,7 @@ stateDiagram-v2
 `);
 
   // 08-domain/priority-engine.md
-  write('08-domain/priority-engine.md', `---
-id: priority-engine
-title: Explainable Priority Engine
-sidebar_position: 5
----
-
-# Explainable Priority Engine
+  write('08-domain/priority-engine.md', `# Explainable Priority Engine
 
 <span className="badge-implemented">Implemented</span>
 
@@ -506,13 +408,7 @@ const result = calculatePriority(
 `);
 
   // 08-domain/evidence-management.md
-  write('08-domain/evidence-management.md', `---
-id: evidence-management
-title: Evidence Management
-sidebar_position: 6
----
-
-# Evidence Management & Integrity Pipeline
+  write('08-domain/evidence-management.md', `# Evidence Management & Integrity Pipeline
 
 <span className="badge-implemented">Implemented</span>
 
@@ -520,13 +416,7 @@ File validation, magic-byte inspection, SHA-256 hashing, and path traversal prot
 `);
 
   // 08-domain/outcomes.md
-  write('08-domain/outcomes.md', `---
-id: outcomes
-title: Response Outcomes
-sidebar_position: 7
----
-
-# Response Outcomes & After-Action Recording
+  write('08-domain/outcomes.md', `# Response Outcomes & After-Action Recording
 
 <span className="badge-implemented">Implemented</span>
 
@@ -534,13 +424,7 @@ Captures verified ground truth, actions completed, and archival evidence.
 `);
 
   // 08-domain/audit-trail.md
-  write('08-domain/audit-trail.md', `---
-id: audit-trail
-title: Audit Trail
-sidebar_position: 8
----
-
-# Immutable Audit Trail
+  write('08-domain/audit-trail.md', `# Immutable Audit Trail
 
 <span className="badge-implemented">Implemented</span>
 

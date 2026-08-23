@@ -1,5 +1,5 @@
-# Automated API Test Suites
+# API Testing Suite
 
 <span className="badge-implemented">Implemented</span>
 
-API tests validate response contracts against OpenAPI specifications, checking required JSON fields, status codes, and error envelopes.
+All Express API route handlers are validated against the OpenAPI specification schema.

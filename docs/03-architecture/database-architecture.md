@@ -2,7 +2,7 @@
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA utilizes **PostgreSQL 15** as its primary relational datastore with **Drizzle ORM** (`lib/db`) for schema definition, migrations, and query execution.
+DRAXELYRA utilizes **PostgreSQL 15** managed through **Drizzle ORM** (`lib/db`). The schema enforces referential integrity, optimistic concurrency versioning, and immutable audit logs.
 
 ```mermaid
 erDiagram

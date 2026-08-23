@@ -1,4 +1,4 @@
-# User Roles & Responsibilities
+# User Roles
 
 <span className="badge-implemented">Implemented</span>
 

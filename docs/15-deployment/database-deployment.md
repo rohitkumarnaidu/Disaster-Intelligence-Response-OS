@@ -1,6 +1,8 @@
-# Database Deployment & Tuning
+# Database Provisioning & High Availability
 
 <span className="badge-implemented">Implemented</span>
 
-- Recommended connection pooling: `max: 20`, `idleTimeoutMillis: 30000`.
-- SSL connection required in production: `DATABASE_URL=postgres://user:pass@host:5432/draxelyra?sslmode=require`.
+Production database checklist:
+- Enable SSL/TLS connections (`sslmode=require`).
+- Automated daily pg_dump backups.
+- Connection limits tuned for container resources.

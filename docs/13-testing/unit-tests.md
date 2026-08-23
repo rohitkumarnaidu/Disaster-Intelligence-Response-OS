@@ -2,20 +2,15 @@
 
 <span className="badge-implemented">Implemented</span>
 
-Unit tests validate mathematical models and deterministic formulas:
+Unit tests run via `pnpm test`.
+
+### Canonical Priority Formula Test (`priority.test.ts`)
 
 ```typescript
-// artifacts/api-server/src/lib/priority.test.ts
-import { expect, test } from "vitest";
-import { calculatePriority } from "./priority";
-
-test("calculatePriority yields canonical output 83", () => {
-  const result = calculatePriority("Severe", "Hospital", "High", 28.8, true, 0.55);
-  expect(result.score).toBe(83);
+describe('Priority Engine', () => {
+  it('calculates canonical Hero Case C-1048 priority as 83', () => {
+    const score = calculatePriority('Severe', 'Hospital', 'High', 28.8, true, 0.55);
+    expect(score).toBe(83);
+  });
 });
-```
-
-Run unit tests:
-```bash
-pnpm run test
 ```

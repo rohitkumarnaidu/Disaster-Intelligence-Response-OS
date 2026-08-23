@@ -1,9 +1,8 @@
-# Threat Model & Mitigation Matrix
+# Threat Model & Mitigation
 
-| Threat / Attack Vector | Risk | Mitigation in DRAXELYRA |
+| Threat Vector | Potential Impact | Mitigation |
 | :--- | :--- | :--- |
-| **Concurrent Triage Overwrite** | Critical | Optimistic Concurrency Control (OCC) with atomic version CAS. |
-| **Malicious File Upload** | High | Magic-byte signature verification, size limits (50MB), filename sanitization. |
-| **Unauthorized Action Dispatch** | High | Route-level RBAC middleware (`requireRole`). |
-| **Credential Compromise** | Medium | Bcrypt hashing + secure session expiration. |
-| **SQL Injection** | Critical | Parameterized queries enforced by Drizzle ORM. |
+| **Session Hijacking** | Unauthorized triage commands | `httpOnly`, `SameSite=Lax`, `secure` cookie flags |
+| **Concurrent Edit Collision** | Stale data overwriting live field updates | Optimistic Concurrency Control with atomic CAS |
+| **Malicious File Upload** | Remote code execution via upload | Magic-byte header inspection and random GUID naming |
+| **Unauthorized Action** | Tactical personnel altering incident parameters | Strict RBAC middleware on all non-read routes |

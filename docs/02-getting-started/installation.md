@@ -9,8 +9,8 @@ Follow these steps to clone the repository, install dependencies across the mono
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/draxelyra/draxelyra-response-os.git
-cd draxelyra-response-os
+git clone https://github.com/rohitkumarnaidu/Disaster-Intelligence-Response-OS.git
+cd Disaster-Intelligence-Response-OS
 ```
 
 ---

@@ -1,6 +1,5 @@
-# Tamper-Evident Auditability
+# Auditability & Compliance
 
 <span className="badge-implemented">Implemented</span>
 
-- Cryptographic SHA-256 hashes generated for all evidence uploads.
-- Append-only audit log in PostgreSQL.
+Every operational action writes an immutable record to PostgreSQL table `audit_events`.

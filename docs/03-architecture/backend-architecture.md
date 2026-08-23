@@ -2,34 +2,55 @@
 
 <span className="badge-implemented">Implemented</span>
 
-The backend service located at `artifacts/api-server` is an **Express 5** application in TypeScript compiled with **esbuild**.
+The backend service at `artifacts/api-server` is an **Express 5** application in TypeScript compiled with **esbuild**.
 
 ---
 
-## Source Directory Layout
+## 1. Application Bootstrap (`index.ts` & `app.ts`)
 
+- **`index.ts`**: Resolves the HTTP port (`process.env.PORT || 5000`) and initiates the Express listener with graceful shutdown handling.
+- **`app.ts`**: Configures the HTTP pipeline:
+
+```typescript
+import express from 'express';
+import cors from 'cors';
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import { pool } from '@workspace/db';
+import router from './routes';
+
+const app = express();
+const PgSession = connectPgSimple(session);
+
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  session({
+    store: new PgSession({ pool, tableName: 'session' }),
+    secret: process.env.SESSION_SECRET || 'draxelyra_default_secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  })
+);
+
+app.use('/api', router);
+export default app;
 ```
-artifacts/api-server/src/
-├── app.ts                          # Express application configuration & middlewares
-├── index.ts                        # Server entry point (starts HTTP on port 5000)
-├── lib/
-│   ├── logger.ts                   # Pino structured JSON logger
-│   ├── priority.ts                 # Priority calculation mathematical model
-│   └── priority.test.ts            # Unit tests for canonical priority score
-├── middlewares/
-│   └── auth.ts                     # requireAuth & requireRole RBAC guards
-├── routes/
-│   ├── index.ts                    # Root API router (/api)
-│   ├── health.ts                   # Healthcheck endpoint (/api/health)
-│   ├── auth.ts                     # Login, logout, session user (/api/auth)
-│   ├── incidents.ts                # Incidents CRUD & Map GeoJSON (/api/incidents)
-│   ├── cases.ts                    # Case triage, reviews & audit (/api/cases)
-│   ├── tasks.ts                    # Response tasks & SLA tracking (/api/tasks)
-│   ├── evidence.ts                 # File uploads & magic-byte check (/api/evidence)
-│   ├── analytics.ts                # Operational metrics & funnel (/api/analytics)
-│   ├── demo.ts                     # Scenario replay endpoints (/api/demo)
-│   └── demo-data.ts                # Seed dataset for Chennai Urban Flood
-└── services/
-    ├── case-state-machine.ts       # Case lifecycle transitions & OCC versioning
-    └── task-state-machine.ts       # Task lifecycle transitions & OCC versioning
-```
+
+---
+
+## 2. Middleware Stack Order
+
+1. **Pino Logger**: Assigns unique request IDs and logs structured JSON logs.
+2. **CORS**: Validates incoming origin and permits session cookie headers.
+3. **Body Parser**: Decodes JSON and URL-encoded payloads.
+4. **Session**: Deserializes PostgreSQL session ID and binds `req.session.userId`.
+5. **requireAuth**: Blocks unauthenticated requests with `401 Unauthorized`.
+6. **requireRole(...roles)**: Enforces role permissions with `403 Forbidden`.

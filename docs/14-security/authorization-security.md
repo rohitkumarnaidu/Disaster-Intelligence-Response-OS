@@ -1,6 +1,5 @@
-# Authorization & Role Boundaries
+# Authorization & RBAC Security
 
 <span className="badge-implemented">Implemented</span>
 
-- Explicit role checks on all state-mutating endpoints.
-- Separation of duties: Analysts review signals; only Dispatchers/Commanders can create binding field tasks.
+Granular middleware guards (`requireRole`) ensure least-privilege access across all REST endpoints.

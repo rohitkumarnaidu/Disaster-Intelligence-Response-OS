@@ -1,4 +1,4 @@
-# Background Processing & Async Tasks
+# Background Processing
 
 <span className="badge-implemented">Implemented</span> <span className="badge-planned">Worker Queue Planned</span>
 

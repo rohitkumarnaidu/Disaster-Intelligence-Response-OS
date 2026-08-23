@@ -1,4 +1,4 @@
-# Error Handling & Standard Responses
+# Error Handling
 
 <span className="badge-implemented">Implemented</span>
 

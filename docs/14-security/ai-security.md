@@ -1,5 +1,5 @@
-# AI Security & Adversarial Robustness
+# AI & Model Integrity
 
 <span className="badge-implemented">Implemented</span>
 
-- Mandatory human-in-the-loop validation prevents adversarial satellite perturbations or sensor artifacts from directly triggering emergency field deployments.
+Model inferences are treated as untrusted inputs requiring human verification before triggering operational field tasks.

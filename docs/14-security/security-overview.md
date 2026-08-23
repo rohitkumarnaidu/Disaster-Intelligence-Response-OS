@@ -1,5 +1,5 @@
-# Security Overview
+# Security Architecture
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA adheres to strict security engineering practices to protect sensitive critical infrastructure locations, tactical responder identities, and operational plans.
+DRAXELYRA enforces a defense-in-depth security model covering authentication, access control, input validation, and media upload integrity.

@@ -1,5 +1,5 @@
-# Pull Request Process
+# Pull Request Guidelines
 
-- Ensure all CI tests and typechecks pass.
-- Provide a clear PR description detailing schema changes or new API endpoints.
-- Obtain review approval before merging.
+<span className="badge-implemented">Implemented</span>
+
+Every PR must pass TypeScript typechecks, Vitest unit tests, and Docusaurus documentation builds.

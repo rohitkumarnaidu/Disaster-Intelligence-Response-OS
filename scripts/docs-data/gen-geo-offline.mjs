@@ -9,13 +9,7 @@ export function generateGeoOffline(DOCS_DIR) {
   };
 
   // 09-geospatial/overview.md
-  write('09-geospatial/overview.md', `---
-id: overview
-title: Geospatial Overview
-sidebar_position: 1
----
-
-# Geospatial Overview
+  write('09-geospatial/overview.md', `# Geospatial Overview
 
 <span className="badge-implemented">Implemented</span>
 
@@ -33,13 +27,7 @@ flowchart TD
 `);
 
   // 09-geospatial/map-architecture.md
-  write('09-geospatial/map-architecture.md', `---
-id: map-architecture
-title: Map Architecture
-sidebar_position: 2
----
-
-# Map Architecture & Rendering Engine
+  write('09-geospatial/map-architecture.md', `# Map Architecture & Rendering Engine
 
 <span className="badge-implemented">Implemented</span>
 
@@ -55,13 +43,7 @@ The map engine is built on **MapLibre GL** via \`react-map-gl/maplibre\`.
 `);
 
   // 09-geospatial/geojson.md
-  write('09-geospatial/geojson.md', `---
-id: geojson
-title: GeoJSON Specifications
-sidebar_position: 3
----
-
-# GeoJSON Schemas & Specifications
+  write('09-geospatial/geojson.md', `# GeoJSON Schemas & Specifications
 
 <span className="badge-implemented">Implemented</span>
 
@@ -96,13 +78,7 @@ The map API returns an aggregated JSON payload containing standard RFC 7946 GeoJ
 `);
 
   // 09-geospatial/layers.md
-  write('09-geospatial/layers.md', `---
-id: layers
-title: Map Layers
-sidebar_position: 4
----
-
-# Map Layer Hierarchy & Styling
+  write('09-geospatial/layers.md', `# Map Layer Hierarchy & Styling
 
 <span className="badge-implemented">Implemented</span>
 
@@ -117,13 +93,7 @@ sidebar_position: 4
 `);
 
   // 09-geospatial/coordinates.md
-  write('09-geospatial/coordinates.md', `---
-id: coordinates
-title: Coordinate Systems
-sidebar_position: 5
----
-
-# Coordinate Reference Systems (CRS)
+  write('09-geospatial/coordinates.md', `# Coordinate Reference Systems (CRS)
 
 <span className="badge-implemented">Implemented</span>
 
@@ -133,13 +103,7 @@ sidebar_position: 5
 `);
 
   // 09-geospatial/spatial-data.md
-  write('09-geospatial/spatial-data.md', `---
-id: spatial-data
-title: Spatial Data Management
-sidebar_position: 6
----
-
-# Spatial Data Models & Queries
+  write('09-geospatial/spatial-data.md', `# Spatial Data Models & Queries
 
 <span className="badge-implemented">Implemented</span>
 
@@ -149,13 +113,7 @@ Geometries are stored in PostgreSQL \`jsonb\` columns (\`aoi\`, \`location\`, \`
 `);
 
   // 09-geospatial/map-interactions.md
-  write('09-geospatial/map-interactions.md', `---
-id: map-interactions
-title: Map Interactions
-sidebar_position: 7
----
-
-# User Map Interactions
+  write('09-geospatial/map-interactions.md', `# User Map Interactions
 
 <span className="badge-implemented">Implemented</span>
 
@@ -165,13 +123,7 @@ sidebar_position: 7
 `);
 
   // 09-geospatial/external-data.md
-  write('09-geospatial/external-data.md', `---
-id: external-data
-title: External GIS Integration
-sidebar_position: 8
----
-
-# External GIS & Earth Observation Data
+  write('09-geospatial/external-data.md', `# External GIS & Earth Observation Data
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">OGC WMS/WFS Planned</span>
 
@@ -180,13 +132,7 @@ sidebar_position: 8
 `);
 
   // 10-offline/pwa.md
-  write('10-offline/pwa.md', `---
-id: pwa
-title: PWA Architecture
-sidebar_position: 1
----
-
-# Progressive Web Application (PWA)
+  write('10-offline/pwa.md', `# Progressive Web Application (PWA)
 
 <span className="badge-implemented">Implemented</span>
 
@@ -194,13 +140,7 @@ DRAXELYRA is structured as an offline-capable Progressive Web Application to sup
 `);
 
   // 10-offline/offline-architecture.md
-  write('10-offline/offline-architecture.md', `---
-id: offline-architecture
-title: Offline Architecture
-sidebar_position: 2
----
-
-# Offline Architecture & Lifecycle
+  write('10-offline/offline-architecture.md', `# Offline Architecture & Lifecycle
 
 <span className="badge-implemented">Implemented</span>
 
@@ -233,13 +173,7 @@ sequenceDiagram
 `);
 
   // 10-offline/indexeddb.md
-  write('10-offline/indexeddb.md', `---
-id: indexeddb
-title: IndexedDB Storage
-sidebar_position: 3
----
-
-# IndexedDB Storage Implementation
+  write('10-offline/indexeddb.md', `# IndexedDB Storage Implementation
 
 <span className="badge-implemented">Implemented</span>
 
@@ -263,13 +197,7 @@ export async function getOfflineDB() {
 `);
 
   // 10-offline/sync-engine.md
-  write('10-offline/sync-engine.md', `---
-id: sync-engine
-title: Sync Engine
-sidebar_position: 4
----
-
-# Synchronization Engine
+  write('10-offline/sync-engine.md', `# Synchronization Engine
 
 <span className="badge-implemented">Implemented</span>
 
@@ -279,13 +207,7 @@ sidebar_position: 4
 `);
 
   // 10-offline/conflict-resolution.md
-  write('10-offline/conflict-resolution.md', `---
-id: conflict-resolution
-title: Conflict Resolution
-sidebar_position: 5
----
-
-# Conflict Resolution & Version Checking
+  write('10-offline/conflict-resolution.md', `# Conflict Resolution & Version Checking
 
 <span className="badge-implemented">Implemented</span>
 
@@ -296,13 +218,7 @@ When offline mutations are replayed against the API server:
 `);
 
   // 10-offline/retry-strategy.md
-  write('10-offline/retry-strategy.md', `---
-id: retry-strategy
-title: Retry Strategy
-sidebar_position: 6
----
-
-# Retry Strategy & Exponential Backoff
+  write('10-offline/retry-strategy.md', `# Retry Strategy & Exponential Backoff
 
 <span className="badge-implemented">Implemented</span>
 
@@ -312,13 +228,7 @@ sidebar_position: 6
 `);
 
   // 11-ai-ml/overview.md
-  write('11-ai-ml/overview.md', `---
-id: overview
-title: AI / ML Overview
-sidebar_position: 1
----
-
-# AI / ML Intelligence Overview
+  write('11-ai-ml/overview.md', `# AI / ML Intelligence Overview
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Live Service Planned</span>
 
@@ -326,13 +236,7 @@ DRAXELYRA integrates machine learning to accelerate initial disaster change-dete
 `);
 
   // 11-ai-ml/model-architecture.md
-  write('11-ai-ml/model-architecture.md', `---
-id: model-architecture
-title: Model Architecture
-sidebar_position: 2
----
-
-# Model Architecture & Pipelines
+  write('11-ai-ml/model-architecture.md', `# Model Architecture & Pipelines
 
 <span className="badge-mock">Mock Adapter Active</span>
 
@@ -342,13 +246,7 @@ sidebar_position: 2
 `);
 
   // 11-ai-ml/damage-assessment.md
-  write('11-ai-ml/damage-assessment.md', `---
-id: damage-assessment
-title: Damage Assessment
-sidebar_position: 3
----
-
-# Damage Assessment Taxonomy
+  write('11-ai-ml/damage-assessment.md', `# Damage Assessment Taxonomy
 
 <span className="badge-implemented">Implemented</span>
 
@@ -365,13 +263,7 @@ DRAXELYRA classifies structural damage into six standardized operational tiers:
 `);
 
   // 11-ai-ml/model-providers.md
-  write('11-ai-ml/model-providers.md', `---
-id: model-providers
-title: Model Providers
-sidebar_position: 4
----
-
-# Model Providers & Ingestion Adapters
+  write('11-ai-ml/model-providers.md', `# Model Providers & Ingestion Adapters
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Integrations Planned</span>
 
@@ -380,13 +272,7 @@ sidebar_position: 4
 `);
 
   // 11-ai-ml/inference-flow.md
-  write('11-ai-ml/inference-flow.md', `---
-id: inference-flow
-title: Inference Flow
-sidebar_position: 5
----
-
-# Inference Flow & Triage Pipeline
+  write('11-ai-ml/inference-flow.md', `# Inference Flow & Triage Pipeline
 
 <span className="badge-implemented">Implemented</span>
 
@@ -401,13 +287,7 @@ flowchart LR
 `);
 
   // 11-ai-ml/confidence.md
-  write('11-ai-ml/confidence.md', `---
-id: confidence
-title: Model Confidence
-sidebar_position: 6
----
-
-# Statistical Confidence vs Calibration
+  write('11-ai-ml/confidence.md', `# Statistical Confidence vs Calibration
 
 <span className="badge-implemented">Implemented</span>
 
@@ -416,13 +296,7 @@ sidebar_position: 6
 `);
 
   // 11-ai-ml/priority-vs-confidence.md
-  write('11-ai-ml/priority-vs-confidence.md', `---
-id: priority-vs-confidence
-title: Priority vs Confidence
-sidebar_position: 7
----
-
-# Priority vs Confidence: The Operational Divergence
+  write('11-ai-ml/priority-vs-confidence.md', `# Priority vs Confidence: The Operational Divergence
 
 <span className="badge-implemented">Implemented</span>
 
@@ -437,13 +311,7 @@ Confidence measures model certainty; Priority measures operational consequence.
 `);
 
   // 11-ai-ml/future-ml-integration.md
-  write('11-ai-ml/future-ml-integration.md', `---
-id: future-ml-integration
-title: Future ML Roadmap
-sidebar_position: 8
----
-
-# Future ML Integration Architecture
+  write('11-ai-ml/future-ml-integration.md', `# Future ML Roadmap
 
 <span className="badge-planned">Planned Future Architecture</span>
 

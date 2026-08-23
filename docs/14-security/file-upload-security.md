@@ -1,18 +1,11 @@
-# File Upload Security & Magic-Byte Validation
+# File Upload Security & Magic Bytes
 
 <span className="badge-implemented">Implemented</span>
 
-The upload handler validates real binary header signatures:
-
-```typescript
-function checkMagicBytes(buffer: Buffer, mimetype: string): boolean {
-  const hex = buffer.toString('hex', 0, 4).toUpperCase();
-  if (mimetype === 'image/jpeg') return hex.startsWith('FFD8FF');
-  if (mimetype === 'image/png') return hex === '89504E47';
-  if (mimetype === 'image/webp') {
-    return hex === '52494646' && buffer.toString('hex', 8, 12).toUpperCase() === '57454250';
-  }
-  if (mimetype === 'video/mp4') return buffer.toString('hex', 4, 8).toUpperCase() === '66747970';
-  return false;
-}
-```
+- **Magic Byte Signatures**: Leading bytes inspected before saving:
+  - JPEG: `FF D8 FF`
+  - PNG: `89 50 4E 47`
+  - WebP: `RIFF....WEBP`
+  - MP4: `ftyp`
+- **SHA-256 Hashing**: Computed for every upload to maintain chain of custody.
+- **Path Traversal Prevention**: Filenames sanitized with GUID identifiers.

@@ -5,6 +5,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
+import Login from '@/pages/login';
 import {
   Activity,
   AlertCircle,
@@ -124,7 +125,7 @@ function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const nav = [
     { href: '/', label: 'Command center', icon: Crosshair },
     { href: '/incidents', label: 'Incidents', icon: TriangleAlert },
@@ -135,6 +136,20 @@ function Shell({ children }: { children: ReactNode }) {
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   ];
   const utility = [{ href: '/demo', label: 'Demo replay', icon: Play }, { href: '/settings', label: 'Settings', icon: Settings2 }];
+
+  if (location === '/login') {
+    return <>{children}</>;
+  }
+
+  if (loading) {
+    return <div className="grid h-screen place-items-center"><LoadingBlock /></div>;
+  }
+
+  if (!user) {
+    window.location.href = '/login';
+    return null;
+  }
+
   return <div className="noise flex min-h-[100dvh] bg-background">
     <aside className={`${collapsed ? 'w-[72px]' : 'w-[248px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} fixed inset-y-0 left-0 z-40 flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300 md:relative`}>
       <div className="flex h-[76px] items-center gap-3 border-b border-sidebar-border px-5">
@@ -236,6 +251,7 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={CommandCenter} />
+        <Route path="/login" component={Login} />
         <Route path="/incidents" component={Incidents} />
         <Route path="/incidents/:id" component={IncidentDetail} />
         <Route path="/assessment" component={Assessment} />

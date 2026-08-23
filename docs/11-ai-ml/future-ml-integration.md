@@ -1,4 +1,4 @@
-# Future ML Integration Architecture
+# Future ML Roadmap
 
 <span className="badge-planned">Planned Future Architecture</span>
 

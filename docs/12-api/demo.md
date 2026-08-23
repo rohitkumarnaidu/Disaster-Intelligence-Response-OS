@@ -1,10 +1,10 @@
-# Demo Replay API Reference
+# Demo & Scenario Replay API
 
 <span className="badge-dev">Development Replay</span>
 
 ### `POST /api/demo/load`
-Idempotently clears and re-seeds the deterministic Chennai Urban Flood scenario (`inc-chennai-demo`), seeded user accounts, and hero case `C-1048`.
-- **Permissions**: System Admin, Organization Admin
+- **Description**: Idempotently seeds the Chennai Urban Flood dataset (`inc-chennai-demo`), critical facilities, candidate detections, and the hero case (`C-1048`).
+- **Access**: `system_admin`.
 
 ### `POST /api/demo/reset`
-Alias to `/api/demo/load` returning a 307 redirect.
+- **Description**: Wipes active demo telemetry and restores initial seed state.

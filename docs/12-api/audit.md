@@ -1,4 +1,6 @@
-# Audit API Reference
+# Audit Events API
+
+<span className="badge-implemented">Implemented</span>
 
 ### `GET /api/cases/:id/audit`
-Fetch immutable chronological log of actions for a given case.
+- **Description**: Returns immutable chronological log of actions, actors, and metadata diffs.

@@ -9,13 +9,7 @@ export function generateArch(DOCS_DIR) {
   };
 
   // 03-architecture/system-architecture.md
-  write('03-architecture/system-architecture.md', `---
-id: system-architecture
-title: System Architecture
-sidebar_position: 1
----
-
-# System Architecture
+  write('03-architecture/system-architecture.md', `# System Architecture
 
 <span className="badge-implemented">Implemented</span>
 
@@ -23,14 +17,14 @@ DRAXELYRA is architected as an **OpenAPI-first, multi-tier disaster operations p
 
 \`\`\`mermaid
 graph TB
-    subgraph Client Layer [Frontend Tier]
+    subgraph Client Layer [Frontend Tier - artifacts/draxelyra]
         UI[React 19 / Vite Command Console]
         Map[MapLibre GL Geospatial Engine]
         Store[TanStack React Query Cache]
         Offline[IndexedDB draxelyra-offline Queue]
     end
 
-    subgraph API Layer [Backend Tier]
+    subgraph API Layer [Backend Tier - artifacts/api-server]
         Router[Express 5 REST Router /api]
         AuthMid[Session & RBAC Middleware]
         CaseSM[Case State Machine Service]
@@ -40,7 +34,7 @@ graph TB
         PinoLog[Pino Structured Logger]
     end
 
-    subgraph Data Layer [Persistence Tier]
+    subgraph Data Layer [Persistence Tier - lib/db]
         Drizzle[Drizzle ORM]
         PG[(PostgreSQL 15)]
         Sessions[(PostgreSQL Session Store)]
@@ -63,23 +57,37 @@ graph TB
 
 ---
 
-## Workspace Structure & Packaging
+## Monorepo Layout & Packaging Structure
 
-The monorepo is managed with **pnpm workspaces** under the following layout:
+The codebase is organized as a unified TypeScript monorepo managed via **pnpm workspaces**:
 
 \`\`\`
 DRAXELYRA-Response-OS/
 ├── artifacts/
-│   ├── api-server/         # Express 5 backend application
-│   ├── draxelyra/          # React 19 command center web console
-│   └── mockup-sandbox/     # UI component prototype sandbox
+│   ├── api-server/         # Express 5 backend REST API
+│   │   ├── src/
+│   │   │   ├── app.ts                  # Express application bootstrap & middleware chain
+│   │   │   ├── index.ts                # Server entry point (starts listener on PORT)
+│   │   │   ├── lib/                    # Logger & Priority calculation formula
+│   │   │   ├── middlewares/            # Session, Auth, and RBAC guards
+│   │   │   ├── routes/                 # REST Route controllers (/auth, /incidents, /cases, /tasks, etc.)
+│   │   │   └── services/               # Transactional State Machines (Case, Task)
+│   │   └── build.mjs                   # esbuild bundle configuration
+│   ├── draxelyra/          # React 19 tactical command center
+│   │   ├── src/
+│   │   │   ├── App.tsx                 # Main layout, Wouter routing, view components
+│   │   │   ├── main.tsx                # DOM mount & QueryClientProvider setup
+│   │   │   ├── components/map/         # MapLibre GL map component & GeoJSON layers
+│   │   │   ├── lib/auth.tsx            # AuthProvider & useAuth hook
+│   │   │   └── lib/offline-sync.ts     # IndexedDB mutation queue & event bus
+│   │   └── vite.config.ts              # Vite 7 build configuration
+│   └── mockup-sandbox/     # UI component preview harness
 ├── lib/
 │   ├── api-spec/           # OpenAPI 3.1 contract (openapi.yaml) & Orval codegen
-│   ├── api-zod/            # Generated Zod validation schemas
+│   ├── api-zod/            # Generated Zod validation models
 │   ├── api-client-react/   # Generated TanStack Query React hooks & customFetch
 │   └── db/                 # Drizzle ORM schema, relations & PostgreSQL client
-├── docs/                   # Complete Technical Documentation Website (Docusaurus)
-├── scripts/                # Utility scripts & build automation
+├── docs/                   # 19-Section Technical Documentation Suite
 ├── docker-compose.yml      # Local PostgreSQL 15 container definition
 ├── pnpm-workspace.yaml     # Workspace configuration and supply chain constraints
 └── package.json            # Root workspace scripts
@@ -87,26 +95,20 @@ DRAXELYRA-Response-OS/
 
 ---
 
-## Architectural Boundaries
+## Core Architectural Boundaries
 
-1. **API Contract Single Source of Truth**: The OpenAPI 3.1 specification at \`lib/api-spec/openapi.yaml\` defines all data schemas, request parameters, and operation IDs. Both frontend React Query hooks (\`lib/api-client-react\`) and backend Zod schemas (\`lib/api-zod\`) are generated directly from this specification.
-2. **State & Concurrency Boundary**: All entity transitions for Cases and Tasks must pass through transactional state machines (\`case-state-machine.ts\` and \`task-state-machine.ts\`) enforcing Optimistic Concurrency Control (OCC) through version checking.
-3. **Session & Security Boundary**: Authentication uses HTTP-only secure cookie sessions backed by the PostgreSQL \`session\` table via \`connect-pg-simple\`.
+1. **API Contract as Single Source of Truth**: The OpenAPI 3.1 specification at \`lib/api-spec/openapi.yaml\` governs all endpoints, data types, and parameters. Frontend React Query hooks (\`lib/api-client-react\`) and backend Zod schemas (\`lib/api-zod\`) are compiled directly from this specification.
+2. **State & Concurrency Boundary**: All state mutations for operational Cases and Tasks must execute through transactional finite state machines (\`case-state-machine.ts\` and \`task-state-machine.ts\`) enforcing Optimistic Concurrency Control (OCC) using version checking.
+3. **Session & Security Boundary**: Authentication uses HTTP-only secure cookie sessions backed by PostgreSQL table \`session\` via \`connect-pg-simple\`, validated by granular Role-Based Access Control (RBAC) middlewares.
 `);
 
   // 03-architecture/architecture-principles.md
-  write('03-architecture/architecture-principles.md', `---
-id: architecture-principles
-title: Architectural Principles
-sidebar_position: 2
----
+  write('03-architecture/architecture-principles.md', `# Architectural Principles
 
-# Architectural Principles
-
-The engineering of DRAXELYRA is governed by five foundational architectural principles:
+DRAXELYRA's technical architecture is built on five core principles:
 
 ### 1. Explainability Over Black-Box Automation
-AI model inferences must never dictate operational actions without human interpretability. Priority scores are calculated deterministically using weighted operational factors (\`0.30*S + 0.25*C + 0.20*E + 0.15*U + 0.10*Conf\`) so duty officers can inspect exactly why an asset was ranked high.
+AI model inferences must never dictate operational actions without human interpretability. Priority scores are calculated deterministically using weighted operational factors (\`0.30*S + 0.25*C + 0.20*E + 0.15*U + 0.10*K\`) so duty officers can inspect exactly why an asset was ranked high.
 
 ### 2. Strict Human-in-the-Loop Triage
 An AI detection is merely a *candidate signal*. It cannot transition to an assigned field task without explicit confirmation (\`CONFIRMED\`, \`REJECTED\`, or \`UNCERTAIN\`) by an authorized analyst or commander with recorded review notes.
@@ -122,13 +124,7 @@ Every review decision, task status change, priority recalculation, and field upl
 `);
 
   // 03-architecture/request-flow.md
-  write('03-architecture/request-flow.md', `---
-id: request-flow
-title: Request Flow
-sidebar_position: 3
----
-
-# Request Lifecycle & HTTP Pipeline
+  write('03-architecture/request-flow.md', `# Request Lifecycle & HTTP Pipeline
 
 <span className="badge-implemented">Implemented</span>
 
@@ -165,13 +161,7 @@ sequenceDiagram
 `);
 
   // 03-architecture/data-flow.md
-  write('03-architecture/data-flow.md', `---
-id: data-flow
-title: Data Flow
-sidebar_position: 4
----
-
-# End-to-End Data Flow
+  write('03-architecture/data-flow.md', `# End-to-End Data Flow
 
 <span className="badge-implemented">Implemented</span>
 
@@ -214,13 +204,7 @@ flowchart TD
 `);
 
   // 03-architecture/frontend-architecture.md
-  write('03-architecture/frontend-architecture.md', `---
-id: frontend-architecture
-title: Frontend Architecture
-sidebar_position: 5
----
-
-# Frontend Architecture
+  write('03-architecture/frontend-architecture.md', `# Frontend Architecture
 
 <span className="badge-implemented">Implemented</span>
 
@@ -228,95 +212,136 @@ The frontend application located at \`artifacts/draxelyra\` is built with **Reac
 
 ---
 
-## Component & Module Organization
+## 1. Runtime Entry Point (\`main.tsx\`)
 
-\`\`\`
-artifacts/draxelyra/src/
-├── App.tsx                     # Main layout shell, router, and view components
-├── main.tsx                    # React DOM root entry point
-├── index.css                   # Global tactical dark CSS styles & fonts
-├── components/
-│   ├── error-boundary.tsx      # React error boundary with retry mechanisms
-│   ├── map/
-│   │   └── IncidentMap.tsx     # MapLibre GL geospatial map component
-│   └── ui/                     # Radix UI primitives & tactical UI widgets
-├── hooks/
-│   ├── use-mobile.tsx          # Mobile screen breakpoint detection hook
-│   └── use-toast.ts            # Toast notification dispatch hook
-├── lib/
-│   ├── auth.tsx                # AuthProvider context, login/logout, session hook
-│   ├── offline-sync.ts         # IndexedDB synchronization queue
-│   └── utils.ts                # Tailwind class merge utility (cn)
-└── pages/
-    ├── login.tsx               # Tactical authentication screen
-    └── not-found.tsx           # 404 handler view
+The application bootstraps at \`artifacts/draxelyra/src/main.tsx\`:
+
+\`\`\`tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import App from './App';
+import './index.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30, // 30 seconds fresh cache
+      refetchOnWindowFocus: true,
+      retry: 2,
+    },
+  },
+});
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </React.StrictMode>
+);
 \`\`\`
 
 ---
 
-## State Management Architecture
+## 2. Root Component & Layout Shell (\`App.tsx\`)
 
-1. **Server State**: Managed via **TanStack React Query** (\`@tanstack/react-query\`). Query keys are centrally generated via \`@workspace/api-client-react\`. Automatic background refetching is configured for real-time views (e.g., Command Summary polling at 60s intervals).
-2. **Authentication State**: Managed via \`AuthProvider\` in \`lib/auth.tsx\`, exposing \`useAuth()\` with \`user\`, \`loading\`, \`login()\`, and \`logout()\`.
-3. **Offline Mutation State**: Managed via \`offline-sync.ts\` using native browser **IndexedDB** (\`draxelyra-offline\` database).
+\`artifacts/draxelyra/src/App.tsx\` configures:
+- **AuthProvider Context**: Wraps all child routes to ensure session validation against \`/api/auth/me\`.
+- **Top Navigation Bar**: Renders branding, live operational counters, active route tabs, and user profile/logout controls.
+- **Client-Side Routing**: Configured with **Wouter** (\`Switch\`, \`Route\`) for lightweight routing.
+
+\`\`\`mermaid
+graph TD
+    A[main.tsx: QueryClientProvider] --> B[App.tsx: AuthProvider]
+    B --> C[Tactical Layout Shell]
+    C --> D[Top Navigation Bar]
+    C --> E[Wouter Switch Router]
+    E --> F["Overview (/)"]
+    E --> G["Incidents (/incidents)"]
+    E --> H["Assessment Map (/assessment)"]
+    E --> I["Priority Queue (/cases)"]
+    E --> J["Evidence Review (/review/:id)"]
+    E --> K["Response Tasks (/tasks)"]
+    E --> L["Field Inspection (/field)"]
+    E --> M["Analytics (/analytics)"]
+    E --> N["Demo Replay (/demo)"]
+\`\`\`
+
+---
+
+## 3. Data Layer & Caching (\`lib/api-client-react\`)
+
+- **Query Hooks**: Auto-generated by Orval into \`lib/api-client-react/src/index.ts\` (e.g., \`useListIncidents\`, \`useListCases\`, \`useGetCase\`, \`useListTasks\`).
+- **Fetch Wrapper**: \`customFetch\` in \`lib/api-client-react/src/custom-fetch.ts\` injects \`credentials: 'include'\` and catches offline network disconnects to enqueue mutations into IndexedDB.
+- **Query Invalidation**: On successful mutation (e.g. \`useReviewCase\`), the query cache invalidates \`['case', id]\` and \`['cases']\` to trigger automatic background UI updates.
 `);
 
   // 03-architecture/backend-architecture.md
-  write('03-architecture/backend-architecture.md', `---
-id: backend-architecture
-title: Backend Architecture
-sidebar_position: 6
----
-
-# Backend Architecture
+  write('03-architecture/backend-architecture.md', `# Backend Architecture
 
 <span className="badge-implemented">Implemented</span>
 
-The backend service located at \`artifacts/api-server\` is an **Express 5** application in TypeScript compiled with **esbuild**.
+The backend service at \`artifacts/api-server\` is an **Express 5** application in TypeScript compiled with **esbuild**.
 
 ---
 
-## Source Directory Layout
+## 1. Application Bootstrap (\`index.ts\` & \`app.ts\`)
 
+- **\`index.ts\`**: Resolves the HTTP port (\`process.env.PORT || 5000\`) and initiates the Express listener with graceful shutdown handling.
+- **\`app.ts\`**: Configures the HTTP pipeline:
+
+\`\`\`typescript
+import express from 'express';
+import cors from 'cors';
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import { pool } from '@workspace/db';
+import router from './routes';
+
+const app = express();
+const PgSession = connectPgSimple(session);
+
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  session({
+    store: new PgSession({ pool, tableName: 'session' }),
+    secret: process.env.SESSION_SECRET || 'draxelyra_default_secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  })
+);
+
+app.use('/api', router);
+export default app;
 \`\`\`
-artifacts/api-server/src/
-├── app.ts                          # Express application configuration & middlewares
-├── index.ts                        # Server entry point (starts HTTP on port 5000)
-├── lib/
-│   ├── logger.ts                   # Pino structured JSON logger
-│   ├── priority.ts                 # Priority calculation mathematical model
-│   └── priority.test.ts            # Unit tests for canonical priority score
-├── middlewares/
-│   └── auth.ts                     # requireAuth & requireRole RBAC guards
-├── routes/
-│   ├── index.ts                    # Root API router (/api)
-│   ├── health.ts                   # Healthcheck endpoint (/api/health)
-│   ├── auth.ts                     # Login, logout, session user (/api/auth)
-│   ├── incidents.ts                # Incidents CRUD & Map GeoJSON (/api/incidents)
-│   ├── cases.ts                    # Case triage, reviews & audit (/api/cases)
-│   ├── tasks.ts                    # Response tasks & SLA tracking (/api/tasks)
-│   ├── evidence.ts                 # File uploads & magic-byte check (/api/evidence)
-│   ├── analytics.ts                # Operational metrics & funnel (/api/analytics)
-│   ├── demo.ts                     # Scenario replay endpoints (/api/demo)
-│   └── demo-data.ts                # Seed dataset for Chennai Urban Flood
-└── services/
-    ├── case-state-machine.ts       # Case lifecycle transitions & OCC versioning
-    └── task-state-machine.ts       # Task lifecycle transitions & OCC versioning
-\`\`\`
+
+---
+
+## 2. Middleware Stack Order
+
+1. **Pino Logger**: Assigns unique request IDs and logs structured JSON logs.
+2. **CORS**: Validates incoming origin and permits session cookie headers.
+3. **Body Parser**: Decodes JSON and URL-encoded payloads.
+4. **Session**: Deserializes PostgreSQL session ID and binds \`req.session.userId\`.
+5. **requireAuth**: Blocks unauthenticated requests with \`401 Unauthorized\`.
+6. **requireRole(...roles)**: Enforces role permissions with \`403 Forbidden\`.
 `);
 
   // 03-architecture/database-architecture.md
-  write('03-architecture/database-architecture.md', `---
-id: database-architecture
-title: Database Architecture
-sidebar_position: 7
----
-
-# Database Architecture
+  write('03-architecture/database-architecture.md', `# Database Architecture
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA utilizes **PostgreSQL 15** as its primary relational datastore with **Drizzle ORM** (\`lib/db\`) for schema definition, migrations, and query execution.
+DRAXELYRA utilizes **PostgreSQL 15** managed through **Drizzle ORM** (\`lib/db\`). The schema enforces referential integrity, optimistic concurrency versioning, and immutable audit logs.
 
 \`\`\`mermaid
 erDiagram
@@ -344,13 +369,7 @@ erDiagram
 `);
 
   // 03-architecture/ai-architecture.md
-  write('03-architecture/ai-architecture.md', `---
-id: ai-architecture
-title: AI / ML Architecture
-sidebar_position: 8
----
-
-# AI / ML Architecture
+  write('03-architecture/ai-architecture.md', `# AI / ML Architecture
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Live Service Planned</span>
 
@@ -377,127 +396,130 @@ graph LR
 `);
 
   // 04-frontend/overview.md
-  write('04-frontend/overview.md', `---
-id: overview
-title: Frontend Overview
-sidebar_position: 1
----
-
-# Frontend Overview
+  write('04-frontend/overview.md', `# Frontend Overview
 
 <span className="badge-implemented">Implemented</span>
 
-The DRAXELYRA web console (\`artifacts/draxelyra\`) provides a high-density, low-latency tactical workspace tailored for emergency management centers and field dispatch units.
+The DRAXELYRA web console (\`artifacts/draxelyra\`) provides a high-density, low-latency tactical workspace tailored for emergency operations centers and mobile field units.
+
+---
+
+## Key Modules
+
+- **Navigation Shell**: Fixed top header with active counters (backlog, overdue tasks, active incidents) and user session menu.
+- **Geospatial Canvas**: Hardware-accelerated MapLibre GL map supporting GeoJSON layers for incident boundaries, critical assets, and detections.
+- **Evidence Review Studio**: Dual-pane pre/post satellite imagery inspector with damage classification and review rationale forms.
+- **Offline Mutation Queue**: Client-side IndexedDB database buffering requests during cellular outages.
 `);
 
   // 04-frontend/routing.md
-  write('04-frontend/routing.md', `---
-id: routing
-title: Frontend Routing
-sidebar_position: 2
----
-
-# Frontend Routing
+  write('04-frontend/routing.md', `# Frontend Routing
 
 <span className="badge-implemented">Implemented</span>
 
-Routing is configured via **Wouter** in \`artifacts/draxelyra/src/App.tsx\`. Protected routes require an active user session.
+Client-side routing is configured in \`artifacts/draxelyra/src/App.tsx\` using **Wouter**.
+
+| Route | Component / View | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| \`/\` | \`Overview\` | Executive situational awareness dashboard | Yes |
+| \`/incidents\` | \`Incidents\` | Incident registry & new incident creation | Yes |
+| \`/incidents/:id\` | \`IncidentDetail\` | Incident telemetry & AOI parameters | Yes |
+| \`/assessment\` | \`Assessment\` | MapLibre geospatial triage console | Yes |
+| \`/cases\` | \`Cases\` | Explainable priority triage queue | Yes |
+| \`/cases/:id\` | \`CaseDetail\` | Detailed case factors & audit history | Yes |
+| \`/review/:id\` | \`Review\` | Evidence review & decision workspace | Yes |
+| \`/tasks\` | \`Tasks\` | Response task dispatch board & SLA monitor | Yes |
+| \`/field\` | \`Field\` | Tactical field responder inspection console | Yes |
+| \`/analytics\` | \`Analytics\` | Incident progression funnel & performance | Yes |
+| \`/demo\` | \`DemoReplay\` | Scenario replay & dataset loader | Yes (Admin) |
+| \`/login\` | \`LoginPage\` | Tactical authentication screen | No |
 `);
 
   // 04-frontend/state-management.md
-  write('04-frontend/state-management.md', `---
-id: state-management
-title: State Management
-sidebar_position: 3
----
-
-# State Management
+  write('04-frontend/state-management.md', `# State Management
 
 <span className="badge-implemented">Implemented</span>
 
-Server state is managed via **TanStack React Query**, authentication context via React Context, and offline mutations via **IndexedDB**.
+DRAXELYRA utilizes a 3-tier state architecture:
+
+1. **Server State**: Managed via **TanStack React Query** (\`@tanstack/react-query\`).
+   - Query keys are strictly typed via \`@workspace/api-client-react\`.
+   - Polling intervals: 60s for summary dashboards, instant refetch on window focus.
+2. **Authentication State**: Managed via React Context in \`artifacts/draxelyra/src/lib/auth.tsx\`, exposing:
+   - \`user\`: Current logged-in user object (\`id\`, \`name\`, \`email\`, \`role\`).
+   - \`login(email, password)\`: Mutates session cookie.
+   - \`logout()\`: Clears session and redirects to \`/login\`.
+3. **Offline Queue State**: Managed via **IndexedDB** in \`artifacts/draxelyra/src/lib/offline-sync.ts\`.
 `);
 
   // 04-frontend/components.md
-  write('04-frontend/components.md', `---
-id: components
-title: Components
-sidebar_position: 4
----
-
-# UI Components & Primitives
+  write('04-frontend/components.md', `# UI Components & Primitives
 
 <span className="badge-implemented">Implemented</span>
 
-Core widgets include \`Metric\`, \`Badge\`, \`IncidentMap\`, \`AuditTimeline\`, and \`ErrorBoundary\`.
+The frontend utilizes a combination of Radix UI primitives and custom tactical components:
+
+- **\`Metric\`**: Displays KPI counters with trend badges and status color accents.
+- **\`Badge\`**: Renders standardized status markers (\`badge-implemented\`, \`badge-dev\`, \`badge-mock\`, \`badge-planned\`).
+- **\`IncidentMap\`**: MapLibre GL wrapper component rendering GeoJSON layers with popup tooltips.
+- **\`AuditTimeline\`**: Chronological visual feed of actor decisions and state mutations.
+- **\`ErrorBoundary\`**: Global error wrapper catching rendering exceptions with reset buttons.
 `);
 
   // 04-frontend/design-system.md
-  write('04-frontend/design-system.md', `---
-id: design-system
-title: Design System
-sidebar_position: 5
----
-
-# Tactical Design System
+  write('04-frontend/design-system.md', `# Tactical Design System
 
 <span className="badge-implemented">Implemented</span>
 
-Custom dark operations-console design system with Teal (\`#259184\`), Amber (\`#efac30\`), and Red (\`#cd372f\`) status markers.
+The UI is built with Tailwind CSS v4 and a dark operations console theme:
+
+| Element | Color Code | Purpose |
+| :--- | :--- | :--- |
+| **Primary Background** | \`#0b1210\` | Dark tactical console canvas |
+| **Card / Surface** | \`#14211f\` | Elevated panels and widgets |
+| **Border / Divider** | \`#1c2b27\` | Subtle grid lines |
+| **Teal Accent** | \`#259184\` / \`#34b3a4\` | Confirmed status, primary actions, active tabs |
+| **Amber Warning** | \`#efac30\` / \`#f7ca68\` | Needs review, moderate damage, approaching SLA |
+| **Red Critical** | \`#cd372f\` | Severe/Destroyed damage, overdue SLA, rejected |
 `);
 
   // 04-frontend/geospatial-ui.md
-  write('04-frontend/geospatial-ui.md', `---
-id: geospatial-ui
-title: Geospatial UI
-sidebar_position: 6
----
-
-# Geospatial UI Implementation
+  write('04-frontend/geospatial-ui.md', `# Geospatial UI Implementation
 
 <span className="badge-implemented">Implemented</span>
 
-The mapping interface in \`components/map/IncidentMap.tsx\` is built on **MapLibre GL** via \`react-map-gl/maplibre\`.
+The geospatial workspace in \`artifacts/draxelyra/src/components/map/IncidentMap.tsx\` is built on **MapLibre GL** via \`react-map-gl/maplibre\`.
+
+- **Vector Basemap**: Carto Voyager GL style (\`https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json\`).
+- **Dynamic GeoJSON Sources**: Fetched via \`GET /api/incidents/:id/map\` and rendered as separate WebGL layers:
+  - \`aoi-layer\`: Semi-transparent polygon fill and dashed stroke for the operational zone.
+  - \`assets-layer\`: Neutral circles showing hospitals, power substations, and bridges.
+  - \`detections-layer\`: Red circles indicating candidate structural change detections.
+  - \`cases-layer\`: Priority-colored interactive circles with click-to-open case inspection.
 `);
 
   // 04-frontend/responsive-design.md
-  write('04-frontend/responsive-design.md', `---
-id: responsive-design
-title: Responsive Design
-sidebar_position: 7
----
-
-# Responsive Design & Mobile Breakpoints
+  write('04-frontend/responsive-design.md', `# Responsive Design & Mobile Breakpoints
 
 <span className="badge-implemented">Implemented</span>
 
-- Desktop (1280px+): Multi-column split operations views.
-- Tablet (768px - 1279px): Collapsible sidebar and stacked grids.
-- Mobile (&lt; 768px): Full-width tactical cards and compact map mode.
+- **Desktop (1280px+)**: Multi-column split views (Map + Case Queue + Detail Panel).
+- **Tablet (768px - 1279px)**: Collapsible sidebar navigation and stacked grid cards.
+- **Mobile (< 768px)**: Optimized for tactical field responders: full-width observation cards, touch targets (minimum 44px), and compact map view.
 `);
 
   // 04-frontend/accessibility.md
-  write('04-frontend/accessibility.md', `---
-id: accessibility
-title: Accessibility
-sidebar_position: 8
----
-
-# Accessibility Standards
+  write('04-frontend/accessibility.md', `# Accessibility Standards
 
 <span className="badge-implemented">Implemented</span>
 
-WCAG AA contrast ratios, multi-modal status indicators, and keyboard navigation support.
+- **Contrast Ratios**: WCAG AA compliance (4.5:1 text-to-background minimum).
+- **Multi-Modal Indicators**: Statuses are conveyed via color, text labels, and icons (not color alone).
+- **Keyboard Navigation**: Radix UI dialogs and menus support full Tab and Esc key controls.
 `);
 
   // 05-backend/overview.md
-  write('05-backend/overview.md', `---
-id: overview
-title: Backend Overview
-sidebar_position: 1
----
-
-# Backend Overview
+  write('05-backend/overview.md', `# Backend Overview
 
 <span className="badge-implemented">Implemented</span>
 
@@ -505,13 +527,7 @@ The DRAXELYRA backend (\`artifacts/api-server\`) is an Express 5 TypeScript serv
 `);
 
   // 05-backend/api-architecture.md
-  write('05-backend/api-architecture.md', `---
-id: api-architecture
-title: API Architecture
-sidebar_position: 2
----
-
-# API Architecture & Routing Layout
+  write('05-backend/api-architecture.md', `# API Architecture & Routing Layout
 
 <span className="badge-implemented">Implemented</span>
 
@@ -519,13 +535,7 @@ Sub-routers handle \`/health\`, \`/auth\`, \`/incidents\`, \`/cases\`, \`/tasks\
 `);
 
   // 05-backend/middleware.md
-  write('05-backend/middleware.md', `---
-id: middleware
-title: Middleware Pipeline
-sidebar_position: 3
----
-
-# Middleware Pipeline
+  write('05-backend/middleware.md', `# Middleware Pipeline
 
 <span className="badge-implemented">Implemented</span>
 
@@ -533,13 +543,7 @@ Pino HTTP logging, CORS credentials handling, session serialization, and \`requi
 `);
 
   // 05-backend/services.md
-  write('05-backend/services.md', `---
-id: services
-title: Domain Services
-sidebar_position: 4
----
-
-# Domain Services
+  write('05-backend/services.md', `# Domain Services
 
 <span className="badge-implemented">Implemented</span>
 
@@ -547,13 +551,7 @@ Case State Machine, Task State Machine, Priority Engine, and Evidence Storage se
 `);
 
   // 05-backend/workflows.md
-  write('05-backend/workflows.md', `---
-id: workflows
-title: Operational Workflows
-sidebar_position: 5
----
-
-# Backend Workflows
+  write('05-backend/workflows.md', `# Operational Workflows
 
 <span className="badge-implemented">Implemented</span>
 
@@ -561,13 +559,7 @@ Detailed sequence flows for Case Review, Task Dispatch, and Ground Verification.
 `);
 
   // 05-backend/error-handling.md
-  write('05-backend/error-handling.md', `---
-id: error-handling
-title: Error Handling
-sidebar_position: 6
----
-
-# Error Handling & Standard Responses
+  write('05-backend/error-handling.md', `# Error Handling
 
 <span className="badge-implemented">Implemented</span>
 
@@ -575,13 +567,7 @@ Standard JSON envelopes with error codes (\`BAD_REQUEST\`, \`UNAUTHORIZED\`, \`F
 `);
 
   // 05-backend/background-processing.md
-  write('05-backend/background-processing.md', `---
-id: background-processing
-title: Background Processing
-sidebar_position: 7
----
-
-# Background Processing & Async Tasks
+  write('05-backend/background-processing.md', `# Background Processing
 
 <span className="badge-implemented">Implemented</span> <span className="badge-planned">Worker Queue Planned</span>
 
