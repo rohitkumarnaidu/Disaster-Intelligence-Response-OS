@@ -1,9 +1,3 @@
----
-id: retry-strategy
-title: Retry Strategy
-sidebar_position: 6
----
-
 # Retry Strategy & Exponential Backoff
 
 <span className="badge-implemented">Implemented</span>

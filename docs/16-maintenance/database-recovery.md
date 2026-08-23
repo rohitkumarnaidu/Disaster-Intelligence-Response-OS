@@ -1,9 +1,3 @@
----
-id: database-recovery
-title: Database Recovery
-sidebar_position: 6
----
-
 # Database Recovery Runbook
 
 ```bash

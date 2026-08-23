@@ -1,9 +1,3 @@
----
-id: pwa
-title: PWA Architecture
-sidebar_position: 1
----
-
 # Progressive Web Application (PWA)
 
 <span className="badge-implemented">Implemented</span>

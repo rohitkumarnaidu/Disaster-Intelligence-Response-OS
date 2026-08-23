@@ -1,9 +1,3 @@
----
-id: docker
-title: Docker Deployment
-sidebar_position: 2
----
-
 # Docker & Containerization
 
 <span className="badge-implemented">Implemented</span>

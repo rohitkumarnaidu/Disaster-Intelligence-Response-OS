@@ -1,9 +1,3 @@
----
-id: overview
-title: Backend Overview
-sidebar_position: 1
----
-
 # Backend Overview
 
 <span className="badge-implemented">Implemented</span>

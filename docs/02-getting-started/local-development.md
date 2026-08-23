@@ -1,9 +1,3 @@
----
-id: local-development
-title: Local Development
-sidebar_position: 3
----
-
 # Local Development Workflow
 
 <span className="badge-implemented">Implemented</span>

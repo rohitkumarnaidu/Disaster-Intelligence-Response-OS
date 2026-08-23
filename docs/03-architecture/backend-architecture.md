@@ -1,9 +1,3 @@
----
-id: backend-architecture
-title: Backend Architecture
-sidebar_position: 6
----
-
 # Backend Architecture
 
 <span className="badge-implemented">Implemented</span>

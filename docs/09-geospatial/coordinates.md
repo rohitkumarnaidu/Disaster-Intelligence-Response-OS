@@ -1,9 +1,3 @@
----
-id: coordinates
-title: Coordinate Systems
-sidebar_position: 5
----
-
 # Coordinate Reference Systems (CRS)
 
 <span className="badge-implemented">Implemented</span>

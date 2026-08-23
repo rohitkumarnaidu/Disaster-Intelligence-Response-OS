@@ -1,9 +1,3 @@
----
-id: future-ml-integration
-title: Future ML Roadmap
-sidebar_position: 8
----
-
 # Future ML Integration Architecture
 
 <span className="badge-planned">Planned Future Architecture</span>

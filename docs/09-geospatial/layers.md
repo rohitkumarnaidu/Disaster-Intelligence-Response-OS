@@ -1,9 +1,3 @@
----
-id: layers
-title: Map Layers
-sidebar_position: 4
----
-
 # Map Layer Hierarchy & Styling
 
 <span className="badge-implemented">Implemented</span>

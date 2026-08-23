@@ -1,9 +1,3 @@
----
-id: analytics
-title: Analytics API
-sidebar_position: 8
----
-
 # Analytics API Reference
 
 ### `GET /api/analytics/overview`

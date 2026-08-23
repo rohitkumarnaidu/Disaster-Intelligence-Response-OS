@@ -1,9 +1,3 @@
----
-id: commit-conventions
-title: Commit Conventions
-sidebar_position: 5
----
-
 # Conventional Commits
 
 Use standard conventional commit prefixes:

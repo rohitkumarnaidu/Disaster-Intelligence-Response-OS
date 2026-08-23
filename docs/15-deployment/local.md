@@ -1,9 +1,3 @@
----
-id: local
-title: Local Deployment
-sidebar_position: 1
----
-
 # Local Deployment Guide
 
 <span className="badge-implemented">Implemented</span>

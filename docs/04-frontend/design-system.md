@@ -1,9 +1,3 @@
----
-id: design-system
-title: Design System
-sidebar_position: 5
----
-
 # Tactical Design System
 
 <span className="badge-implemented">Implemented</span>

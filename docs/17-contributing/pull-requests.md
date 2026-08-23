@@ -1,9 +1,3 @@
----
-id: pull-requests
-title: Pull Request Process
-sidebar_position: 4
----
-
 # Pull Request Process
 
 - Ensure all CI tests and typechecks pass.

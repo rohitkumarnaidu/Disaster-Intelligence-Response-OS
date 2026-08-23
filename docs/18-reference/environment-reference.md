@@ -1,9 +1,3 @@
----
-id: environment-reference
-title: Environment Reference
-sidebar_position: 2
----
-
 # Complete Environment Variable Reference
 
 | Variable | Type | Default | Description |

@@ -1,9 +1,3 @@
----
-id: terminology
-title: Terminology
-sidebar_position: 4
----
-
 # Terminology & Acronyms
 
 | Term / Acronym | Definition | Context in DRAXELYRA |

@@ -1,9 +1,3 @@
----
-id: security-model
-title: Security Model
-sidebar_position: 6
----
-
 # Security Model Overview
 
 <span className="badge-implemented">Implemented</span>

@@ -1,9 +1,3 @@
----
-id: current-state
-title: Current Implementation State
-sidebar_position: 1
----
-
 # Current Implementation State
 
 <span className="badge-implemented">Implemented</span>

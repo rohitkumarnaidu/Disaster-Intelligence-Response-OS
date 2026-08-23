@@ -1,9 +1,3 @@
----
-id: security-tests
-title: Security Tests
-sidebar_position: 6
----
-
 # Security & Pen-Testing Suites
 
 <span className="badge-implemented">Implemented</span>

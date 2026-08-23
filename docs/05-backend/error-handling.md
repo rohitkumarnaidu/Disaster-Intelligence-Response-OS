@@ -1,9 +1,3 @@
----
-id: error-handling
-title: Error Handling
-sidebar_position: 6
----
-
 # Error Handling & Standard Responses
 
 <span className="badge-implemented">Implemented</span>

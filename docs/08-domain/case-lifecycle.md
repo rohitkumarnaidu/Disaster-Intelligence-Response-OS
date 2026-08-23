@@ -1,9 +1,3 @@
----
-id: case-lifecycle
-title: Case Lifecycle & State Machine
-sidebar_position: 3
----
-
 # Case Lifecycle & Finite State Machine
 
 <span className="badge-implemented">Implemented</span>

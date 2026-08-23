@@ -1,9 +1,3 @@
----
-id: field-observations
-title: Field Observations API
-sidebar_position: 7
----
-
 # Field Observations API
 
 <span className="badge-implemented">Implemented</span>

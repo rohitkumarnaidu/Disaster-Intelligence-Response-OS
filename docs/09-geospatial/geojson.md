@@ -1,9 +1,3 @@
----
-id: geojson
-title: GeoJSON Specifications
-sidebar_position: 3
----
-
 # GeoJSON Schemas & Specifications
 
 <span className="badge-implemented">Implemented</span>

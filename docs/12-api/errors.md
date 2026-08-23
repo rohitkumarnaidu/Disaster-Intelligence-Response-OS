@@ -1,9 +1,3 @@
----
-id: errors
-title: API Error Codes
-sidebar_position: 11
----
-
 # API Error Codes & Handling
 
 | HTTP Status | Error Code | Example Payload |

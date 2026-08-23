@@ -1,9 +1,3 @@
----
-id: audit
-title: Audit API
-sidebar_position: 9
----
-
 # Audit API Reference
 
 ### `GET /api/cases/:id/audit`

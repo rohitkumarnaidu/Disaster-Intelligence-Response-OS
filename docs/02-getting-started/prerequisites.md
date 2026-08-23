@@ -1,9 +1,3 @@
----
-id: prerequisites
-title: Prerequisites
-sidebar_position: 1
----
-
 # Prerequisites
 
 <span className="badge-implemented">Implemented</span>

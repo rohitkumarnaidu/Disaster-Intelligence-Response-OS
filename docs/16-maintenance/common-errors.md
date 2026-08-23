@@ -1,9 +1,3 @@
----
-id: common-errors
-title: Common Errors Reference
-sidebar_position: 4
----
-
 # Common Operational Errors
 
 | Error | Cause | Resolution |

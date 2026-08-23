@@ -1,9 +1,3 @@
----
-id: system-architecture
-title: System Architecture
-sidebar_position: 1
----
-
 # System Architecture
 
 <span className="badge-implemented">Implemented</span>

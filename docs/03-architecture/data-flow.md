@@ -1,9 +1,3 @@
----
-id: data-flow
-title: Data Flow
-sidebar_position: 4
----
-
 # End-to-End Data Flow
 
 <span className="badge-implemented">Implemented</span>

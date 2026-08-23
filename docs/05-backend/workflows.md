@@ -1,9 +1,3 @@
----
-id: workflows
-title: Operational Workflows
-sidebar_position: 5
----
-
 # Backend Workflows
 
 <span className="badge-implemented">Implemented</span>

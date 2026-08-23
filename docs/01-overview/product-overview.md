@@ -1,9 +1,3 @@
----
-id: product-overview
-title: Product Overview
-sidebar_position: 2
----
-
 # Product Overview
 
 <span className="badge-implemented">Implemented</span>

@@ -1,9 +1,3 @@
----
-id: request-flow
-title: Request Flow
-sidebar_position: 3
----
-
 # Request Lifecycle & HTTP Pipeline
 
 <span className="badge-implemented">Implemented</span>

@@ -1,9 +1,3 @@
----
-id: authentication-security
-title: Authentication Security
-sidebar_position: 2
----
-
 # Authentication Security
 
 <span className="badge-implemented">Implemented</span>

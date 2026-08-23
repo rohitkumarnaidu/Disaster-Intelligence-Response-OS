@@ -1,9 +1,3 @@
----
-id: data-protection
-title: Data Protection
-sidebar_position: 6
----
-
 # Data Protection & Privacy
 
 <span className="badge-implemented">Implemented</span>

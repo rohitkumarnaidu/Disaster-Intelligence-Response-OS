@@ -1,9 +1,3 @@
----
-id: database-deployment
-title: Database Deployment
-sidebar_position: 5
----
-
 # Database Deployment & Tuning
 
 <span className="badge-implemented">Implemented</span>

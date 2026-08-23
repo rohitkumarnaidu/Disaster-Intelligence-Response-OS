@@ -1,9 +1,3 @@
----
-id: integration-tests
-title: Integration Tests
-sidebar_position: 3
----
-
 # Integration Tests
 
 <span className="badge-implemented">Implemented</span>

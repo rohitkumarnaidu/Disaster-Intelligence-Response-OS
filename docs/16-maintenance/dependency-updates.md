@@ -1,9 +1,3 @@
----
-id: dependency-updates
-title: Dependency Updates
-sidebar_position: 5
----
-
 # Dependency Updates & Policy
 
 - `pnpm-workspace.yaml` enforces supply chain safety (`minimumReleaseAge: 1440`).

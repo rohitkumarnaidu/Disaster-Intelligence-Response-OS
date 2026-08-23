@@ -1,9 +1,3 @@
----
-id: technical-debt
-title: Technical Debt & Known Limitations
-sidebar_position: 2
----
-
 # Technical Debt & Known Limitations
 
 1. **Local File Storage**: Current evidence uploads are stored on local disk (`/uploads`); needs abstraction for S3 / Cloud Storage buckets in multi-node clusters.

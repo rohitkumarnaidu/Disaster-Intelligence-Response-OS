@@ -1,9 +1,3 @@
----
-id: introduction
-title: Introduction to DRAXELYRA
-sidebar_position: 1
----
-
 # Introduction to DRAXELYRA
 
 <span className="badge-implemented">Implemented</span> <span className="badge-dev">Development Replay</span>

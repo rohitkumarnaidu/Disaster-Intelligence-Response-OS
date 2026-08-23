@@ -1,9 +1,3 @@
----
-id: adding-features
-title: Adding Features
-sidebar_position: 6
----
-
 # Adding Features: The OpenAPI-First Guide
 
 1. Update `lib/api-spec/openapi.yaml`.

@@ -1,9 +1,3 @@
----
-id: map-interactions
-title: Map Interactions
-sidebar_position: 7
----
-
 # User Map Interactions
 
 <span className="badge-implemented">Implemented</span>

@@ -1,9 +1,3 @@
----
-id: demo
-title: Demo Replay API
-sidebar_position: 10
----
-
 # Demo Replay API Reference
 
 <span className="badge-dev">Development Replay</span>

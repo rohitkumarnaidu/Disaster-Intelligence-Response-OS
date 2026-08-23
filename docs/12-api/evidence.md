@@ -1,9 +1,3 @@
----
-id: evidence
-title: Evidence API
-sidebar_position: 6
----
-
 # Evidence API Reference
 
 ### `POST /api/evidence/upload`

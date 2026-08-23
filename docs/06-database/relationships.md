@@ -1,9 +1,3 @@
----
-id: relationships
-title: Relationships & Foreign Keys
-sidebar_position: 3
----
-
 # Relationships & Foreign Keys
 
 <span className="badge-implemented">Implemented</span>

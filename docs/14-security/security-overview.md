@@ -1,9 +1,3 @@
----
-id: security-overview
-title: Security Overview
-sidebar_position: 1
----
-
 # Security Overview
 
 <span className="badge-implemented">Implemented</span>

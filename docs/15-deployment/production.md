@@ -1,9 +1,3 @@
----
-id: production
-title: Production Deployment
-sidebar_position: 4
----
-
 # Production Deployment Architecture
 
 <span className="badge-implemented">Implemented</span>

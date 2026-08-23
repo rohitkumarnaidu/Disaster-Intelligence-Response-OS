@@ -1,9 +1,3 @@
----
-id: threat-model
-title: Threat Model
-sidebar_position: 9
----
-
 # Threat Model & Mitigation Matrix
 
 | Threat / Attack Vector | Risk | Mitigation in DRAXELYRA |

@@ -1,9 +1,3 @@
----
-id: monitoring
-title: Health & Monitoring
-sidebar_position: 8
----
-
 # Monitoring & Observability
 
 <span className="badge-implemented">Implemented</span>

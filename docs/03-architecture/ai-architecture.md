@@ -1,9 +1,3 @@
----
-id: ai-architecture
-title: AI / ML Architecture
-sidebar_position: 8
----
-
 # AI / ML Architecture
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Live Service Planned</span>

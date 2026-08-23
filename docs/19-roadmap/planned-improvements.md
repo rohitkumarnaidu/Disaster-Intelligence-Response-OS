@@ -1,9 +1,3 @@
----
-id: planned-improvements
-title: Planned Improvements
-sidebar_position: 3
----
-
 # Planned Improvements
 
 - **Real-Time WebSocket / SSE Gateway**: Push live triage events and task updates to connected clients without polling.

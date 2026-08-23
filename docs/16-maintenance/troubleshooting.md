@@ -1,9 +1,3 @@
----
-id: troubleshooting
-title: Troubleshooting Guide
-sidebar_position: 1
----
-
 # Operational Troubleshooting
 
 <span className="badge-implemented">Implemented</span>

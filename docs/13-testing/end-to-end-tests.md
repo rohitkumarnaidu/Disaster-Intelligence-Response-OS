@@ -1,9 +1,3 @@
----
-id: end-to-end-tests
-title: End-to-End Tests
-sidebar_position: 4
----
-
 # End-to-End Scenario Testing
 
 <span className="badge-implemented">Implemented</span>

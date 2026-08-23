@@ -1,9 +1,3 @@
----
-id: spatial-data
-title: Spatial Data Management
-sidebar_position: 6
----
-
 # Spatial Data Models & Queries
 
 <span className="badge-implemented">Implemented</span>

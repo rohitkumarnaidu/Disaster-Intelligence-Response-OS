@@ -1,9 +1,3 @@
----
-id: priority-vs-confidence
-title: Priority vs Confidence
-sidebar_position: 7
----
-
 # Priority vs Confidence: The Operational Divergence
 
 <span className="badge-implemented">Implemented</span>

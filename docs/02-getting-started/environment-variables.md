@@ -1,9 +1,3 @@
----
-id: environment-variables
-title: Environment Variables
-sidebar_position: 4
----
-
 # Environment Variables Reference
 
 <span className="badge-implemented">Implemented</span>

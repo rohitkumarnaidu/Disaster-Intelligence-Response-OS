@@ -1,9 +1,3 @@
----
-id: core-concepts
-title: Core Concepts
-sidebar_position: 3
----
-
 # Core Concepts
 
 <span className="badge-implemented">Implemented</span>

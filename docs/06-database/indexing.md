@@ -1,9 +1,3 @@
----
-id: indexing
-title: Indexing Strategy
-sidebar_position: 5
----
-
 # Indexing & Query Optimization
 
 <span className="badge-implemented">Implemented</span>

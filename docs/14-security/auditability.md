@@ -1,9 +1,3 @@
----
-id: auditability
-title: Tamper-Evident Auditability
-sidebar_position: 8
----
-
 # Tamper-Evident Auditability
 
 <span className="badge-implemented">Implemented</span>

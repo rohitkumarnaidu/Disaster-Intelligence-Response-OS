@@ -1,9 +1,3 @@
----
-id: confidence
-title: Model Confidence
-sidebar_position: 6
----
-
 # Statistical Confidence vs Calibration
 
 <span className="badge-implemented">Implemented</span>

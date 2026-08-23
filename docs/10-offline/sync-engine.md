@@ -1,9 +1,3 @@
----
-id: sync-engine
-title: Sync Engine
-sidebar_position: 4
----
-
 # Synchronization Engine
 
 <span className="badge-implemented">Implemented</span>

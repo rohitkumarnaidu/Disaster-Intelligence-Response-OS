@@ -1,9 +1,3 @@
----
-id: external-data
-title: External GIS Integration
-sidebar_position: 8
----
-
 # External GIS & Earth Observation Data
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">OGC WMS/WFS Planned</span>

@@ -1,9 +1,3 @@
----
-id: responsive-design
-title: Responsive Design
-sidebar_position: 7
----
-
 # Responsive Design & Mobile Breakpoints
 
 <span className="badge-implemented">Implemented</span>

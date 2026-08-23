@@ -1,9 +1,3 @@
----
-id: file-upload-security
-title: Upload Security
-sidebar_position: 4
----
-
 # File Upload Security & Magic-Byte Validation
 
 <span className="badge-implemented">Implemented</span>

@@ -1,9 +1,3 @@
----
-id: input-validation
-title: Input Validation
-sidebar_position: 5
----
-
 # Input Validation & Sanitization
 
 <span className="badge-implemented">Implemented</span>

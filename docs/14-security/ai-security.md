@@ -1,9 +1,3 @@
----
-id: ai-security
-title: AI Security
-sidebar_position: 7
----
-
 # AI Security & Adversarial Robustness
 
 <span className="badge-implemented">Implemented</span>

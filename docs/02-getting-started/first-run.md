@@ -1,9 +1,3 @@
----
-id: first-run
-title: First Run & Verification
-sidebar_position: 5
----
-
 # First Run & Verification Walkthrough
 
 <span className="badge-implemented">Implemented</span> <span className="badge-dev">Development Replay</span>

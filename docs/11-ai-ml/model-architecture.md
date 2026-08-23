@@ -1,9 +1,3 @@
----
-id: model-architecture
-title: Model Architecture
-sidebar_position: 2
----
-
 # Model Architecture & Pipelines
 
 <span className="badge-mock">Mock Adapter Active</span>

@@ -1,9 +1,3 @@
----
-id: concurrency
-title: Concurrency Control
-sidebar_position: 7
----
-
 # Optimistic Concurrency Control (OCC)
 
 <span className="badge-implemented">Implemented</span>

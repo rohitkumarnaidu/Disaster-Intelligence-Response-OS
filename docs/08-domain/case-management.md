@@ -1,9 +1,3 @@
----
-id: case-management
-title: Case Management
-sidebar_position: 2
----
-
 # Case Management
 
 <span className="badge-implemented">Implemented</span>

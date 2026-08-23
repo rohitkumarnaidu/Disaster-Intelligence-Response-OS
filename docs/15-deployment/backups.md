@@ -1,9 +1,3 @@
----
-id: backups
-title: Backup & Disaster Recovery
-sidebar_position: 7
----
-
 # Backup Strategies
 
 <span className="badge-implemented">Implemented</span>

@@ -1,9 +1,3 @@
----
-id: task-management
-title: Task Management & SLAs
-sidebar_position: 4
----
-
 # Task Management & SLA Escalations
 
 <span className="badge-implemented">Implemented</span>

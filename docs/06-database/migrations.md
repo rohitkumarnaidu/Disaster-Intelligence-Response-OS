@@ -1,9 +1,3 @@
----
-id: migrations
-title: Migrations
-sidebar_position: 4
----
-
 # Migrations & Schema Synchronization
 
 <span className="badge-implemented">Implemented</span>

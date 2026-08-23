@@ -1,9 +1,3 @@
----
-id: overview
-title: Geospatial Overview
-sidebar_position: 1
----
-
 # Geospatial Overview
 
 <span className="badge-implemented">Implemented</span>

@@ -1,9 +1,3 @@
----
-id: routing
-title: Frontend Routing
-sidebar_position: 2
----
-
 # Frontend Routing
 
 <span className="badge-implemented">Implemented</span>

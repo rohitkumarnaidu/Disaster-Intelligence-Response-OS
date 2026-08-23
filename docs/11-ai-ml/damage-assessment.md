@@ -1,9 +1,3 @@
----
-id: damage-assessment
-title: Damage Assessment
-sidebar_position: 3
----
-
 # Damage Assessment Taxonomy
 
 <span className="badge-implemented">Implemented</span>

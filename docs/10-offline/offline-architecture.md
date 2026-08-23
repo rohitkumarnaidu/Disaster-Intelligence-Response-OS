@@ -1,9 +1,3 @@
----
-id: offline-architecture
-title: Offline Architecture
-sidebar_position: 2
----
-
 # Offline Architecture & Lifecycle
 
 <span className="badge-implemented">Implemented</span>

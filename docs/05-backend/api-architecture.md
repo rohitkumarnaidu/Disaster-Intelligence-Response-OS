@@ -1,9 +1,3 @@
----
-id: api-architecture
-title: API Architecture
-sidebar_position: 2
----
-
 # API Architecture & Routing Layout
 
 <span className="badge-implemented">Implemented</span>

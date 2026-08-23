@@ -1,9 +1,3 @@
----
-id: unit-tests
-title: Unit Testing
-sidebar_position: 2
----
-
 # Unit Testing with Vitest
 
 <span className="badge-implemented">Implemented</span>

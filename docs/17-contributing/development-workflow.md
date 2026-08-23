@@ -1,9 +1,3 @@
----
-id: development-workflow
-title: Development Workflow
-sidebar_position: 1
----
-
 # Developer Workflow
 
 1. Fork & clone the repository.

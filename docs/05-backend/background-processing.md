@@ -1,9 +1,3 @@
----
-id: background-processing
-title: Background Processing
-sidebar_position: 7
----
-
 # Background Processing & Async Tasks
 
 <span className="badge-implemented">Implemented</span> <span className="badge-planned">Worker Queue Planned</span>

@@ -1,9 +1,3 @@
----
-id: test-data
-title: Test Data
-sidebar_position: 8
----
-
 # Test Data & Replay Fixtures
 
 <span className="badge-dev">Development Replay</span>

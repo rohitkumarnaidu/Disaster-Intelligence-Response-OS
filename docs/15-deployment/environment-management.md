@@ -1,9 +1,3 @@
----
-id: environment-management
-title: Environment Management
-sidebar_position: 6
----
-
 # Environment Configuration
 
 <span className="badge-implemented">Implemented</span>

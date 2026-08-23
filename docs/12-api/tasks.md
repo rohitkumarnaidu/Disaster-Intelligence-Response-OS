@@ -1,9 +1,3 @@
----
-id: tasks
-title: Tasks API
-sidebar_position: 5
----
-
 # Tasks API Reference
 
 ### `GET /api/tasks`

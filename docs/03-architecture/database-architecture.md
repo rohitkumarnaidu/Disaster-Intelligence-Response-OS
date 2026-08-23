@@ -1,9 +1,3 @@
----
-id: database-architecture
-title: Database Architecture
-sidebar_position: 7
----
-
 # Database Architecture
 
 <span className="badge-implemented">Implemented</span>

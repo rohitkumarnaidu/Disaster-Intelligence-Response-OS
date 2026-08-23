@@ -1,9 +1,3 @@
----
-id: overview
-title: API Overview
-sidebar_position: 1
----
-
 # API Overview & Base Conventions
 
 <span className="badge-implemented">Implemented</span>

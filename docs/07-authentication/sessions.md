@@ -1,9 +1,3 @@
----
-id: sessions
-title: Session Management
-sidebar_position: 2
----
-
 # Session Management
 
 <span className="badge-implemented">Implemented</span>

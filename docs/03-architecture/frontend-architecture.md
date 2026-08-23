@@ -1,9 +1,3 @@
----
-id: frontend-architecture
-title: Frontend Architecture
-sidebar_position: 5
----
-
 # Frontend Architecture
 
 <span className="badge-implemented">Implemented</span>

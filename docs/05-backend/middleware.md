@@ -1,9 +1,3 @@
----
-id: middleware
-title: Middleware Pipeline
-sidebar_position: 3
----
-
 # Middleware Pipeline
 
 <span className="badge-implemented">Implemented</span>

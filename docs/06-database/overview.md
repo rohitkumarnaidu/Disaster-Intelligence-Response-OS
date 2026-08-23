@@ -1,9 +1,3 @@
----
-id: overview
-title: Database Overview
-sidebar_position: 1
----
-
 # Database Overview
 
 <span className="badge-implemented">Implemented</span>

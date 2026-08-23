@@ -1,9 +1,3 @@
----
-id: testing-strategy
-title: Testing Strategy
-sidebar_position: 1
----
-
 # Testing Strategy Overview
 
 <span className="badge-implemented">Implemented</span>

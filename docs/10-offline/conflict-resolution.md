@@ -1,9 +1,3 @@
----
-id: conflict-resolution
-title: Conflict Resolution
-sidebar_position: 5
----
-
 # Conflict Resolution & Version Checking
 
 <span className="badge-implemented">Implemented</span>

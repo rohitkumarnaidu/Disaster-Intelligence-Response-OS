@@ -1,9 +1,3 @@
----
-id: api-reference
-title: API Endpoints Table
-sidebar_position: 3
----
-
 # API Endpoints Summary Table
 
 | Method | Endpoint | Description |

@@ -1,9 +1,3 @@
----
-id: architecture-principles
-title: Architectural Principles
-sidebar_position: 2
----
-
 # Architectural Principles
 
 The engineering of DRAXELYRA is governed by five foundational architectural principles:

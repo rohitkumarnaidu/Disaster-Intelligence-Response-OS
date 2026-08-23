@@ -1,9 +1,3 @@
----
-id: authentication
-title: Auth Endpoints
-sidebar_position: 2
----
-
 # Authentication API Reference
 
 ### `POST /api/auth/login`

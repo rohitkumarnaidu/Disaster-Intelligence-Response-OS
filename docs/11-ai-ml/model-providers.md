@@ -1,9 +1,3 @@
----
-id: model-providers
-title: Model Providers
-sidebar_position: 4
----
-
 # Model Providers & Ingestion Adapters
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Integrations Planned</span>

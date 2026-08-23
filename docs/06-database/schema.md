@@ -1,9 +1,3 @@
----
-id: schema
-title: Database Schema
-sidebar_position: 2
----
-
 # Database Schema Reference
 
 <span className="badge-implemented">Implemented</span>

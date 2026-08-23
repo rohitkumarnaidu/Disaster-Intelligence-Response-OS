@@ -1,9 +1,3 @@
----
-id: overview
-title: AI / ML Overview
-sidebar_position: 1
----
-
 # AI / ML Intelligence Overview
 
 <span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Live Service Planned</span>

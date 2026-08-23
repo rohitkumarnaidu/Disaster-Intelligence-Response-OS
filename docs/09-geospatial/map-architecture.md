@@ -1,9 +1,3 @@
----
-id: map-architecture
-title: Map Architecture
-sidebar_position: 2
----
-
 # Map Architecture & Rendering Engine
 
 <span className="badge-implemented">Implemented</span>

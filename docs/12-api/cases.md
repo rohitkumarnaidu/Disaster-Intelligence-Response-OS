@@ -1,9 +1,3 @@
----
-id: cases
-title: Cases API
-sidebar_position: 4
----
-
 # Cases API Reference
 
 ### `GET /api/cases`

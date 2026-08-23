@@ -1,9 +1,3 @@
----
-id: replit
-title: Replit Environment
-sidebar_position: 3
----
-
 # Cloud & Hosted Environment Setup
 
 <span className="badge-implemented">Implemented</span>

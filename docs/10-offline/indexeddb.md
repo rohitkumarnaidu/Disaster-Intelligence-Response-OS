@@ -1,9 +1,3 @@
----
-id: indexeddb
-title: IndexedDB Storage
-sidebar_position: 3
----
-
 # IndexedDB Storage Implementation
 
 <span className="badge-implemented">Implemented</span>

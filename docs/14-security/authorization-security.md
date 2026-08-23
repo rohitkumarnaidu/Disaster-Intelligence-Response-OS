@@ -1,9 +1,3 @@
----
-id: authorization-security
-title: Authorization Security
-sidebar_position: 3
----
-
 # Authorization & Role Boundaries
 
 <span className="badge-implemented">Implemented</span>

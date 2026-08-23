@@ -1,9 +1,3 @@
----
-id: future-architecture
-title: Future Architecture
-sidebar_position: 4
----
-
 # Future Architecture Vision
 
 ```mermaid

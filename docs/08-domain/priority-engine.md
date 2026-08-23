@@ -1,9 +1,3 @@
----
-id: priority-engine
-title: Explainable Priority Engine
-sidebar_position: 5
----
-
 # Explainable Priority Engine
 
 <span className="badge-implemented">Implemented</span>

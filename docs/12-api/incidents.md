@@ -1,9 +1,3 @@
----
-id: incidents
-title: Incidents API
-sidebar_position: 3
----
-
 # Incidents API Reference
 
 ### `GET /api/incidents`
