@@ -1,6 +1,6 @@
 /**
  * Custom CSS for DRAXELYRA Documentation Site
- * Tactical emergency operations styling with dark mode emphasis
+ * Compact, modern, tactical developer documentation styling
  */
 
 :root {
@@ -11,17 +11,33 @@
   --ifm-color-primary-light: #299f91;
   --ifm-color-primary-lighter: #2ba697;
   --ifm-color-primary-lightest: #3cbcae;
-  --ifm-code-font-size: 92%;
-  --docusaurus-highlighted-code-line-bg: rgba(37, 145, 132, 0.15);
-  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Compact Typography Scaling */
+  --ifm-font-size-base: 15px;
+  --ifm-line-height-base: 1.6;
+  --ifm-code-font-size: 85%;
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, -apple-system, sans-serif;
   --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
-  --ifm-heading-font-weight: 700;
-  --ifm-navbar-height: 4.25rem;
+  --ifm-heading-font-weight: 650;
+  --ifm-heading-line-height: 1.3;
+  --ifm-heading-margin-top: 1.5rem;
+  --ifm-heading-margin-bottom: 0.6rem;
+  
+  /* Compact Layout */
+  --ifm-navbar-height: 3.5rem;
+  --ifm-navbar-padding-horizontal: 1.25rem;
+  --ifm-navbar-padding-vertical: 0.4rem;
+  --ifm-menu-link-padding-vertical: 0.28rem;
+  --ifm-menu-link-padding-horizontal: 0.65rem;
+  --ifm-toc-padding-vertical: 0.25rem;
+  --ifm-toc-link-color: #8c9b98;
+  
+  --docusaurus-highlighted-code-line-bg: rgba(37, 145, 132, 0.15);
 }
 
 [data-theme='dark'] {
-  --ifm-background-color: #0f1715;
-  --ifm-background-surface-color: #152220;
+  --ifm-background-color: #0b1210;
+  --ifm-background-surface-color: #121c1a;
   --ifm-color-primary: #34b3a4;
   --ifm-color-primary-dark: #2f9f92;
   --ifm-color-primary-darker: #2c978b;
@@ -29,103 +45,149 @@
   --ifm-color-primary-light: #44bba8;
   --ifm-color-primary-lighter: #54c1af;
   --ifm-color-primary-lightest: #79d0c2;
+  --ifm-font-color-base: #c2d1cd;
+  --ifm-heading-color: #ffffff;
   --docusaurus-highlighted-code-line-bg: rgba(52, 179, 164, 0.2);
-  --ifm-card-background-color: #172623;
-  --ifm-navbar-background-color: #0b1210;
-  --ifm-footer-background-color: #080d0c;
-  --ifm-toc-border-color: #253934;
+  --ifm-card-background-color: #14211f;
+  --ifm-navbar-background-color: #090e0d;
+  --ifm-footer-background-color: #060908;
+  --ifm-toc-border-color: #1c2b27;
+  --ifm-hr-border-color: #1c2b27;
+}
+
+/* Headings scale */
+h1 {
+  font-size: 1.85rem !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.35rem;
+  margin-top: 1.75rem !important;
+}
+
+h3 {
+  font-size: 1.12rem !important;
+  font-weight: 650 !important;
+  margin-top: 1.25rem !important;
+}
+
+h4 {
+  font-size: 0.98rem !important;
+  font-weight: 600 !important;
+}
+
+/* Sidebar Menu Tweaks */
+.menu {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.menu__link {
+  border-radius: 4px;
+  line-height: 1.35;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: rgba(52, 179, 164, 0.12) !important;
+  color: #34b3a4 !important;
+  font-weight: 600;
+}
+
+/* Right TOC */
+.table-of-contents {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.table-of-contents__link--active {
+  color: #34b3a4 !important;
+  font-weight: 600;
 }
 
 /* Operational Badges & Status Pills */
 .badge-implemented {
-  background-color: rgba(37, 145, 132, 0.2);
+  background-color: rgba(37, 145, 132, 0.15);
   color: #3cbcae;
-  border: 1px solid rgba(60, 188, 174, 0.4);
-  padding: 2px 8px;
-  border-radius: 4px;
+  border: 1px solid rgba(60, 188, 174, 0.35);
+  padding: 1px 6px;
+  border-radius: 3px;
   font-family: var(--ifm-font-family-monospace);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   display: inline-block;
 }
 
 .badge-dev {
-  background-color: rgba(239, 172, 48, 0.2);
+  background-color: rgba(239, 172, 48, 0.15);
   color: #f7ca68;
-  border: 1px solid rgba(239, 172, 48, 0.4);
-  padding: 2px 8px;
-  border-radius: 4px;
+  border: 1px solid rgba(239, 172, 48, 0.35);
+  padding: 1px 6px;
+  border-radius: 3px;
   font-family: var(--ifm-font-family-monospace);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   display: inline-block;
 }
 
 .badge-mock {
-  background-color: rgba(79, 140, 255, 0.2);
+  background-color: rgba(79, 140, 255, 0.15);
   color: #8cb6ff;
-  border: 1px solid rgba(79, 140, 255, 0.4);
-  padding: 2px 8px;
-  border-radius: 4px;
+  border: 1px solid rgba(79, 140, 255, 0.35);
+  padding: 1px 6px;
+  border-radius: 3px;
   font-family: var(--ifm-font-family-monospace);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   display: inline-block;
 }
 
 .badge-planned {
-  background-color: rgba(150, 150, 150, 0.2);
+  background-color: rgba(150, 150, 150, 0.15);
   color: #b8b8b8;
-  border: 1px solid rgba(150, 150, 150, 0.4);
-  padding: 2px 8px;
-  border-radius: 4px;
+  border: 1px solid rgba(150, 150, 150, 0.35);
+  padding: 1px 6px;
+  border-radius: 3px;
   font-family: var(--ifm-font-family-monospace);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   display: inline-block;
 }
 
 /* Custom Alert & Callout styling */
 .theme-admonition {
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.theme-admonition-tip {
-  border-left-color: #259184;
-}
-
-.theme-admonition-caution,
-.theme-admonition-warning {
-  border-left-color: #efac30;
-}
-
-.theme-admonition-danger {
-  border-left-color: #cd372f;
+  border-radius: 5px;
+  font-size: 0.88rem;
+  padding: 0.75rem 1rem;
+  margin: 1.25rem 0;
 }
 
 /* Grid layout for landing and cards */
 .tactical-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
 }
 
 .tactical-card {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #1c2b27;
   background: var(--ifm-card-background-color);
-  padding: 1.5rem;
+  padding: 1.15rem;
   border-radius: 6px;
-  transition: transform 0.2s, border-color 0.2s;
+  transition: transform 0.15s, border-color 0.15s;
   text-decoration: none !important;
   color: inherit !important;
 }
@@ -136,15 +198,16 @@
 }
 
 .tactical-card h3 {
-  color: var(--ifm-color-primary);
-  margin-bottom: 0.5rem;
-  font-size: 1.2rem;
+  color: #ffffff;
+  margin-top: 0 !important;
+  margin-bottom: 0.4rem;
+  font-size: 1.02rem !important;
 }
 
 .tactical-card p {
-  color: var(--ifm-font-color-base);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  color: #9bb3ad;
+  font-size: 0.84rem;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -153,19 +216,20 @@ table {
   width: 100%;
   display: table;
   border-collapse: collapse;
-  margin: 1.5rem 0;
+  margin: 1.25rem 0;
+  font-size: 0.86rem;
 }
 
 th {
   background-color: var(--ifm-background-surface-color);
   font-family: var(--ifm-font-family-monospace);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
 }
 
 td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
