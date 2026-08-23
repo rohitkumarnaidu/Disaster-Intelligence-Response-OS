@@ -66,28 +66,28 @@ function PillarSection() {
     },
     {
       title: 'Geospatial Operations',
-      link: '/docs/geospatial/map-architecture',
+      link: '/docs/geospatial/map-engine',
       description: 'MapLibre GL multi-layer visualization with interactive GeoJSON overlays for AOIs, critical assets, and detections.',
       status: 'Implemented',
       statusClass: 'badge-implemented'
     },
     {
       title: 'Offline-First Field Sync',
-      link: '/docs/offline/offline-architecture',
+      link: '/docs/geospatial/offline-sync',
       description: 'IndexedDB mutation queue with automatic replay on network reconnection for disconnected field responders.',
       status: 'Implemented',
       statusClass: 'badge-implemented'
     },
     {
       title: 'Evidence Integrity',
-      link: '/docs/domain/evidence-management',
+      link: '/docs/domain/task-evidence-audit',
       description: 'Multipart file ingestion with magic-byte header validation, SHA-256 integrity checksums, and traversal defenses.',
       status: 'Implemented',
       statusClass: 'badge-implemented'
     },
     {
       title: 'Deterministic Scenario Replay',
-      link: '/docs/api/demo',
+      link: '/docs/api/endpoints',
       description: 'End-to-end replay scenarios (Chennai Urban Flood) with synthetic Sentinel-2 imagery and seeded personas.',
       status: 'Development-Only',
       statusClass: 'badge-dev'

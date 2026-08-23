@@ -5,572 +5,687 @@ export function generateArch(DOCS_DIR) {
   const write = (relPath, content) => {
     const fullPath = path.join(DOCS_DIR, relPath);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
+    fs.writeFileSync(fullPath, content.trim() + '\\n', 'utf8');
   };
 
-  // 03-architecture/system-architecture.md
-  write('03-architecture/system-architecture.md', `# System Architecture
+  // ---------------------------------------------------------------------------
+  // SECTION 03: ARCHITECTURE
+  // ---------------------------------------------------------------------------
+
+  write('03-architecture/01-system-architecture.md', `
+# System Architecture
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA is architected as an **OpenAPI-first, multi-tier disaster operations platform**. It consists of a React 19 single-page application (SPA), an Express 5 REST API gateway, a PostgreSQL 15 relational database, and an IndexedDB offline mutation buffer.
+DRAXELYRA follows a classic modular monolith design for the backend and a Single Page Application (SPA) for the frontend, both designed to operate efficiently under constrained network environments typical of disaster scenarios.
 
-\`\`\`mermaid
-graph TB
-    subgraph Client Layer [Frontend Tier - artifacts/draxelyra]
-        UI[React 19 / Vite Command Console]
-        Map[MapLibre GL Geospatial Engine]
-        Store[TanStack React Query Cache]
-        Offline[IndexedDB draxelyra-offline Queue]
-    end
-
-    subgraph API Layer [Backend Tier - artifacts/api-server]
-        Router[Express 5 REST Router /api]
-        AuthMid[Session & RBAC Middleware]
-        CaseSM[Case State Machine Service]
-        TaskSM[Task State Machine Service]
-        PriEng[Priority Engine Module]
-        EvPipe[Evidence Validation & Storage]
-        PinoLog[Pino Structured Logger]
-    end
-
-    subgraph Data Layer [Persistence Tier - lib/db]
-        Drizzle[Drizzle ORM]
-        PG[(PostgreSQL 15)]
-        Sessions[(PostgreSQL Session Store)]
-        Uploads[(Disk File Storage /uploads)]
-    end
-
-    UI --> Store
-    UI --> Map
-    Store --> Router
-    Store -.->|Network Disconnected| Offline
-    Offline -.->|Network Reconnect| Router
-    Router --> AuthMid
-    AuthMid --> CaseSM & TaskSM & PriEng & EvPipe
-    CaseSM --> Drizzle
-    TaskSM --> Drizzle
-    EvPipe --> Uploads
-    Drizzle --> PG
-    AuthMid --> Sessions
-\`\`\`
-
----
-
-## Monorepo Layout & Packaging Structure
-
-The codebase is organized as a unified TypeScript monorepo managed via **pnpm workspaces**:
-
-\`\`\`
-DRAXELYRA-Response-OS/
-├── artifacts/
-│   ├── api-server/         # Express 5 backend REST API
-│   │   ├── src/
-│   │   │   ├── app.ts                  # Express application bootstrap & middleware chain
-│   │   │   ├── index.ts                # Server entry point (starts listener on PORT)
-│   │   │   ├── lib/                    # Logger & Priority calculation formula
-│   │   │   ├── middlewares/            # Session, Auth, and RBAC guards
-│   │   │   ├── routes/                 # REST Route controllers (/auth, /incidents, /cases, /tasks, etc.)
-│   │   │   └── services/               # Transactional State Machines (Case, Task)
-│   │   └── build.mjs                   # esbuild bundle configuration
-│   ├── draxelyra/          # React 19 tactical command center
-│   │   ├── src/
-│   │   │   ├── App.tsx                 # Main layout, Wouter routing, view components
-│   │   │   ├── main.tsx                # DOM mount & QueryClientProvider setup
-│   │   │   ├── components/map/         # MapLibre GL map component & GeoJSON layers
-│   │   │   ├── lib/auth.tsx            # AuthProvider & useAuth hook
-│   │   │   └── lib/offline-sync.ts     # IndexedDB mutation queue & event bus
-│   │   └── vite.config.ts              # Vite 7 build configuration
-│   └── mockup-sandbox/     # UI component preview harness
-├── lib/
-│   ├── api-spec/           # OpenAPI 3.1 contract (openapi.yaml) & Orval codegen
-│   ├── api-zod/            # Generated Zod validation models
-│   ├── api-client-react/   # Generated TanStack Query React hooks & customFetch
-│   └── db/                 # Drizzle ORM schema, relations & PostgreSQL client
-├── docs/                   # 19-Section Technical Documentation Suite
-├── docker-compose.yml      # Local PostgreSQL 15 container definition
-├── pnpm-workspace.yaml     # Workspace configuration and supply chain constraints
-└── package.json            # Root workspace scripts
-\`\`\`
-
----
-
-## Core Architectural Boundaries
-
-1. **API Contract as Single Source of Truth**: The OpenAPI 3.1 specification at \`lib/api-spec/openapi.yaml\` governs all endpoints, data types, and parameters. Frontend React Query hooks (\`lib/api-client-react\`) and backend Zod schemas (\`lib/api-zod\`) are compiled directly from this specification.
-2. **State & Concurrency Boundary**: All state mutations for operational Cases and Tasks must execute through transactional finite state machines (\`case-state-machine.ts\` and \`task-state-machine.ts\`) enforcing Optimistic Concurrency Control (OCC) using version checking.
-3. **Session & Security Boundary**: Authentication uses HTTP-only secure cookie sessions backed by PostgreSQL table \`session\` via \`connect-pg-simple\`, validated by granular Role-Based Access Control (RBAC) middlewares.
-`);
-
-  // 03-architecture/architecture-principles.md
-  write('03-architecture/architecture-principles.md', `# Architectural Principles
-
-DRAXELYRA's technical architecture is built on five core principles:
-
-### 1. Explainability Over Black-Box Automation
-AI model inferences must never dictate operational actions without human interpretability. Priority scores are calculated deterministically using weighted operational factors (\`0.30*S + 0.25*C + 0.20*E + 0.15*U + 0.10*K\`) so duty officers can inspect exactly why an asset was ranked high.
-
-### 2. Strict Human-in-the-Loop Triage
-An AI detection is merely a *candidate signal*. It cannot transition to an assigned field task without explicit confirmation (\`CONFIRMED\`, \`REJECTED\`, or \`UNCERTAIN\`) by an authorized analyst or commander with recorded review notes.
-
-### 3. Resilient Offline Operation
-Field responders in disaster zones cannot rely on uninterrupted high-speed data. The system treats network disconnection as a standard operating state: all field observations and task updates are buffered in browser IndexedDB storage and synchronized sequentially upon reconnection.
-
-### 4. Zero-Data-Loss Concurrency
-Disaster command centers involve multiple duty officers, triage analysts, and field liaisons acting concurrently. The system employs **Optimistic Concurrency Control (OCC)** using version fields and compare-and-swap SQL updates, preventing accidental state overwrites.
-
-### 5. Immutable Auditability
-Every review decision, task status change, priority recalculation, and field upload creates an append-only \`audit_events\` record linked to the acting user, timestamp, and metadata.
-`);
-
-  // 03-architecture/request-flow.md
-  write('03-architecture/request-flow.md', `# Request Lifecycle & HTTP Pipeline
-
-<span className="badge-implemented">Implemented</span>
-
-Every HTTP request to the DRAXELYRA API traverses a structured pipeline of middlewares before reaching the business domain services.
-
-\`\`\`mermaid
-sequenceDiagram
-    autonumber
-    participant Client as React Client (customFetch)
-    participant Pino as Pino HTTP Logger
-    participant Cors as CORS Middleware
-    participant Body as JSON / URL-encoded Parser
-    participant Sess as Session Middleware (connect-pg-simple)
-    participant Auth as requireAuth / requireRole
-    participant Route as Express Route Handler
-    participant Service as State Machine / DB Transaction
-
-    Client->>Pino: HTTP Request (Method + Path + Headers)
-    Pino->>Cors: Assign Request ID & Log Start
-    Cors->>Body: Validate Origin & Credentials
-    Body->>Sess: Parse Request Payload
-    Sess->>Auth: Retrieve Session from PostgreSQL (sid cookie)
-    alt Session Missing or Invalid
-        Auth-->>Client: 401 Unauthorized
-    else Insufficient Role
-        Auth-->>Client: 403 Forbidden
-    else Authorized
-        Auth->>Route: Pass to Route Controller
-        Route->>Service: Execute Business Logic within Transaction
-        Service-->>Route: Return Result
-        Route-->>Client: 200 OK / 201 Created (JSON Response)
-    end
-\`\`\`
-`);
-
-  // 03-architecture/data-flow.md
-  write('03-architecture/data-flow.md', `# End-to-End Data Flow
-
-<span className="badge-implemented">Implemented</span>
-
-DRAXELYRA manages the lifecycle of disaster data from satellite ingestion to closed response outcomes.
-
-\`\`\`mermaid
-flowchart TD
-    subgraph Ingestion
-        S2[Sentinel-2 / Satellite Pass] --> Det[AI Change-Detection Inference]
-        Det --> DetRec[Detections Table: geometry, severity, confidence]
-    end
-
-    subgraph Scoring
-        DetRec --> Match[Spatial Join with Critical Assets]
-        Match --> Score[Calculate Initial Priority Score]
-        Score --> CaseRec[Cases Table: status=NEEDS_REVIEW, version=1]
-    end
-
-    subgraph Triage
-        CaseRec --> ReviewUI[Analyst Evidence Review Console]
-        ReviewUI --> Decision{Decision}
-        Decision -->|Confirmed| Conf[Status: CONFIRMED, Recalculate Priority]
-        Decision -->|Rejected| Rej[Status: CLOSED, Reason: False Positive]
-        Decision -->|Uncertain| Unc[Status: UNCERTAIN, Request Further Data]
-    end
-
-    subgraph Dispatch
-        Conf --> TaskGen[Generate Response Task & Set SLA Timer]
-        TaskGen --> FieldSync[Field Responder Mobile PWA / Offline Sync]
-        FieldSync --> GroundObs[Capture Ground Observation & Photos]
-        GroundObs --> Verify[Verify Ground Truth: Task Status VERIFIED]
-    end
-
-    subgraph Closure
-        Verify --> AutoTrans[Case Status Auto-Transitions to FIELD_VERIFIED]
-        AutoTrans --> OutcomeRec[Record Outcome & Close Case]
-        OutcomeRec --> AuditStream[Immutable Audit Events Log]
-    end
-\`\`\`
-`);
-
-  // 03-architecture/frontend-architecture.md
-  write('03-architecture/frontend-architecture.md', `# Frontend Architecture
-
-<span className="badge-implemented">Implemented</span>
-
-The frontend application located at \`artifacts/draxelyra\` is built with **React 19**, **Vite 7**, and **Tailwind CSS v4**.
-
----
-
-## 1. Runtime Entry Point (\`main.tsx\`)
-
-The application bootstraps at \`artifacts/draxelyra/src/main.tsx\`:
-
-\`\`\`tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App';
-import './index.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 30, // 30 seconds fresh cache
-      refetchOnWindowFocus: true,
-      retry: 2,
-    },
-  },
-});
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </React.StrictMode>
-);
-\`\`\`
-
----
-
-## 2. Root Component & Layout Shell (\`App.tsx\`)
-
-\`artifacts/draxelyra/src/App.tsx\` configures:
-- **AuthProvider Context**: Wraps all child routes to ensure session validation against \`/api/auth/me\`.
-- **Top Navigation Bar**: Renders branding, live operational counters, active route tabs, and user profile/logout controls.
-- **Client-Side Routing**: Configured with **Wouter** (\`Switch\`, \`Route\`) for lightweight routing.
+## High-Level Architecture
 
 \`\`\`mermaid
 graph TD
-    A[main.tsx: QueryClientProvider] --> B[App.tsx: AuthProvider]
-    B --> C[Tactical Layout Shell]
-    C --> D[Top Navigation Bar]
-    C --> E[Wouter Switch Router]
-    E --> F["Overview (/)"]
-    E --> G["Incidents (/incidents)"]
-    E --> H["Assessment Map (/assessment)"]
-    E --> I["Priority Queue (/cases)"]
-    E --> J["Evidence Review (/review/:id)"]
-    E --> K["Response Tasks (/tasks)"]
-    E --> L["Field Inspection (/field)"]
-    E --> M["Analytics (/analytics)"]
-    E --> N["Demo Replay (/demo)"]
+    Client[Web Client / PWA] -->|HTTPS/WSS| LB[Load Balancer / Nginx]
+    LB --> API[Node.js Express API]
+    
+    API --> DB[(PostgreSQL)]
+    API --> FS[Evidence Storage / Disk]
+    API --> AI[AI Analysis Engine / Models]
 \`\`\`
 
----
+## Key Components
 
-## 3. Data Layer & Caching (\`lib/api-client-react\`)
+1. **Frontend (React SPA)**: Built with React 18, Vite, and Wouter. Features offline-first capabilities via Service Worker and IndexedDB.
+2. **Backend (Node.js/Express)**: Stateless API servers scaling horizontally, utilizing robust validation and middleware chains.
+3. **Database (PostgreSQL)**: Single source of truth. Handles complex geospatial queries and transactional state machines.
+4. **Storage**: Local disk for evidence uploads, with abstraction for future S3 integration.
+  `.trim());
 
-- **Query Hooks**: Auto-generated by Orval into \`lib/api-client-react/src/index.ts\` (e.g., \`useListIncidents\`, \`useListCases\`, \`useGetCase\`, \`useListTasks\`).
-- **Fetch Wrapper**: \`customFetch\` in \`lib/api-client-react/src/custom-fetch.ts\` injects \`credentials: 'include'\` and catches offline network disconnects to enqueue mutations into IndexedDB.
-- **Query Invalidation**: On successful mutation (e.g. \`useReviewCase\`), the query cache invalidates \`['case', id]\` and \`['cases']\` to trigger automatic background UI updates.
-`);
-
-  // 03-architecture/backend-architecture.md
-  write('03-architecture/backend-architecture.md', `# Backend Architecture
+  write('03-architecture/02-architecture-principles.md', `
+# Architecture Principles
 
 <span className="badge-implemented">Implemented</span>
 
-The backend service at \`artifacts/api-server\` is an **Express 5** application in TypeScript compiled with **esbuild**.
+Our architecture is guided by the following principles to ensure resilience, maintainability, and scalability.
 
----
+## 1. Offline-First Resilience
+In disaster response, connectivity is a luxury. The client must remain functional offline.
+- Actions are queued locally.
+- Read models are cached.
+- Optimistic UI updates.
 
-## 1. Application Bootstrap (\`index.ts\` & \`app.ts\`)
+## 2. Strong Typing & Validation
+- **End-to-End Type Safety**: Zod schemas on the backend act as the source of truth and are shared or mirrored on the frontend.
+- **Fail Fast**: Invalid payloads are rejected at the edge middleware before reaching business logic.
 
-- **\`index.ts\`**: Resolves the HTTP port (\`process.env.PORT || 5000\`) and initiates the Express listener with graceful shutdown handling.
-- **\`app.ts\`**: Configures the HTTP pipeline:
+## 3. Optimistic Concurrency Control (OCC)
+- All state transitions (Cases, Tasks) require version numbers.
+- Prevents lost updates during concurrent edits by multiple field agents or commanders.
+  `.trim());
 
-\`\`\`typescript
-import express from 'express';
-import cors from 'cors';
-import session from 'express-session';
-import connectPgSimple from 'connect-pg-simple';
-import { pool } from '@workspace/db';
-import router from './routes';
-
-const app = express();
-const PgSession = connectPgSimple(session);
-
-app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-app.use(
-  session({
-    store: new PgSession({ pool, tableName: 'session' }),
-    secret: process.env.SESSION_SECRET || 'draxelyra_default_secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    },
-  })
-);
-
-app.use('/api', router);
-export default app;
-\`\`\`
-
----
-
-## 2. Middleware Stack Order
-
-1. **Pino Logger**: Assigns unique request IDs and logs structured JSON logs.
-2. **CORS**: Validates incoming origin and permits session cookie headers.
-3. **Body Parser**: Decodes JSON and URL-encoded payloads.
-4. **Session**: Deserializes PostgreSQL session ID and binds \`req.session.userId\`.
-5. **requireAuth**: Blocks unauthenticated requests with \`401 Unauthorized\`.
-6. **requireRole(...roles)**: Enforces role permissions with \`403 Forbidden\`.
-`);
-
-  // 03-architecture/database-architecture.md
-  write('03-architecture/database-architecture.md', `# Database Architecture
+  write('03-architecture/03-request-flow.md', `
+# Request Flow
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA utilizes **PostgreSQL 15** managed through **Drizzle ORM** (\`lib/db\`). The schema enforces referential integrity, optimistic concurrency versioning, and immutable audit logs.
+Understanding the lifecycle of an API request is critical for debugging and extending the backend. DRAXELYRA uses a strict middleware chain to process incoming HTTP requests before they reach the route handlers.
+
+## Standard API Request Lifecycle
 
 \`\`\`mermaid
-erDiagram
-    USERS ||--o{ INCIDENTS : "creates"
-    USERS ||--o{ CASES : "owns"
-    USERS ||--o{ TASKS : "assigned_to"
-    USERS ||--o{ REVIEWS : "reviews"
-    USERS ||--o{ AUDIT_EVENTS : "acts_in"
+sequenceDiagram
+    participant Client
+    participant Express as Express App
+    participant Auth as Auth Middleware
+    participant Route as Route Handler
+    participant Service as Business Service
+    participant DB as PostgreSQL
 
-    INCIDENTS ||--o{ IMAGERY_ASSETS : "contains"
-    INCIDENTS ||--o{ DETECTIONS : "contains"
-    INCIDENTS ||--o{ CASES : "contains"
-
-    IMAGERY_ASSETS ||--o{ DETECTIONS : "source_for"
-    CRITICAL_ASSETS ||--o{ CASES : "target_of"
-    DETECTIONS ||--o{ CASES : "triggers"
-
-    CASES ||--o{ EVIDENCE : "has"
-    CASES ||--o{ REVIEWS : "has"
-    CASES ||--o{ TASKS : "spawns"
-    CASES ||--o{ FIELD_OBSERVATIONS : "verified_by"
-    CASES ||--o{ CASE_STATUS_HISTORY : "tracks"
-    CASES ||--o{ OUTCOMES : "concludes"
+    Client->>Express: POST /api/cases/123/status
+    Express->>Express: pinoHttp (Logging)
+    Express->>Express: cors (CORS headers)
+    Express->>Express: express.json (Body parsing)
+    Express->>Express: session (Cookie parsing)
+    Express->>Auth: requireAuth / requireRole
+    Auth-->>Express: 401 Unauthorized (if failed)
+    Auth->>Route: next()
+    Route->>Service: transitionCase(...)
+    Service->>DB: BEGIN
+    DB-->>Service: OK
+    Service->>DB: UPDATE cases ... WHERE version = expected
+    DB-->>Service: rowCount
+    Service->>DB: COMMIT
+    Service-->>Route: updated case
+    Route-->>Client: 200 OK (JSON)
 \`\`\`
-`);
 
-  // 03-architecture/ai-architecture.md
-  write('03-architecture/ai-architecture.md', `# AI / ML Architecture
+## Middleware Chain (Actual Audit)
 
-<span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Live Service Planned</span>
+Source: \`artifacts/api-server/src/app.ts\`
 
-DRAXELYRA decouples **AI inference generation** from **operational emergency triage**.
+1. **pinoHttp**: Structured JSON logging. Redacts sensitive data.
+2. **cors**: Configured with \`origin: true\` and \`credentials: true\`.
+3. **express.json**: Parses \`application/json\` payloads.
+4. **express.urlencoded**: Parses \`application/x-www-form-urlencoded\`.
+5. **express-session**: Backed by \`connect-pg-simple\`. Uses 30-day secure HTTP-only cookies.
+6. **Static File Server**: Serves files from \`/uploads\`.
+7. **API Router**: Mounts modular route groups at \`/api\`.
+  `.trim());
 
----
+  write('03-architecture/04-data-flow.md', `
+# Data Flow
 
-## Dual-Score Intelligence Model
+<span className="badge-implemented">Implemented</span>
 
-1. **Statistical Confidence (0.0 to 1.0)**: Probability that the sensor detected actual physical change.
-2. **Operational Priority (0 to 100)**: Operational urgency of dispatching human response personnel.
+Data in DRAXELYRA flows through distinct layers, ensuring separation of concerns and data integrity.
 
-\`\`\`mermaid
-graph LR
-    A[Pre/Post Satellite Imagery] --> B[Change Detector Model v2.4.1]
-    B -->|Confidence: 0.55| C[Candidate Signal]
-    D[Critical Hospital GIS Layer] --> E[Criticality: 100]
-    F[Census Vulnerability Data] --> G[Exposure: High / 90]
-    H[Incident Declared: 28.8h ago] --> I[Urgency: 12]
+## Layers
 
-    C & E & G & I --> J[Deterministic Priority Engine]
-    J -->|Priority Score: 83| K[High-Priority Queue C-1048]
+1. **Presentation Layer**: React components. Fetches data via TanStack Query.
+2. **Transport Layer**: RESTful JSON APIs.
+3. **Service Layer**: State machines, priority engines, domain logic.
+4. **Persistence Layer**: PostgreSQL tables and local file system.
+
+Data flows downwards synchronously in the backend, but asynchronously across the network barrier. Real-time updates (planned) will use WebSocket channels for reverse flow.
+  `.trim());
+
+  write('03-architecture/05-frontend-architecture.md', `
+# Frontend Architecture Overview
+
+<span className="badge-implemented">Implemented</span>
+
+The frontend architecture emphasizes modularity and fast iteration. We use React 18 with Vite for lightning-fast HMR and building.
+
+## Core Pillars
+- **State Management**: TanStack Query for server state. Local state is kept close to components using React \`useState\` or \`useReducer\`.
+- **Routing**: \`wouter\` for minimalistic, fast routing without the bloat of larger routers.
+- **Styling**: Tailwind CSS combined with Radix UI primitives for accessible, unstyled components.
+
+(See Section 04 for deep dives).
+  `.trim());
+
+  write('03-architecture/06-backend-architecture.md', `
+# Backend Architecture Overview
+
+<span className="badge-implemented">Implemented</span>
+
+The backend is a Node.js Express application written in TypeScript. It is designed to be stateless (except for session data stored in PG) to allow horizontal scaling.
+
+## Core Pillars
+- **Modular Routing**: Routes are grouped by domain (e.g., \`casesRouter\`, \`tasksRouter\`).
+- **Service Pattern**: Business logic (state machines, scoring) is extracted from route handlers into dedicated services.
+- **Unified Error Handling**: All errors funnel through a centralized error-handling middleware to ensure consistent JSON responses.
+
+(See Section 05 for deep dives).
+  `.trim());
+
+  write('03-architecture/07-database-architecture.md', `
+# Database Architecture
+
+<span className="badge-implemented">Implemented</span>
+
+DRAXELYRA utilizes PostgreSQL as its primary datastore.
+
+## Schema Highlights
+- **Incidents**: The root aggregate.
+- **Cases**: Belong to an incident. Track priority, status, and geospatial location.
+- **Tasks**: Represent actionable work. Linked to cases.
+- **Audit Events**: Immutable append-only log of critical system changes.
+
+All mutable tables include a \`version\` column to support Optimistic Concurrency Control (OCC).
+  `.trim());
+
+  write('03-architecture/08-ai-architecture.md', `
+# AI Architecture
+
+<span className="badge-planned">Planned</span>
+
+The AI architecture will process incoming data streams (satellite imagery, drones, field reports) to automatically detect anomalies and generate draft Cases.
+
+## Components
+- **Ingestion Pipeline**: Normalizes multimodal data.
+- **Inference Engine**: Runs object detection and damage assessment models.
+- **Prioritization Engine**: (Currently implemented via heuristics) will be enhanced with ML-based triage models.
+  `.trim());
+
+  // ---------------------------------------------------------------------------
+  // SECTION 04: FRONTEND
+  // ---------------------------------------------------------------------------
+
+  write('04-frontend/01-architecture.md', `
+# Frontend Architecture
+
+<span className="badge-implemented">Implemented</span>
+
+The DRAXELYRA frontend is a React 18 Single Page Application designed for high-stress disaster response environments. The architecture prioritizes performance, offline capability, and rapid data access.
+
+## Entry Point
+
+**Source:** \`artifacts/draxelyra/src/main.tsx\`
+
+The application bootstrap sequence:
+1. Creates the React 18 root via \`createRoot(document.getElementById('root')!, { onCaughtError: ... })\`
+2. Mounts the root component tree: \`<ErrorBoundary><App /></ErrorBoundary>\`
+3. Registers the Service Worker: Checks \`'serviceWorker' in navigator\`, and on window load registers \`/sw.js\` to enable PWA features.
+4. Imports \`./index.css\` which loads Tailwind and global CSS variables.
+
+## Provider Hierarchy
+
+The \`App.tsx\` file establishes the global context providers, wrapping the application in the following order:
+
+\`\`\`tsx
+<QueryClientProvider client={queryClient}>
+  <TooltipProvider>
+    <AuthProvider>
+      <WouterRouter base={import.meta.env.BASE_URL.replace(/\\/$/, '')}>
+        <Shell>
+          <Router /> {/* Wouter Switch wrapped in RoutedErrorBoundary */}
+        </Shell>
+        <Toaster />
+      </WouterRouter>
+    </AuthProvider>
+  </TooltipProvider>
+</QueryClientProvider>
 \`\`\`
-`);
 
-  // 04-frontend/overview.md
-  write('04-frontend/overview.md', `# Frontend Overview
+1. **\`QueryClientProvider\`**: Configures TanStack Query for server state caching.
+2. **\`TooltipProvider\`**: Radix UI provider for accessible tooltips globally.
+3. **\`AuthProvider\`**: Custom context for session management.
+4. **\`WouterRouter\`**: Minimalist routing context.
+5. **\`<Shell>\`**: The main layout component providing the sidebar, topbar, and acting as an auth guard.
+6. **\`<Toaster />\`**: Global notification system.
 
-<span className="badge-implemented">Implemented</span>
+## Authentication Flow
 
-The DRAXELYRA web console (\`artifacts/draxelyra\`) provides a high-density, low-latency tactical workspace tailored for emergency operations centers and mobile field units.
+**Source:** \`src/lib/auth.tsx\`
 
----
+Authentication is strictly enforced before accessing the application shell.
 
-## Key Modules
+- **Initialization**: On mount, \`AuthProvider\` calls \`customFetch<User>('/api/auth/me')\`. 
+  - If successful, sets the user in state.
+  - If error (e.g., 401), sets user to null.
+  - Sets \`loading = false\` to unblock the UI.
+- **Login (\`login(data)\`)**: POSTs to \`/api/auth/login\`. On success, updates context and navigates to \`/\`.
+- **Logout (\`logout()\`)**: POSTs to \`/api/auth/logout\`. Clears context and navigates to \`/login\`.
+- **Guard**: The \`<Shell>\` component checks the auth state:
+  - If \`loading\`, renders a full-screen spinner.
+  - If \`!user\`, redirects immediately to \`/login\`.
 
-- **Navigation Shell**: Fixed top header with active counters (backlog, overdue tasks, active incidents) and user session menu.
-- **Geospatial Canvas**: Hardware-accelerated MapLibre GL map supporting GeoJSON layers for incident boundaries, critical assets, and detections.
-- **Evidence Review Studio**: Dual-pane pre/post satellite imagery inspector with damage classification and review rationale forms.
-- **Offline Mutation Queue**: Client-side IndexedDB database buffering requests during cellular outages.
-`);
+## Route Definitions
 
-  // 04-frontend/routing.md
-  write('04-frontend/routing.md', `# Frontend Routing
+All 15 routes are defined within the Wouter \`<Switch>\` inside \`App.tsx\`.
 
-<span className="badge-implemented">Implemented</span>
+| Route | Component | Auth Required | Purpose | TanStack Query Hook | Mutations |
+|-------|-----------|---------------|---------|---------------------|-----------|
+| \`/\` | \`CommandCenter\` | Yes | Dashboard: 6 KPI metrics, minimap, top 4 cases, owned tasks, activity feed | \`useGetCommandSummary\` (refetch: 60s) | None |
+| \`/login\` | \`Login\` | No | Email/password form, pre-filled demo credentials | None | \`login()\` (Auth) |
+| \`/incidents\` | \`Incidents\` | Yes | Registry of crisis incidents | \`useListIncidents\` | None |
+| \`/incidents/:id\`| \`IncidentDetail\` | Yes | Single incident: metadata, timeline, AOI minimap | \`useGetIncident(id)\` | None |
+| \`/assessment\` | \`Assessment\` | Yes | Map-first triage workspace with layer toggles | \`useListCases\` | None |
+| \`/cases\` | \`Cases\` | Yes | Priority queue table sorted by score/confidence | \`useListCases\` | None |
+| \`/cases/:id\` | \`CaseDetail\` | Yes | Deep case view: before/after imagery, priority ledger, response card | \`useGetCase(id)\` | None |
+| \`/review/:id\` | \`Review\` | Yes | Human-in-the-loop adjudication: confirm/reject/uncertain | \`useGetCase(id)\` | \`useReviewCase()\` |
+| \`/tasks\` | \`Tasks\` | Yes | Kanban board: queued/in_progress/completed columns | \`useListTasks\` | \`useUpdateTask()\` |
+| \`/tasks/:id\` | \`TaskDetail\` | Yes | Task inspection: assignment, SLA, verification checklist | None (fallback) | \`useUpdateTask()\` |
+| \`/field\` | \`Field\` | Yes | Mobile field verification with offline sync UI | None (static) | None (local state)|
+| \`/analytics\` | \`Analytics\` | Yes | KPIs, funnel chart, confidence vs priority scatter, SLA by team | None (static) | None |
+| \`/demo\` | \`Demo\` | Yes | Scenario replay engine with 5-step progress | None | \`useLoadDemo()\`, \`useResetDemo()\` |
+| \`/settings\` | \`Settings\` | Yes | Demo user directory, integration adapter toggles | None | None |
+| \`*\` | \`NotFound\` | No | 404 page | None | None |
 
-Client-side routing is configured in \`artifacts/draxelyra/src/App.tsx\` using **Wouter**.
+## TanStack Query Patterns
 
-| Route | Component / View | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| \`/\` | \`Overview\` | Executive situational awareness dashboard | Yes |
-| \`/incidents\` | \`Incidents\` | Incident registry & new incident creation | Yes |
-| \`/incidents/:id\` | \`IncidentDetail\` | Incident telemetry & AOI parameters | Yes |
-| \`/assessment\` | \`Assessment\` | MapLibre geospatial triage console | Yes |
-| \`/cases\` | \`Cases\` | Explainable priority triage queue | Yes |
-| \`/cases/:id\` | \`CaseDetail\` | Detailed case factors & audit history | Yes |
-| \`/review/:id\` | \`Review\` | Evidence review & decision workspace | Yes |
-| \`/tasks\` | \`Tasks\` | Response task dispatch board & SLA monitor | Yes |
-| \`/field\` | \`Field\` | Tactical field responder inspection console | Yes |
-| \`/analytics\` | \`Analytics\` | Incident progression funnel & performance | Yes |
-| \`/demo\` | \`DemoReplay\` | Scenario replay & dataset loader | Yes (Admin) |
-| \`/login\` | \`LoginPage\` | Tactical authentication screen | No |
-`);
+- **Query Keys**: Standardized as \`['entity', id?]\`. Example: \`['incident-map', incidentId]\`.
+- **Refetching**: Highly dynamic data (like the \`CommandCenter\` summary) utilizes \`refetchInterval\` (60000ms).
+- **Invalidation**: Mutations immediately invalidate related query keys. For instance, \`useReviewCase()\` invalidates \`['incident-map']\` to trigger a map refresh, showing the new case status color.
+  `.trim());
 
-  // 04-frontend/state-management.md
-  write('04-frontend/state-management.md', `# State Management
-
-<span className="badge-implemented">Implemented</span>
-
-DRAXELYRA utilizes a 3-tier state architecture:
-
-1. **Server State**: Managed via **TanStack React Query** (\`@tanstack/react-query\`).
-   - Query keys are strictly typed via \`@workspace/api-client-react\`.
-   - Polling intervals: 60s for summary dashboards, instant refetch on window focus.
-2. **Authentication State**: Managed via React Context in \`artifacts/draxelyra/src/lib/auth.tsx\`, exposing:
-   - \`user\`: Current logged-in user object (\`id\`, \`name\`, \`email\`, \`role\`).
-   - \`login(email, password)\`: Mutates session cookie.
-   - \`logout()\`: Clears session and redirects to \`/login\`.
-3. **Offline Queue State**: Managed via **IndexedDB** in \`artifacts/draxelyra/src/lib/offline-sync.ts\`.
-`);
-
-  // 04-frontend/components.md
-  write('04-frontend/components.md', `# UI Components & Primitives
+  write('04-frontend/02-pages.md', `
+# Pages & Views
 
 <span className="badge-implemented">Implemented</span>
 
-The frontend utilizes a combination of Radix UI primitives and custom tactical components:
+This document details the functionality of every major route and view within the DRAXELYRA frontend.
 
-- **\`Metric\`**: Displays KPI counters with trend badges and status color accents.
-- **\`Badge\`**: Renders standardized status markers (\`badge-implemented\`, \`badge-dev\`, \`badge-mock\`, \`badge-planned\`).
-- **\`IncidentMap\`**: MapLibre GL wrapper component rendering GeoJSON layers with popup tooltips.
-- **\`AuditTimeline\`**: Chronological visual feed of actor decisions and state mutations.
-- **\`ErrorBoundary\`**: Global error wrapper catching rendering exceptions with reset buttons.
-`);
+## Dashboard & Command
 
-  // 04-frontend/design-system.md
-  write('04-frontend/design-system.md', `# Tactical Design System
+### \`CommandCenter\` (\`/\`)
+The primary operational overview.
+- **KPI Metrics**: Displays 6 top-level metrics (e.g., Active Incidents, Total Cases, Unassigned Tasks).
+- **Minimap**: A small contextual map showing the global active areas.
+- **Top 4 Cases**: A brief list of the most critical cases demanding attention.
+- **Owned Tasks**: Tasks assigned to the currently logged-in user.
+- **Activity Feed**: A scrolling feed of recent system events.
+- **Data Fetching**: Utilizes \`useGetCommandSummary\` with a 60-second polling interval to keep commanders updated without manual refreshes.
 
-<span className="badge-implemented">Implemented</span>
+## Incidents Management
 
-The UI is built with Tailwind CSS v4 and a dark operations console theme:
+### \`Incidents\` (\`/incidents\`)
+The global registry of all crisis incidents (e.g., "Hurricane Delta", "Region 4 Earthquake").
+- Uses \`useListIncidents\` to fetch the tabular registry.
 
-| Element | Color Code | Purpose |
-| :--- | :--- | :--- |
-| **Primary Background** | \`#0b1210\` | Dark tactical console canvas |
-| **Card / Surface** | \`#14211f\` | Elevated panels and widgets |
-| **Border / Divider** | \`#1c2b27\` | Subtle grid lines |
-| **Teal Accent** | \`#259184\` / \`#34b3a4\` | Confirmed status, primary actions, active tabs |
-| **Amber Warning** | \`#efac30\` / \`#f7ca68\` | Needs review, moderate damage, approaching SLA |
-| **Red Critical** | \`#cd372f\` | Severe/Destroyed damage, overdue SLA, rejected |
-`);
+### \`IncidentDetail\` (\`/incidents/:id\`)
+Deep dive into a specific incident.
+- Displays metadata, a timeline of events, and a focused Area of Interest (AOI) minimap.
+- Powered by \`useGetIncident(id)\`.
 
-  // 04-frontend/geospatial-ui.md
-  write('04-frontend/geospatial-ui.md', `# Geospatial UI Implementation
+## Triage & Assessment
 
-<span className="badge-implemented">Implemented</span>
+### \`Assessment\` (\`/assessment\`)
+A map-first workspace designed for situational awareness and initial triage.
+- Features heavy layer toggles (infrastructure, detections, weather).
+- Powered by \`useListCases\` to populate map points.
 
-The geospatial workspace in \`artifacts/draxelyra/src/components/map/IncidentMap.tsx\` is built on **MapLibre GL** via \`react-map-gl/maplibre\`.
+### \`Cases\` (\`/cases\`)
+The priority queue. A dense data table view of all cases.
+- Sorted by priority score and confidence level.
+- Designed for bulk review and filtering.
 
-- **Vector Basemap**: Carto Voyager GL style (\`https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json\`).
-- **Dynamic GeoJSON Sources**: Fetched via \`GET /api/incidents/:id/map\` and rendered as separate WebGL layers:
-  - \`aoi-layer\`: Semi-transparent polygon fill and dashed stroke for the operational zone.
-  - \`assets-layer\`: Neutral circles showing hospitals, power substations, and bridges.
-  - \`detections-layer\`: Red circles indicating candidate structural change detections.
-  - \`cases-layer\`: Priority-colored interactive circles with click-to-open case inspection.
-`);
+### \`CaseDetail\` (\`/cases/:id\`)
+The comprehensive view for a single case.
+- **Before/After Imagery**: Side-by-side or slider views of satellite imagery.
+- **Priority Ledger**: Explains exactly how the Priority Engine calculated the score.
+- **Response Card**: Actionable area to spawn tasks or change case status.
 
-  // 04-frontend/responsive-design.md
-  write('04-frontend/responsive-design.md', `# Responsive Design & Mobile Breakpoints
+### \`Review\` (\`/review/:id\`)
+The Human-in-the-loop (HITL) adjudication screen.
+- Allows analysts to quickly cycle through AI-detected cases.
+- Actions: Confirm, Reject, or mark Uncertain.
+- Triggers \`useReviewCase()\`, which actively invalidates the \`['incident-map']\` cache to update the map globally.
 
-<span className="badge-implemented">Implemented</span>
+## Response & Operations
 
-- **Desktop (1280px+)**: Multi-column split views (Map + Case Queue + Detail Panel).
-- **Tablet (768px - 1279px)**: Collapsible sidebar navigation and stacked grid cards.
-- **Mobile (< 768px)**: Optimized for tactical field responders: full-width observation cards, touch targets (minimum 44px), and compact map view.
-`);
+### \`Tasks\` (\`/tasks\`)
+A Kanban board visualizing task progression.
+- Columns: Queued, In Progress, Completed.
+- Drag-and-drop or click-to-move interactions via \`useUpdateTask()\`.
 
-  // 04-frontend/accessibility.md
-  write('04-frontend/accessibility.md', `# Accessibility Standards
+### \`TaskDetail\` (\`/tasks/:id\`)
+Detailed inspection of a single task.
+- Shows assignment details, SLA timers, and a verification checklist.
 
-<span className="badge-implemented">Implemented</span>
+### \`Field\` (\`/field\`)
+A mobile-optimized interface for on-the-ground responders.
+- Heavily relies on offline sync capabilities.
+- Allows capturing evidence (photos, notes) which queue locally if connectivity drops.
 
-- **Contrast Ratios**: WCAG AA compliance (4.5:1 text-to-background minimum).
-- **Multi-Modal Indicators**: Statuses are conveyed via color, text labels, and icons (not color alone).
-- **Keyboard Navigation**: Radix UI dialogs and menus support full Tab and Esc key controls.
-`);
+## System & Analytics
 
-  // 05-backend/overview.md
-  write('05-backend/overview.md', `# Backend Overview
+### \`Analytics\` (\`/analytics\`)
+Deeper insights into operational efficiency.
+- Charts: Funnel charts for case progression, scatter plots (Confidence vs Priority).
+- Metrics: SLA adherence by team.
 
-<span className="badge-implemented">Implemented</span>
+### \`Demo\` (\`/demo\`)
+A specialized engine for scenario simulation.
+- 5-step progress UI.
+- Actions: \`useLoadDemo()\` to seed database state, \`useResetDemo()\` to clear it.
 
-The DRAXELYRA backend (\`artifacts/api-server\`) is an Express 5 TypeScript service with Drizzle ORM and PostgreSQL session storage.
-`);
+### \`Settings\` (\`/settings\`)
+Configuration interface.
+- Lists demo user directory.
+- Toggles for integration adapters (mock vs real systems).
+  `.trim());
 
-  // 05-backend/api-architecture.md
-  write('05-backend/api-architecture.md', `# API Architecture & Routing Layout
-
-<span className="badge-implemented">Implemented</span>
-
-Sub-routers handle \`/health\`, \`/auth\`, \`/incidents\`, \`/cases\`, \`/tasks\`, \`/evidence\`, \`/analytics\`, and \`/demo\`.
-`);
-
-  // 05-backend/middleware.md
-  write('05-backend/middleware.md', `# Middleware Pipeline
-
-<span className="badge-implemented">Implemented</span>
-
-Pino HTTP logging, CORS credentials handling, session serialization, and \`requireAuth\` / \`requireRole\` access guards.
-`);
-
-  // 05-backend/services.md
-  write('05-backend/services.md', `# Domain Services
+  write('04-frontend/03-components.md', `
+# UI Components & Map Engine
 
 <span className="badge-implemented">Implemented</span>
 
-Case State Machine, Task State Machine, Priority Engine, and Evidence Storage services.
-`);
+## IncidentMap Deep-Dive
 
-  // 05-backend/workflows.md
-  write('05-backend/workflows.md', `# Operational Workflows
+**Source:** \`src/components/IncidentMap.tsx\`
+
+The \`IncidentMap\` is the most complex component in the application, leveraging \`react-map-gl/maplibre\` and \`maplibre-gl\` for high-performance vector rendering.
+
+### Data Fetching
+It fetches data using \`GET /api/incidents/\${incidentId}/map\` with the query key \`['incident-map', incidentId]\`. This payload includes the AOI, critical assets, AI detections, and case data.
+
+### Rendering Layers
+The map renders 6 distinct GeoJSON layers to build the tactical picture:
+
+1. **AOI Polygon**: 
+   - Fill: \`#259184\` (opacity 0.1)
+   - Border: Dashed
+2. **Critical Assets**: 
+   - Type: Circle (radius 8)
+   - Color: \`#4a5568\`
+3. **Detections (AI)**: 
+   - Type: Circle (radius 4)
+   - Color: \`#cd372f\`
+4. **Cases**: 
+   - Type: Circle (radius 6)
+   - Color styling driven by status:
+     - \`NEEDS_REVIEW\`: \`#EFAC30\` (Amber)
+     - \`CONFIRMED\`: \`#259184\` (Teal)
+     - \`REJECTED\`: \`#cd372f\` (Red)
+     - \`CLOSED\`: \`#8b9b95\` (Slate)
+5. **Field Observations**: 
+   - Type: Circle (radius 5)
+   - Color: \`#259184\`
+
+### Interactivity
+- **Case Click**: Navigates the user to \`/cases/\${id}\`.
+- **Asset Click**: Displays an alert or tooltip with the asset's name and type.
+
+## UI Component Library
+
+**Source:** \`src/components/ui/\`
+
+The application utilizes 55 custom UI primitives built on top of **Radix UI**. This ensures accessibility (ARIA compliance, keyboard navigation) while allowing complete styling freedom via Tailwind CSS.
+
+Key components include:
+- \`Button\`, \`Input\`, \`Dialog\`, \`DropdownMenu\`, \`Toast\`, \`Tooltip\`, \`Tabs\`
+
+## Design System
+
+The design language reflects a tactical, high-contrast environment suitable for emergency operations centers (EOCs) and field devices.
+
+### Typography
+- **Body**: *DM Sans* (highly legible for dense data).
+- **Display**: *Barlow Condensed* (used for dashboard metrics and headers).
+- **Data/Coordinates**: *IBM Plex Mono* (monospace for lat/lng, IDs).
+
+### Theme Tokens
+- **Background**: Dark tactical slate (\`#1a2332\`)
+- **Primary**: Teal (\`#259184\`)
+- **Accent/Warning**: Amber (\`#EFAC30\`)
+- **Destructive/Critical**: Red (\`#cd372f\`)
+  `.trim());
+
+  write('04-frontend/04-offline-pwa.md', `
+# Offline PWA Capabilities
 
 <span className="badge-implemented">Implemented</span>
 
-Detailed sequence flows for Case Review, Task Dispatch, and Ground Verification.
-`);
+Field responders require continuous operation regardless of network reliability. DRAXELYRA utilizes Progressive Web App (PWA) technologies to ensure availability and data integrity during outages.
 
-  // 05-backend/error-handling.md
-  write('05-backend/error-handling.md', `# Error Handling
+## Service Worker
+
+**Source:** \`public/sw.js\`
+
+The Service Worker intercepts network requests and manages the application cache.
+- **Cache Name**: \`draxelyra-v1\`
+- **Install Phase**: Caches the application shell (e.g., \`/\`, index.html, core CSS/JS) and immediately calls \`skipWaiting()\` to activate the new worker.
+- **Activate Phase**: Claims all active clients, taking control immediately.
+- **Fetch Strategy**:
+  - Ignores non-GET requests.
+  - Specifically bypasses any URLs containing \`/api/\` to prevent caching dynamic backend responses in the static cache.
+  - Serves the cached application shell for navigation requests, allowing the app to boot offline.
+
+## Offline Sync Engine
+
+**Source:** \`src/lib/offline-sync.ts\`
+
+When the app is offline, mutations (POST, PUT, DELETE) are intercepted and stored locally.
+
+### IndexedDB Storage
+- **Database**: \`draxelyra-offline\`, version 1.
+- **Object Store**: \`syncQueue\`
+  - Configured with \`keyPath: 'id'\` and \`autoIncrement: true\`.
+
+### Core Exports
+1. \`getOfflineDB()\`: Initializes and returns the IndexedDB connection.
+2. \`queueRequest(url, method, body)\`: Serializes the failed API request and stores it in the \`syncQueue\`.
+3. \`getQueue()\`: Retrieves all pending requests.
+4. \`clearQueueItem(id)\`: Removes a request from the queue after successful synchronization.
+
+### Conflict Resolution UI
+The application monitors \`navigator.onLine\`. When connectivity is restored, a background process attempts to flush the \`syncQueue\`. If conflicts occur (e.g., a Case was updated by someone else, resulting in a Version Conflict), the UI presents a resolution dialog to the user, allowing them to force their update or pull the latest server state.
+  `.trim());
+
+  // ---------------------------------------------------------------------------
+  // SECTION 05: BACKEND
+  // ---------------------------------------------------------------------------
+
+  write('05-backend/01-architecture.md', `
+# Backend Architecture
 
 <span className="badge-implemented">Implemented</span>
 
-Standard JSON envelopes with error codes (\`BAD_REQUEST\`, \`UNAUTHORIZED\`, \`FORBIDDEN\`, \`NOT_FOUND\`, \`VERSION_CONFLICT\`, \`INVALID_TRANSITION\`, \`SERVER_ERROR\`).
-`);
+The Node.js backend is designed as a robust, stateless API layer sitting in front of a PostgreSQL database.
 
-  // 05-backend/background-processing.md
-  write('05-backend/background-processing.md', `# Background Processing
+## Entry Point
 
-<span className="badge-implemented">Implemented</span> <span className="badge-planned">Worker Queue Planned</span>
+**Source:** \`artifacts/api-server/src/index.ts\`
 
-Dynamic SLA calculations with roadmap plans for BullMQ / Redis background workers.
-`);
+The boot process is straightforward:
+- Reads the \`PORT\` from environment variables.
+- Validates that \`PORT\` is numeric and > 0.
+- Calls \`app.listen(port)\`.
+- Logs the successful startup using the Pino logger.
+
+## Express App & Middleware Chain
+
+**Source:** \`artifacts/api-server/src/app.ts\`
+
+The middleware chain is executed in the following EXACT order. This order is critical for security and payload parsing.
+
+1. **\`pinoHttp\`**: 
+   - Configured with \`logger\` and serializers: \`{ req: sanitize URL, res: statusCode }\`.
+   - Provides structured JSON logging for every request.
+2. **\`cors\`**: 
+   - Configured with \`origin: true\` and \`credentials: true\` (permissive for current dev/staging).
+3. **\`express.json()\`**: 
+   - Parses incoming JSON payloads into \`req.body\`.
+4. **\`express.urlencoded({ extended: true })\`**: 
+   - Parses URL-encoded bodies.
+5. **\`express-session\`**:
+   - Store: \`connect-pg-simple\` (PostgreSQL-backed sessions).
+   - Table: \`session\` in PostgreSQL.
+   - Secret: \`process.env.SESSION_SECRET || 'draxelyra_default_secret'\`.
+   - Cookie config: \`httpOnly: true\`, \`secure: NODE_ENV === 'production'\`, \`maxAge: 30 * 24 * 60 * 60 * 1000\` (30 days).
+   - Settings: \`resave: false\`, \`saveUninitialized: false\`.
+6. **Static File Serving**: 
+   - \`express.static('uploads')\` mounted at \`/uploads\` to serve uploaded evidence.
+7. **API Router**: 
+   - All core logic is mounted at \`/api\`.
+
+## Route Mounting
+
+**Source:** \`routes/index.ts\`
+
+- \`/api/health\` → \`healthRouter\`
+- \`/api/auth\` → \`authRouter\`
+- \`/api/incidents\` → \`incidentsRouter\`
+- \`/api/cases\` → \`casesRouter\`
+- \`/api/tasks\` → \`tasksRouter\`
+- \`/api/analytics\` → \`analyticsRouter\`
+- \`/api/demo\` → \`demoRouter\`
+- \`/api/evidence\` → \`evidenceRouter\`
+- \`/api/\` → \`operationsRouter\` (handles command summary and audit logs)
+
+## Authentication Middleware
+
+**Source:** \`middlewares/auth.ts\`
+
+- **\`requireAuth(req, res, next)\`**: Checks for \`req.session?.userId\`. If missing, returns 401 with payload: \`{ error: { code: 'UNAUTHORIZED' } }\`.
+- **\`requireRole(...roles)\`**: First checks auth (401), then verifies if \`roles.includes(req.session.role)\`. Returns 403 FORBIDDEN if the user lacks clearance.
+
+## Pino Logger
+
+**Source:** \`lib/logger.ts\`
+
+- **Level**: \`process.env.LOG_LEVEL ?? 'info'\`.
+- **Redactions**: Prevents leaking secrets to logs. Redacts \`req.headers.authorization\`, \`req.headers.cookie\`, and \`res.headers['set-cookie']\`.
+- **Transport**: Uses \`pino-pretty\` in development for human-readable logs, and outputs raw JSON in production environments.
+  `.trim());
+
+  write('05-backend/02-services.md', `
+# Domain Services
+
+<span className="badge-implemented">Implemented</span>
+
+Business logic is isolated from route handlers into dedicated domain services. This ensures reusability and simplifies testing.
+
+## Case State Machine
+
+**Source:** \`services/case-state-machine.ts\`
+
+Cases progress through a strict lifecycle. Invalid transitions throw errors.
+
+**Allowed Transitions:**
+- \`DETECTED\` → [\`NEEDS_REVIEW\`]
+- \`NEEDS_REVIEW\` → [\`CONFIRMED\`, \`REJECTED\`, \`UNCERTAIN\`]
+- \`CONFIRMED\` → [\`PRIORITIZED\`, \`TASKED\`]
+- \`PRIORITIZED\` → [\`TASKED\`]
+- \`TASKED\` → [\`IN_PROGRESS\`]
+- \`IN_PROGRESS\` → [\`FIELD_VERIFIED\`, \`ACTIONED\`]
+- \`FIELD_VERIFIED\` → [\`ACTIONED\`]
+- \`ACTIONED\` → [\`CLOSED\`]
+- \`UNCERTAIN\` → [\`CLOSED\`]
+- \`REJECTED\` → [\`CLOSED\`]
+- \`CLOSED\` → []
+
+**Implementation details (\`transitionCase\` function):**
+- Executes entirely within a \`db.transaction()\`.
+- Checks \`expectedVersion\`. Throws \`VERSION_CONFLICT\` if the database version is higher (Optimistic Concurrency Control).
+- Validates the transition graph.
+- Updates the case, incrementing the version by 1.
+- Inserts a record into \`caseStatusHistory\`.
+- Emits records to \`auditEvents\`.
+
+## Task State Machine
+
+**Source:** \`services/task-state-machine.ts\`
+
+Tasks track physical or analytical work.
+
+**Allowed Transitions:**
+- \`UNASSIGNED\` → [\`ASSIGNED\`]
+- \`ASSIGNED\` → [\`IN_PROGRESS\`, \`UNASSIGNED\`]
+- \`IN_PROGRESS\` → [\`BLOCKED\`, \`COMPLETED\`, \`VERIFIED\`]
+- \`BLOCKED\` → [\`IN_PROGRESS\`, \`UNASSIGNED\`]
+- \`COMPLETED\` → [\`VERIFIED\`, \`CLOSED\`]
+- \`VERIFIED\` → [\`CLOSED\`]
+- \`CLOSED\` → []
+
+Uses the identical OCC pattern as cases. Automatically populates \`completedAt\` timestamps upon entering terminal states.
+
+## Priority Engine
+
+**Source:** \`lib/priority.ts\`
+
+Calculates the operational priority of a case (0-100 scale).
+
+**Formula:**
+\`round(0.30 * S + 0.25 * C + 0.20 * E + 0.15 * U + 0.10 * (confidence * 100))\`
+
+- **S (Severity)**: destroyed=100, severe=75, moderate=45, uncertain=35, minor=20, no damage=0.
+- **C (Criticality)**: hospital/emergency=100, bridge=85, gov/utility=75, school=70, residential=40, commercial=30, default=15.
+- **E (Exposure)**: high=90, medium=55, low=20.
+- **U (Urgency)**: \`min(100, max(0, 100 - (hours/72)*100) + (accessConstrained ? 20 : 0))\`
+- **Confidence**: AI detection confidence score (0.0 to 1.0).
+
+## Evidence Upload Pipeline
+
+**Source:** \`routes/evidence.ts\`
+
+Handles secure file uploads from the field.
+- **Storage**: Uses Multer with memory storage.
+- **Limits**: 50MB maximum file size.
+- **MIME Whitelist**: \`image/jpeg\`, \`image/png\`, \`image/webp\`, \`video/mp4\`.
+- **Validation**: Performs magic byte checking on the buffer (JPEG=FFD8FF, PNG=89504E47, WebP=RIFF+WEBP, MP4=ftyp) to prevent spoofed extensions.
+- **Integrity**: Calculates a SHA-256 hash of the buffer.
+- **Security**: Prevents path traversal by validating that the resolved path strictly \`startsWith(uploadsDir)\`.
+- **Persistence**: Writes buffer to disk and inserts an \`evidence\` record in the database.
+  `.trim());
+
+  write('05-backend/03-error-handling.md', `
+# Error Handling
+
+<span className="badge-implemented">Implemented</span>
+
+The backend utilizes a standardized JSON error envelope for all client responses. This ensures the frontend can parse errors predictably.
+
+## The Error Envelope
+
+Every failed request returns a payload structured like this:
+
+\`\`\`json
+{
+  "error": {
+    "code": "ERROR_CODE_STRING",
+    "message": "Human readable description",
+    "details": {} 
+  }
+}
+\`\`\`
+
+## HTTP Status Codes Mapping
+
+We strictly map domain errors to appropriate HTTP status codes:
+
+- **400 Bad Request**: Validation failures (e.g., Zod schema parsing fails).
+  - \`code\`: \`VALIDATION_ERROR\`
+  - \`details\`: Array of specific field errors.
+- **401 Unauthorized**: Missing or invalid session.
+  - \`code\`: \`UNAUTHORIZED\`
+- **403 Forbidden**: Valid session, but insufficient role permissions.
+  - \`code\`: \`FORBIDDEN\`
+- **404 Not Found**: Resource does not exist (Case, Task, Incident).
+  - \`code\`: \`NOT_FOUND\`
+- **409 Conflict**: Optimistic Concurrency Control failure.
+  - \`code\`: \`VERSION_CONFLICT\`
+  - Triggered when \`expectedVersion\` does not match the database.
+- **422 Unprocessable Entity**: Business logic violations.
+  - \`code\`: \`INVALID_STATE_TRANSITION\`
+  - Triggered by the state machine services.
+- **500 Internal Server Error**: Uncaught exceptions.
+  - \`code\`: \`INTERNAL_ERROR\`
+  - Stack traces are stripped in production.
+
+## Example: Version Conflict Response
+
+\`\`\`json
+{
+  "error": {
+    "code": "VERSION_CONFLICT",
+    "message": "The case was modified by another user. Please refresh and try again.",
+    "details": {
+      "providedVersion": 4,
+      "currentVersion": 5
+    }
+  }
+}
+\`\`\`
+  `.trim());
 }

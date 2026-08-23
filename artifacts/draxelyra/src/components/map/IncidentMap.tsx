@@ -29,15 +29,22 @@ const OSM_STYLE: any = {
   ]
 };
 
+import { customFetch } from "@workspace/api-client-react";
+
 export function IncidentMap({ incidentId, compact = false }: { incidentId: string, compact?: boolean }) {
   const [, setLocation] = useLocation();
 
   const { data, isLoading } = useQuery({
     queryKey: ["incident-map", incidentId],
     queryFn: async () => {
-      const res = await fetch(`/api/incidents/${incidentId}/map`);
-      if (!res.ok) throw new Error("Failed to fetch map data");
-      return res.json();
+      const data = await customFetch<{
+        aoi?: any;
+        cases?: any;
+        criticalAssets?: any;
+        detections?: any;
+        fieldObservations?: any;
+      }>(`/api/incidents/${incidentId}/map`);
+      return data;
     }
   });
 

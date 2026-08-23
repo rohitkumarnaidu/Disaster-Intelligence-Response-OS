@@ -1,322 +1,216 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
-export function generateGeoOffline(DOCS_DIR) {
+export function generateGeoOffline(docsDir) {
   const write = (relPath, content) => {
-    const fullPath = path.join(DOCS_DIR, relPath);
+    const fullPath = path.join(docsDir, relPath);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
+    fs.writeFileSync(fullPath, content.trim() + '\n', 'utf-8');
   };
 
-  // 09-geospatial/overview.md
-  write('09-geospatial/overview.md', `# Geospatial Overview
-
+  write('09-geospatial/map-engine.md', `
+# Map Engine Implementation
 <span className="badge-implemented">Implemented</span>
 
-Geospatial data forms the operational canvas of DRAXELYRA. The platform integrates satellite observations, cadastral facility layers, and field tracks into unified interactive maps.
+The DRAXELYRA platform incorporates a high-performance, WebGL-accelerated map engine based on \`react-map-gl\`, \`maplibre\`, and \`maplibre-gl\`. It serves as the primary visual interface for command center operators and field responders.
+
+## Architecture
+
+The map engine is built using an open-source geospatial stack, utilizing OpenStreetMap raster tiles for basemaps and GeoJSON for dynamic feature overlays.
 
 \`\`\`mermaid
-flowchart TD
-    A[Incident AOI Polygon] --> M[MapLibre GL Map Canvas]
-    B[Critical Infrastructure Points] --> M
-    C[AI Damage Detections] --> M
-    D[Prioritized Operational Cases] --> M
-    E[Field Responder GPS Observations] --> M
-    M --> F[Duty Officer Triage Interface]
+graph TD
+    DB[(PostgreSQL/PostGIS)] --> API[API Layer]
+    API --> |toGeoJsonGeometry| DTO[GeoJSON DTO]
+    DTO --> React[React Query Cache]
+    React --> |useIncidentMap| Map[IncidentMap.tsx]
+    Map --> |MapLibre GL JS| Canvas[WebGL Canvas]
+    
+    style DB fill:#1e40af,stroke:#93c5fd,color:#fff
+    style API fill:#166534,stroke:#86efac,color:#fff
+    style Map fill:#b91c1c,stroke:#fca5a5,color:#fff
 \`\`\`
-`);
 
-  // 09-geospatial/map-architecture.md
-  write('09-geospatial/map-architecture.md', `# Map Architecture & Rendering Engine
+## Backend Data Transformation
 
-<span className="badge-implemented">Implemented</span>
+All coordinates are stored in the database in WGS84 (EPSG:4326). When fetching the incident map endpoint (\`/api/incidents/:id/map\`), the backend aggregates multiple entity types into a unified response of \`FeatureCollection\` objects.
 
-The map engine is built on **MapLibre GL** via \`react-map-gl/maplibre\`.
+**Source File:** \`backend/src/utils/geo.ts\`
+\`\`\`typescript
+export function toGeoJsonGeometry(loc: { lat: number; lng: number }): GeoJSON.Point {
+  return {
+    type: 'Point',
+    coordinates: [loc.lng, loc.lat] // GeoJSON strictly requires [longitude, latitude]
+  };
+}
+\`\`\`
 
----
+## React Map Component
 
-## Technical Stack
+**Source File:** \`apps/web/src/components/IncidentMap.tsx\`
 
-- **Renderer**: WebGL hardware-accelerated tile rendering.
-- **Basemap Style**: Carto Voyager GL vector style (\`https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json\`).
-- **Endpoint**: \`GET /api/incidents/:id/map\` delivers GeoJSON FeatureCollections for all active incident layers.
-`);
+The map leverages \`react-map-gl/maplibre\` to render layers interactively. Basemap tiles are fetched from OSM:
+\`https://tile.openstreetmap.org/{z}/{x}/{y}.png\`
 
-  // 09-geospatial/geojson.md
-  write('09-geospatial/geojson.md', `# GeoJSON Schemas & Specifications
+### Layer Definitions
 
-<span className="badge-implemented">Implemented</span>
+The map renders 6 distinct GeoJSON layers to represent the operational theater:
 
-The map API returns an aggregated JSON payload containing standard RFC 7946 GeoJSON collections:
+| Layer Name | Visual Treatment | Description |
+|---|---|---|
+| **AOI (Area of Interest)** | Fill: \`#259184\` (0.1 opacity) + Dashed Border | Represents the bounding geometry of the disaster. |
+| **Critical Assets** | Circle: Radius 8, \`#4a5568\`, White Stroke | High-value targets (hospitals, shelters, bridges). |
+| **Detections** | Circle: Radius 4, \`#cd372f\` (0.6 opacity) | Raw AI detections before analyst verification. |
+| **Cases (Needs Review)** | Circle: Radius 6, \`#EFAC30\` | Unverified cases awaiting analyst triage. |
+| **Cases (Confirmed)** | Circle: Radius 6, \`#259184\` | Actionable, verified impact zones. |
+| **Cases (Rejected/Closed)** | Circle: Radius 6, \`#cd372f\` / \`#8b9b95\` | Dismissed or resolved incidents. |
+| **Field Observations** | Circle: Radius 5, \`#259184\`, White Stroke | Reports directly uploaded by responders. |
+
+### API Response Schema
+
+The \`['incident-map', incidentId]\` query fetches data matching the following schema:
 
 \`\`\`json
 {
   "aoi": {
-    "type": "Polygon",
-    "coordinates": [[[80.15, 13.0], [80.30, 13.0], [80.30, 13.15], [80.15, 13.15], [80.15, 13.0]]]
+    "type": "Feature",
+    "geometry": { "type": "Polygon", "coordinates": [...] },
+    "properties": { "name": "Chennai Basin" }
   },
-  "cases": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": { "type": "Point", "coordinates": [80.2707, 13.0827] },
-        "properties": {
-          "id": "C-1048",
-          "status": "NEEDS_REVIEW",
-          "priority": 83,
-          "assetType": "Hospital"
-        }
-      }
-    ]
-  },
-  "criticalAssets": { "type": "FeatureCollection", "features": [] },
-  "detections": { "type": "FeatureCollection", "features": [] },
-  "fieldObservations": { "type": "FeatureCollection", "features": [] }
+  "cases": { "type": "FeatureCollection", "features": [...] },
+  "criticalAssets": { "type": "FeatureCollection", "features": [...] },
+  "detections": { "type": "FeatureCollection", "features": [...] },
+  "fieldObservations": { "type": "FeatureCollection", "features": [...] }
 }
 \`\`\`
-`);
 
-  // 09-geospatial/layers.md
-  write('09-geospatial/layers.md', `# Map Layer Hierarchy & Styling
+### Interactive Features
 
+- **Click Handlers:** Clicking a case feature automatically transitions the user to \`/cases/\${id}\`. Clicking a critical asset triggers a popup alerting the user of the asset's name and type.
+- **Layout Modes:** The component supports a \`compact\` mode (190px height) for sidebars and dashboards, and a \`full\` mode (440px height) for dedicated map views.
+- **CRS Projection:** While data is transferred in EPSG:4326, the WebGL canvas dynamically projects coordinates to Web Mercator (EPSG:3857) for rendering.
+  `);
+
+  write('09-geospatial/offline-sync.md', `
+# Offline Synchronization
 <span className="badge-implemented">Implemented</span>
 
-| Layer ID | Source | Geometry | Styling Rules |
-| :--- | :--- | :--- | :--- |
-| \`aoi-layer\` | \`aoi\` | Polygon | Fill: \`#259184\`, Opacity: \`0.10\` |
-| \`aoi-layer-line\` | \`aoi\` | LineString | Stroke: \`#259184\`, Width: 2, Dasharray: \`[2, 2]\` |
-| \`assets-layer\` | \`criticalAssets\` | Point | Circle radius: \`8px\`, Color: \`#4a5568\`, Stroke: \`#ffffff\` |
-| \`detections-layer\` | \`detections\` | Point / Polygon | Circle radius: \`4px\`, Color: \`#cd372f\`, Opacity: \`0.6\` |
-| \`cases-layer\` | \`cases\` | Point | Radius: \`6px\`, Color based on status: NEEDS_REVIEW (\`#EFAC30\`), CONFIRMED (\`#259184\`), REJECTED (\`#cd372f\`) |
-| \`observations-layer\` | \`fieldObservations\` | Point | Radius: \`5px\`, Color: \`#259184\`, Stroke: \`#ffffff\` |
-`);
+To guarantee continuity of operations in degraded or entirely disconnected environments, DRAXELYRA implements a robust Service Worker and IndexedDB-based queueing mechanism.
 
-  // 09-geospatial/coordinates.md
-  write('09-geospatial/coordinates.md', `# Coordinate Reference Systems (CRS)
-
-<span className="badge-implemented">Implemented</span>
-
-- **Internal Storage & GeoJSON Standard**: **WGS 84 (EPSG:4326)** — standard longitude/latitude coordinates in decimal degrees.
-- **Tile Rendering**: **Web Mercator (EPSG:3857)** — projected dynamically by MapLibre GL.
-- **Format Order**: GeoJSON RFC 7946 strictly requires \`[longitude, latitude]\` coordinate ordering.
-`);
-
-  // 09-geospatial/spatial-data.md
-  write('09-geospatial/spatial-data.md', `# Spatial Data Models & Queries
-
-<span className="badge-implemented">Implemented</span>
-
-Geometries are stored in PostgreSQL \`jsonb\` columns (\`aoi\`, \`location\`, \`geometry\`).
-
-- **Spatial Joins**: Detections are matched to nearby critical infrastructure assets by checking coordinate proximity within the incident AOI bounding box.
-`);
-
-  // 09-geospatial/map-interactions.md
-  write('09-geospatial/map-interactions.md', `# User Map Interactions
-
-<span className="badge-implemented">Implemented</span>
-
-1. **Interactive Layer Clicking**: Clicking on a case marker triggers client-side navigation to \`/cases/:id\`.
-2. **Asset Information Popups**: Clicking an infrastructure marker shows facility name and asset type.
-3. **Layer Visibility Toggles**: Toggling filters in the Assessment workspace enables/disables specific MapLibre layers.
-`);
-
-  // 09-geospatial/external-data.md
-  write('09-geospatial/external-data.md', `# External GIS & Earth Observation Data
-
-<span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">OGC WMS/WFS Planned</span>
-
-- **Current Implementation**: Simulated ArcGIS & Sentinel-2 layers in demo workspace.
-- **Planned Capabilities**: Direct ingestion of OGC WMS/WMTS raster tiles, ESRI FeatureServer endpoints, and Copernicus Open Access Hub satellite streams.
-`);
-
-  // 10-offline/pwa.md
-  write('10-offline/pwa.md', `# Progressive Web Application (PWA)
-
-<span className="badge-implemented">Implemented</span>
-
-DRAXELYRA is structured as an offline-capable Progressive Web Application to support tactical responders operating in communication-compromised disaster zones.
-`);
-
-  // 10-offline/offline-architecture.md
-  write('10-offline/offline-architecture.md', `# Offline Architecture & Lifecycle
-
-<span className="badge-implemented">Implemented</span>
+## Architecture
 
 \`\`\`mermaid
 sequenceDiagram
-    autonumber
-    actor Responder as Field Responder
-    participant Fetch as customFetch()
-    participant Event as CustomEvent Bus
-    participant IDB as IndexedDB (syncQueue)
-    participant Sync as Sync Engine
-    participant API as Express API Server
-
-    Note over Responder,Fetch: Field responder loses cellular connectivity
-    Responder->>Fetch: Submit Ground Observation / Status Update
-    Fetch->>Fetch: Check navigator.onLine (false)
-    Fetch->>Event: Dispatch offline-sync-enqueue
-    Event->>IDB: queueRequest(url, method, body)
-    IDB-->>Responder: Return queuedOffline: true
+    participant User
+    participant App
+    participant customFetch
+    participant IndexedDB
+    participant ServiceWorker
+    participant Network
     
-    Note over Responder,Sync: Connectivity restored
-    Sync->>IDB: getQueue()
-    IDB-->>Sync: Return buffered mutation list
-    loop For each queued item
-        Sync->>API: Execute HTTP Request
-        API-->>Sync: 200 OK Response
-        Sync->>IDB: clearQueueItem(id)
+    User->>App: Submits field report
+    App->>customFetch: POST /api/tasks/:id
+    alt is Online
+        customFetch->>Network: Forward Request
+        Network-->>customFetch: 200 OK
+        customFetch-->>App: Success
+    else is Offline
+        customFetch->>IndexedDB: queueRequest(url, method, body)
+        IndexedDB-->>customFetch: Queued (ID: 1)
+        customFetch-->>App: Simulated Success
     end
 \`\`\`
-`);
 
-  // 10-offline/indexeddb.md
-  write('10-offline/indexeddb.md', `# IndexedDB Storage Implementation
+## Service Worker Implementation
 
-<span className="badge-implemented">Implemented</span>
+**Source File:** \`apps/web/public/sw.js\`
 
-The offline storage engine is implemented in \`artifacts/draxelyra/src/lib/offline-sync.ts\`:
+The Service Worker handles asset caching and network intercepting.
+- **Cache Name:** \`draxelyra-v1\`
+- **Install Phase:** Caches the root \`/\` and static assets. Calls \`skipWaiting()\` to immediately activate.
+- **Fetch Logic:** Bypasses \`/api/\` requests (handled by customFetch) and non-GET requests. For all other GET requests, it uses a cache-first, network-fallback strategy.
 
+## IndexedDB Queue
+
+**Source File:** \`apps/web/src/lib/offline-sync.ts\`
+
+The platform utilizes IndexedDB to persist mutations when offline.
+
+- **Database:** \`draxelyra-offline\` (Version 1)
+- **Store:** \`syncQueue\` (keyPath: \`id\`, \`autoIncrement: true\`)
+
+Core functions exported for queue management:
 \`\`\`typescript
-export async function getOfflineDB() {
-  return new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open("draxelyra-offline", 1);
-    req.onupgradeneeded = (e: any) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains("syncQueue")) {
-        db.createObjectStore("syncQueue", { keyPath: "id", autoIncrement: true });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
+export async function getOfflineDB(): Promise<IDBPDatabase> { ... }
+export async function queueRequest(url: string, method: string, body: any): Promise<number> { ... }
+export async function getQueue(): Promise<QueueItem[]> { ... }
+export async function clearQueueItem(id: number): Promise<void> { ... }
 \`\`\`
-`);
 
-  // 10-offline/sync-engine.md
-  write('10-offline/sync-engine.md', `# Synchronization Engine
+## Network Interceptor
 
-<span className="badge-implemented">Implemented</span>
+**Source File:** \`lib/api-client-react/src/custom-fetch.ts\`
 
-- **Mutation Interception**: \`customFetch\` in \`lib/api-client-react/src/custom-fetch.ts\` intercepts network failures when \`!navigator.onLine\` for non-GET requests.
-- **Queue Enqueueing**: Serializes URL, HTTP method, and JSON body into \`syncQueue\`.
-- **Sequential Replay**: Replays queued mutations in strict chronological order upon network reconnection.
-`);
+The custom fetch wrapper acts as the application's circuit breaker. If \`!navigator.onLine\` evaluates to true, any non-GET request is automatically serialized and passed to \`queueRequest\`. The UI is immediately updated optimistically.
 
-  // 10-offline/conflict-resolution.md
-  write('10-offline/conflict-resolution.md', `# Conflict Resolution & Version Checking
+## Conflict Resolution & Status
 
-<span className="badge-implemented">Implemented</span>
+The \`/field\` page provides a dedicated offline status widget. It queries \`getQueue()\` to display the pending operations count. 
+If an optimistic update causes a conflict upon syncing (e.g., a \`409 VERSION_CONFLICT\` from the backend), the application pauses the queue and prompts the user for conflict resolution, displaying the server's current state alongside the local queued state.
+  `);
 
-When offline mutations are replayed against the API server:
-1. Every mutation carries the entity's \`version\` at the time of offline editing.
-2. The server compares the mutation version against the live PostgreSQL version.
-3. If concurrent online edits occurred, the server returns \`409 Conflict\` with \`VERSION_CONFLICT\`, preserving data integrity and prompting the user for resolution.
-`);
+  write('10-ai-ml/intelligence-pipeline.md', `
+# AI/ML Intelligence Pipeline
+<span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Planned</span>
 
-  // 10-offline/retry-strategy.md
-  write('10-offline/retry-strategy.md', `# Retry Strategy & Exponential Backoff
+The AI/ML Intelligence pipeline provides rapid analysis of bi-temporal satellite imagery to generate actionable damage assessments.
 
-<span className="badge-implemented">Implemented</span>
+> [!IMPORTANT]
+> The current system utilizes a mock adapter simulating the planned \`change-detector/v2.4.1\` model. The outputs are deterministic for the Chennai Urban Flood demo scenario but structurally match the planned production payload.
 
-- **Immediate Reconnection**: Triggers on \`window.addEventListener('online')\`.
-- **Transient Failures (5xx / Timeout)**: Retries with exponential backoff (1s, 2s, 4s, 8s intervals).
-- **Permanent Client Errors (4xx)**: Logged and quarantined to prevent blocking subsequent queue items.
-`);
-
-  // 11-ai-ml/overview.md
-  write('11-ai-ml/overview.md', `# AI / ML Intelligence Overview
-
-<span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Live Service Planned</span>
-
-DRAXELYRA integrates machine learning to accelerate initial disaster change-detection while ensuring human duty officers retain complete decision authority.
-`);
-
-  // 11-ai-ml/model-architecture.md
-  write('11-ai-ml/model-architecture.md', `# Model Architecture & Pipelines
-
-<span className="badge-mock">Mock Adapter Active</span>
-
-- **Model Identifier**: \`change-detector/v2.4.1\`
-- **Target Task**: Bi-temporal satellite change detection and damage categorization.
-- **Output Schema**: Bounding geometry / point, damage classification (\`Severe\`, \`Moderate\`, \`Minor\`), statistical confidence score (0.0–1.0).
-`);
-
-  // 11-ai-ml/damage-assessment.md
-  write('11-ai-ml/damage-assessment.md', `# Damage Assessment Taxonomy
-
-<span className="badge-implemented">Implemented</span>
-
-DRAXELYRA classifies structural damage into six standardized operational tiers:
-
-| Damage Class | Score | Visual Indicators |
-| :--- | :--- | :--- |
-| **Destroyed** | 100 | Total structural collapse, foundation washed out |
-| **Severe** | 75 | Major structural damage, partial roof collapse, deep standing water |
-| **Moderate** | 45 | Partial wall/roof impact, debris obstruction |
-| **Uncertain** | 35 | Heavy cloud shadow, low resolution, obstructed view |
-| **Minor** | 20 | Superficial facade damage, localized surface flooding |
-| **No damage** | 0 | Baseline intact |
-`);
-
-  // 11-ai-ml/model-providers.md
-  write('11-ai-ml/model-providers.md', `# Model Providers & Ingestion Adapters
-
-<span className="badge-mock">Mock Adapter Active</span> <span className="badge-planned">Integrations Planned</span>
-
-- **Simulated Provider**: Deterministic Chennai monsoon replay (\`DEMO REPLAY / HISTORICAL\`).
-- **Target Provider Integrations**: Copernicus Sentinel-2 (ESA), PlanetScope / SkySat (Planet Labs), Maxar Open Data Program.
-`);
-
-  // 11-ai-ml/inference-flow.md
-  write('11-ai-ml/inference-flow.md', `# Inference Flow & Triage Pipeline
-
-<span className="badge-implemented">Implemented</span>
+## Pipeline Architecture
 
 \`\`\`mermaid
-flowchart LR
-    A[Pre/Post GeoTIFFs] --> B[Inference Service]
-    B --> C[Candidate Detections]
-    C --> D[Critical Asset Spatial Join]
-    D --> E[Priority Calculation]
-    E --> F[Human Analyst Review]
+graph LR
+    Pre[Pre-Disaster Imagery] --> Model
+    Post[Post-Disaster Imagery] --> Model
+    Model[Change Detector v2.4.1] --> Extract[Feature Extraction]
+    Extract --> Taxonomy[Taxonomy Classification]
+    Taxonomy --> Score[Priority Scoring]
+    Score --> DB[(Database)]
 \`\`\`
-`);
 
-  // 11-ai-ml/confidence.md
-  write('11-ai-ml/confidence.md', `# Statistical Confidence vs Calibration
+## Damage Taxonomy
 
-<span className="badge-implemented">Implemented</span>
+The model classifies damage into specific, actionable tiers. Each tier carries a baseline score used in downstream priority calculations.
 
-- Model confidence reflects the raw detection probability (0.00–1.00).
-- In DRAXELYRA, model confidence contributes **10%** of the final priority score, ensuring low-confidence detections on vital assets (e.g. 55% confidence on a hospital) are not silently ignored.
-`);
+| Class | Baseline Score | Definition |
+|---|---|---|
+| **Destroyed** | 100 | Complete structural failure, unrecoverable. |
+| **Severe** | 75 | Major structural damage, uninhabitable. |
+| **Moderate** | 45 | Significant damage, requires extensive repair. |
+| **Uncertain** | 35 | Anomalies detected but occluded (e.g., cloud cover/shadows). |
+| **Minor** | 20 | Superficial damage, structure intact. |
+| **No damage** | 0 | Baseline state maintained. |
 
-  // 11-ai-ml/priority-vs-confidence.md
-  write('11-ai-ml/priority-vs-confidence.md', `# Priority vs Confidence: The Operational Divergence
+## Confidence vs Priority Divergence
 
-<span className="badge-implemented">Implemented</span>
+The model outputs a \`confidence\` score (0.0 to 1.0) indicating the statistical certainty of the prediction.
 
-| Scenario | Model Confidence | Asset Criticality | Calculated Priority | Action Required |
-| :--- | :--- | :--- | :--- | :--- |
-| **Hospital Inundation (Hero Case)** | **55%** (Moderate) | Hospital (100) | **83** (Critical) | **Immediate Field Check** |
-| **Commercial Roof Reflection** | **96%** (High) | Commercial (30) | **28** (Low) | **Deprioritized / Archived** |
+The Intelligence Pipeline intentionally separates AI *confidence* from Operational *priority*.
+For example, a detection on a **Hospital** with a mere **55% confidence** may result in a **Priority 83** task, because the potential operational cost of missing hospital damage is catastrophic. Conversely, a **Commercial** building with **96% confidence** may only trigger a **Priority 28** task.
 
-:::important Key Takeaway
-Confidence measures model certainty; Priority measures operational consequence.
-:::
-`);
+## Demo Scenario: Chennai Urban Flood
 
-  // 11-ai-ml/future-ml-integration.md
-  write('11-ai-ml/future-ml-integration.md', `# Future ML Roadmap
+The deterministic mock adapter replays a carefully curated dataset representing the Chennai Urban Floods. It seeds:
+- 120+ raw detections
+- 15 Critical Assets
+- 1 "Hero" Case (C-1048) demonstrating complex multi-asset occlusion.
 
-<span className="badge-planned">Planned Future Architecture</span>
+## Future Roadmap
 
-1. **gRPC Inference Microservice**: High-throughput containerized PyTorch service.
-2. **Active Learning Feedback Loop**: Rejected and confirmed analyst labels exported to retrain local change-detector weights.
-3. **Multi-Modal Drone Telemetry**: Integrating real-time video stream object detection from tactical UAVs.
-`);
+1. **gRPC Inference Service:** Transitioning from REST to a high-throughput gRPC stream for sub-second tile processing.
+2. **Active Learning Loop:** Integrating analyst feedback (Confirmed/Rejected/Uncertain) directly into periodic LoRA fine-tuning runs.
+3. **Drone Telemetry Integration:** Extending bi-temporal satellite ingestion to accept oblique drone footage for localized verification.
+  `);
 }

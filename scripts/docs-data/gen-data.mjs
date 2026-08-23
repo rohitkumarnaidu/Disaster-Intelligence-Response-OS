@@ -8,426 +8,376 @@ export function generateData(DOCS_DIR) {
     fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
   };
 
-  // 06-database/overview.md
-  write('06-database/overview.md', `# Database Overview
-
-<span className="badge-implemented">Implemented</span>
-
-DRAXELYRA utilizes **PostgreSQL 15** managed through **Drizzle ORM** (\`lib/db\`). The database stores operational entities, geospatial geometries (in GeoJSON format), binary evidence metadata, user sessions, and immutable audit logs.
-
----
-
-## Technical Stack & Connection Pooling
-
-- **Database Engine**: PostgreSQL 15+
-- **ORM**: Drizzle ORM (\`drizzle-orm\`, \`drizzle-kit\`)
-- **Connection Pooling**: \`pg.Pool\` in \`lib/db/src/index.ts\`
-- **Session Table**: Managed via \`connect-pg-simple\` with automatic cookie expiration cleanup
-- **Schema Location**: \`lib/db/src/schema/index.ts\`
-`);
-
-  // 06-database/schema.md
-  write('06-database/schema.md', `# Database Schema Reference
-
-<span className="badge-implemented">Implemented</span>
-
-The complete schema is defined in \`lib/db/src/schema/index.ts\`.
-
----
-
-## Core Tables
-
-### 1. \`users\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Unique user ID |
-| \`name\` | \`text\` | NOT NULL | User's full name |
-| \`email\` | \`text\` | NOT NULL, UNIQUE | User email address |
-| \`password_hash\` | \`text\` | NOT NULL | Bcrypt hashed password |
-| \`role\` | \`text\` | NOT NULL | System / operational role |
-| \`organization_id\` | \`text\` | NULLABLE | Associated organization ID |
-| \`created_at\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Record creation time |
-
-### 2. \`incidents\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Unique incident identifier |
-| \`name\` | \`text\` | NOT NULL | Operation title |
-| \`disaster_type\` | \`text\` | NOT NULL | Hazard category (e.g., Urban flood) |
-| \`status\` | \`text\` | NOT NULL | Operational status (Active, Closed) |
-| \`start_time\` | \`timestamp\` | NULLABLE | Incident start timestamp |
-| \`end_time\` | \`timestamp\` | NULLABLE | Incident closure timestamp |
-| \`aoi\` | \`jsonb\` | NULLABLE | GeoJSON Area of Interest boundary |
-| \`source\` | \`text\` | NULLABLE | Ingestion source identifier |
-| \`description\` | \`text\` | NULLABLE | Incident summary |
-| \`severity\` | \`text\` | NULLABLE | Operational severity rating |
-| \`created_by\` | \`text\` | REFERENCES \`users(id)\` | Creator user ID |
-| \`created_at\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Timestamp |
-| \`updated_at\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Timestamp |
-
-### 3. \`critical_assets\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Asset identifier |
-| \`name\` | \`text\` | NOT NULL | Facility name (e.g. General Hospital) |
-| \`type\` | \`text\` | NOT NULL | Infrastructure type (Hospital, Bridge, Utility) |
-| \`location\` | \`jsonb\` | NOT NULL | Lat/Lng coordinates \`{lat, lng}\` |
-| \`criticality_score\`| \`integer\` | NOT NULL | Inherent asset importance (0–100) |
-| \`population_exposure_tier\` | \`text\` | NOT NULL | Vulnerability tier (High, Medium, Low) |
-
-### 4. \`detections\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Detection identifier |
-| \`incident_id\` | \`text\` | REFERENCES \`incidents(id)\` | Incident context |
-| \`imagery_id\` | \`text\` | REFERENCES \`imagery_assets(id)\`| Source imagery pass |
-| \`geometry\` | \`jsonb\` | NOT NULL | GeoJSON geometry / point |
-| \`class\` | \`text\` | NOT NULL | Damage class (Structure damage, etc.) |
-| \`severity\` | \`text\` | NOT NULL | Observed severity tier |
-| \`confidence\` | \`doublePrecision\` | NOT NULL | Model statistical confidence (0.0–1.0) |
-| \`model_name\` | \`text\` | NOT NULL | AI model identifier |
-| \`model_version\` | \`text\` | NOT NULL | Model release version (e.g., v2.4.1) |
-| \`inference_timestamp\` | \`timestamp\` | NOT NULL | Inference execution timestamp |
-
-### 5. \`cases\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Case identifier (e.g. C-1048) |
-| \`incident_id\` | \`text\` | REFERENCES \`incidents(id)\` | Incident context |
-| \`detection_id\` | \`text\` | REFERENCES \`detections(id)\` | Linked AI detection |
-| \`asset_id\` | \`text\` | REFERENCES \`critical_assets(id)\` | Linked critical facility |
-| \`status\` | \`text\` | NOT NULL | Lifecycle state (\`NEEDS_REVIEW\`, etc.) |
-| \`priority_score\`| \`doublePrecision\` | NULLABLE | Computed priority score (0–100) |
-| \`priority_breakdown\` | \`jsonb\` | NULLABLE | Multi-factor component values |
-| \`review_state\` | \`text\` | NOT NULL | Human review state (\`PENDING\`, etc.) |
-| \`owner\` | \`text\` | REFERENCES \`users(id)\` | Assigned case owner |
-| \`version\` | \`integer\` | NOT NULL, DEFAULT 1 | Optimistic concurrency version |
-| \`created_at\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Creation timestamp |
-| \`updated_at\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Last mutation timestamp |
-
-### 6. \`tasks\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Task identifier |
-| \`case_id\` | \`text\` | REFERENCES \`cases(id)\` | Linked operational case |
-| \`title\` | \`text\` | NOT NULL | Action order title |
-| \`description\` | \`text\` | NULLABLE | Detailed tactical instructions |
-| \`priority\` | \`integer\` | NOT NULL | Task priority score (inherited) |
-| \`assigned_team\`| \`text\` | NULLABLE | Target response group |
-| \`assigned_user\`| \`text\` | REFERENCES \`users(id)\` | Specific assignee |
-| \`status\` | \`text\` | NOT NULL | Task status (\`UNASSIGNED\`, etc.) |
-| \`version\` | \`integer\` | NOT NULL, DEFAULT 1 | OCC version |
-| \`created_at\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Dispatch timestamp |
-| \`due_at\` | \`timestamp\` | NULLABLE | SLA expiration timestamp |
-| \`escalation_at\`| \`timestamp\` | NULLABLE | Escalation trigger timestamp |
-| \`completed_at\` | \`timestamp\` | NULLABLE | Completion timestamp |
-
-### 7. \`evidence\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Evidence artifact ID |
-| \`case_id\` | \`text\` | REFERENCES \`cases(id)\` | Linked case |
-| \`type\` | \`text\` | NOT NULL | Media type (Image, Video, Sensor) |
-| \`uri\` | \`text\` | NOT NULL | Static download URI |
-| \`source\` | \`text\` | NOT NULL | Upload origin (Field Upload, Drone) |
-| \`mime_type\` | \`text\` | NULLABLE | Validated MIME type |
-| \`size\` | \`integer\` | NULLABLE | Byte size |
-| \`checksum\` | \`text\` | NULLABLE | SHA-256 binary hash |
-| \`metadata\` | \`jsonb\` | NULLABLE | EXIF & location metadata |
-| \`created_by\` | \`text\` | REFERENCES \`users(id)\` | Uploader ID |
-| \`timestamp\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Upload timestamp |
-
-### 8. \`audit_events\`
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| \`id\` | \`text\` | PRIMARY KEY | Unique audit log ID |
-| \`actor_id\` | \`text\` | REFERENCES \`users(id)\` | Acting user ID |
-| \`entity_type\` | \`text\` | NOT NULL | Entity domain (\`CASE\`, \`TASK\`, \`INCIDENT\`) |
-| \`entity_id\` | \`text\` | NOT NULL | Target entity ID |
-| \`action\` | \`text\` | NOT NULL | Action string (e.g. \`TRANSITIONED_TO_CONFIRMED\`) |
-| \`metadata\` | \`jsonb\` | NULLABLE | Payload / state diff |
-| \`timestamp\` | \`timestamp\` | NOT NULL, DEFAULT NOW() | Event timestamp |
-`);
-
-  // 06-database/relationships.md
-  write('06-database/relationships.md', `# Relationships & Foreign Keys
-
-<span className="badge-implemented">Implemented</span>
-
-Drizzle relations link parent and child entities for declarative joins:
-
-\`\`\`typescript
-export const casesRelations = relations(cases, ({ one, many }) => ({
-  incident: one(incidents, { fields: [cases.incidentId], references: [incidents.id] }),
-  detection: one(detections, { fields: [cases.detectionId], references: [detections.id] }),
-  asset: one(criticalAssets, { fields: [cases.assetId], references: [criticalAssets.id] }),
-  tasks: many(tasks),
-  evidence: many(evidence),
-  history: many(caseStatusHistory),
-}));
-\`\`\`
-`);
-
-  // 06-database/migrations.md
-  write('06-database/migrations.md', `# Migrations & Schema Synchronization
-
-<span className="badge-implemented">Implemented</span>
-
-- **Development Schema Push**: \`pnpm --filter @workspace/db run push\`
-- **Migration Generation**: \`drizzle-kit generate\`
-- **Migration Execution**: \`lib/db/migrate.ts\`
-`);
-
-  // 06-database/indexing.md
-  write('06-database/indexing.md', `# Indexing & Query Optimization
-
-<span className="badge-implemented">Implemented</span>
-
-1. \`cases(incident_id, priority_score DESC)\`
-2. \`tasks(case_id, status)\`
-3. \`audit_events(entity_id, timestamp DESC)\`
-4. \`session(sid, expire)\`
-`);
-
-  // 06-database/transactions.md
-  write('06-database/transactions.md', `# Transactional Integrity
-
-<span className="badge-implemented">Implemented</span>
-
-Multi-step operational mutations are wrapped in database transactions via \`db.transaction(async (tx) => { ... })\`.
-`);
-
-  // 06-database/concurrency.md
-  write('06-database/concurrency.md', `# Optimistic Concurrency Control (OCC)
-
-<span className="badge-implemented">Implemented</span>
-
-Compare-And-Swap SQL updates prevent race conditions:
-
-\`\`\`sql
-UPDATE cases
-SET status = $1, version = version + 1, updated_at = NOW()
-WHERE id = $2 AND version = $3
-RETURNING *;
-\`\`\`
-`);
-
-  // 07-authentication/authentication.md
-  write('07-authentication/authentication.md', `# Authentication Architecture
-
-<span className="badge-implemented">Implemented</span>
-
-Session-based authentication backed by PostgreSQL and Bcrypt hashing.
-`);
-
-  // 07-authentication/sessions.md
-  write('07-authentication/sessions.md', `# Session Management
-
-<span className="badge-implemented">Implemented</span>
-
-Sessions stored in PostgreSQL \`session\` table using \`connect-pg-simple\`.
-`);
-
-  // 07-authentication/authorization.md
-  write('07-authentication/authorization.md', `# Authorization & RBAC
-
-<span className="badge-implemented">Implemented</span>
-
-Route guards enforced via \`requireAuth\` and \`requireRole(...roles)\`.
-`);
-
-  // 07-authentication/roles.md
-  write('07-authentication/roles.md', `# User Roles
-
-<span className="badge-implemented">Implemented</span>
-
-Roles: \`System Admin\`, \`Organization Admin\`, \`Commander\`, \`Disaster Officer\`, \`Analyst\`, \`Manager\`, \`Field Responder\`.
-`);
-
-  // 07-authentication/permissions.md
-  write('07-authentication/permissions.md', `# Permissions Matrix
-
-<span className="badge-implemented">Implemented</span>
-
-Maps API routes to authorized role sets.
-`);
-
-  // 07-authentication/security-model.md
-  write('07-authentication/security-model.md', `# Security Model Overview
-
-<span className="badge-implemented">Implemented</span>
-
-Defense-in-depth architecture covering transport, session, input validation, and auditability.
-`);
-
-  // 08-domain/incident-management.md
-  write('08-domain/incident-management.md', `# Incident Management
-
-<span className="badge-implemented">Implemented</span>
-
-Manages disaster operations, AOI boundaries, hazard classification, and operational lifecycles.
-`);
-
-  // 08-domain/case-management.md
-  write('08-domain/case-management.md', `# Case Management
-
-<span className="badge-implemented">Implemented</span>
-
-Manages candidate triage cases joining AI detections with critical facilities.
-`);
-
-  // 08-domain/case-lifecycle.md
-  write('08-domain/case-lifecycle.md', `# Case Lifecycle & Finite State Machine
-
-<span className="badge-implemented">Implemented</span>
-
-Governed by the state machine in \`artifacts/api-server/src/services/case-state-machine.ts\`.
-
-\`\`\`mermaid
-stateDiagram-v2
-    [*] --> DETECTED
-    DETECTED --> NEEDS_REVIEW
-    NEEDS_REVIEW --> CONFIRMED: Analyst Review (Confirmed)
-    NEEDS_REVIEW --> REJECTED: Analyst Review (Rejected)
-    NEEDS_REVIEW --> UNCERTAIN: Analyst Review (Uncertain)
-    
-    CONFIRMED --> PRIORITIZED: Score Calculated
-    CONFIRMED --> TASKED: Task Assigned
-    PRIORITIZED --> TASKED: Task Assigned
-    
-    TASKED --> IN_PROGRESS: Field Unit En Route
-    IN_PROGRESS --> FIELD_VERIFIED: Ground Truth Confirmed
-    IN_PROGRESS --> ACTIONED: Remediation Completed
-    FIELD_VERIFIED --> ACTIONED: Action Completed
-    
-    ACTIONED --> CLOSED: Final Closure
-    REJECTED --> CLOSED: Archived False Positive
-    UNCERTAIN --> CLOSED: Dismissed
-    CLOSED --> [*]
-\`\`\`
-`);
-
-  // 08-domain/task-management.md
-  write('08-domain/task-management.md', `# Task Management & SLAs
-
-<span className="badge-implemented">Implemented</span>
-
-Tasks represent accountable operational response orders.
-
-\`\`\`mermaid
-stateDiagram-v2
-    [*] --> UNASSIGNED
-    UNASSIGNED --> ASSIGNED: Dispatcher Assigns Team
-    ASSIGNED --> IN_PROGRESS: Responder Acknowledges
-    ASSIGNED --> UNASSIGNED: Reallocated
-    IN_PROGRESS --> BLOCKED: Access Blocked / Hazmat
-    IN_PROGRESS --> COMPLETED: Action Completed
-    IN_PROGRESS --> VERIFIED: Field Verification Uploaded
-    BLOCKED --> IN_PROGRESS: Route Cleared
-    COMPLETED --> VERIFIED: Ground Truth Checked
-    COMPLETED --> CLOSED: Commander Signoff
-    VERIFIED --> CLOSED: Final Close
-    CLOSED --> [*]
-\`\`\`
-`);
-
-  // 08-domain/priority-engine.md
-  write('08-domain/priority-engine.md', `# Explainable Priority Engine
-
-<span className="badge-implemented">Implemented</span>
-
-The Priority Engine (\`artifacts/api-server/src/lib/priority.ts\`) evaluates operational urgency through a deterministic mathematical model.
-
----
-
-## Mathematical Formula
-
-\`\`\`
-Priority = round(0.30 * S + 0.25 * C + 0.20 * E + 0.15 * U + 0.10 * ConfidenceInput)
-\`\`\`
-
-Where:
-- **S** (0 to 100): Structural Severity Score
-- **C** (0 to 100): Facility Criticality Score
-- **E** (0 to 100): Population Exposure Score
-- **U** (0 to 100): Urgency & Access Score
-- **ConfidenceInput** (0 to 100): Model Confidence (\`confidence * 100\`)
-
----
-
-## Scoring Factor Tables
-
-### 1. Structural Severity (S)
-| Severity Tier | Value | Rationale |
-| :--- | :--- | :--- |
-| \`Destroyed\` | **100** | Catastrophic collapse / complete loss of function |
-| \`Severe\` | **75** | Major structural failure / unpassable roadway |
-| \`Moderate\` | **45** | Partial roof / wall damage, standing water |
-| \`Uncertain\` | **35** | Obscured by cloud / smoke, requires investigation |
-| \`Minor\` | **20** | Superficial cosmetic impact |
-| \`No damage\` | **0** | Baseline intact |
-
-### 2. Facility Criticality (C)
-| Asset Type | Value |
-| :--- | :--- |
-| \`Hospital\` / \`Emergency\` | **100** |
-| \`Bridge\` / Major Arterial | **85** |
-| \`Government\` / \`Utility\` (Substation/Water) | **75** |
-| \`School\` / Shelter Facility | **70** |
-| \`Residential\` Zone | **40** |
-| \`Commercial\` Property | **30** |
-
-### 3. Population Exposure (E)
-| Exposure Tier | Value |
-| :--- | :--- |
-| \`High\` | **90** |
-| \`Medium\` | **55** |
-| \`Low\` | **20** |
-
-### 4. Urgency Score (U)
-\`\`\`
-U = min(100, max(0, 100 - (hours / 72) * 100) + (accessConstrained ? 20 : 0))
-\`\`\`
-
----
-
-## Canonical Test Case (Hero Case C-1048)
-
-\`\`\`typescript
-const result = calculatePriority(
-  "Severe",      // Severity = 75  => 0.30 * 75 = 22.5 pts
-  "Hospital",    // Criticality = 100 => 0.25 * 100 = 25.0 pts
-  "High",        // Exposure = 90  => 0.20 * 90 = 18.0 pts
-  28.8,          // Urgency hours (28.8h elapsed) + accessConstrained => 12.0 pts
-  true,          // Access constrained (+20)
-  0.55           // Confidence = 55% => 0.10 * 55 = 5.5 pts
-);
-
-// Total = 22.5 + 25.0 + 18.0 + 12.0 + 5.5 = 83.0 (Score: 83)
-\`\`\`
-`);
-
-  // 08-domain/evidence-management.md
-  write('08-domain/evidence-management.md', `# Evidence Management & Integrity Pipeline
-
-<span className="badge-implemented">Implemented</span>
-
-File validation, magic-byte inspection, SHA-256 hashing, and path traversal protection.
-`);
-
-  // 08-domain/outcomes.md
-  write('08-domain/outcomes.md', `# Response Outcomes & After-Action Recording
-
-<span className="badge-implemented">Implemented</span>
-
-Captures verified ground truth, actions completed, and archival evidence.
-`);
-
-  // 08-domain/audit-trail.md
-  write('08-domain/audit-trail.md', `# Immutable Audit Trail
-
-<span className="badge-implemented">Implemented</span>
-
-Append-only event log recording all transitions, actors, and metadata.
-`);
+  write('06-database/schema.md', [
+    '# Database Schema',
+    '',
+    '<span className="badge-implemented">Implemented</span>',
+    '',
+    '## Overview',
+    'The DRAXELYRA platform utilizes PostgreSQL as its primary datastore, leveraging **Drizzle ORM** for schema definition and migrations. The schema encompasses 15 tables that form the foundation for tracking users, incidents, detections, and case lifecycles.',
+    '',
+    'Source file: `lib/db/src/schema/index.ts`',
+    '',
+    '## Tables',
+    '',
+    '### 1. `users`',
+    '- **id**: `text` (PK)',
+    '- **name**: `text`',
+    '- **email**: `text` (unique)',
+    '- **passwordHash**: `text`',
+    '- **role**: `text`',
+    '- **organizationId**: `text`',
+    '- **createdAt**: `timestamp`',
+    '',
+    '### 2. `organizations`',
+    '- **id**: `text` (PK)',
+    '- **name**: `text`',
+    '- **type**: `text`',
+    '',
+    '### 3. `incidents`',
+    '- **id**: `text` (PK)',
+    '- **name**: `text`',
+    '- **disasterType**: `text`',
+    '- **status**: `text`',
+    '- **startTime**: `timestamp`',
+    '- **endTime**: `timestamp`',
+    '- **aoi**: `jsonb` (GeoJSON)',
+    '- **source**: `text`',
+    '- **description**: `text`',
+    '- **severity**: `text`',
+    '- **createdBy**: `text` (FK `users`)',
+    '- **createdAt**: `timestamp`',
+    '- **updatedAt**: `timestamp`',
+    '',
+    '### 4. `imageryAssets`',
+    '- **id**: `text` (PK)',
+    '- **incidentId**: `text` (FK `incidents`)',
+    '- **filename**: `text`',
+    '- **source**: `text`',
+    '- **acquisitionTime**: `timestamp`',
+    '- **captureType**: `text`',
+    '- **geometry**: `jsonb`',
+    '- **qualityStatus**: `text`',
+    '- **storagePath**: `text`',
+    '- **metadata**: `jsonb`',
+    '- **processingStatus**: `text`',
+    '',
+    '### 5. `criticalAssets`',
+    '- **id**: `text` (PK)',
+    '- **name**: `text`',
+    '- **type**: `text`',
+    '- **location**: `jsonb` (`{lat, lng}`)',
+    '- **criticalityScore**: `number`',
+    '- **populationExposureTier**: `text`',
+    '',
+    '### 6. `detections`',
+    '- **id**: `text` (PK)',
+    '- **incidentId**: `text` (FK `incidents`)',
+    '- **imageryId**: `text` (FK `imageryAssets`)',
+    '- **geometry**: `jsonb`',
+    '- **class**: `text`',
+    '- **severity**: `text`',
+    '- **confidence**: `doublePrecision`',
+    '- **modelName**: `text`',
+    '- **modelVersion**: `text`',
+    '- **inferenceTimestamp**: `timestamp`',
+    '',
+    '### 7. `cases`',
+    '- **id**: `text` (PK)',
+    '- **incidentId**: `text` (FK `incidents`)',
+    '- **detectionId**: `text` (FK `detections`)',
+    '- **assetId**: `text` (FK `criticalAssets`)',
+    '- **status**: `text`',
+    '- **priorityScore**: `doublePrecision`',
+    '- **priorityBreakdown**: `jsonb`',
+    '- **reviewState**: `text`',
+    '- **owner**: `text` (FK `users`)',
+    '- **version**: `int` (default 1)',
+    '- **createdAt**: `timestamp`',
+    '- **updatedAt**: `timestamp`',
+    '',
+    '### 8. `evidence`',
+    '- **id**: `text` (PK)',
+    '- **caseId**: `text` (FK `cases`)',
+    '- **type**: `text`',
+    '- **uri**: `text`',
+    '- **source**: `text`',
+    '- **mimeType**: `text`',
+    '- **size**: `int`',
+    '- **checksum**: `text` (SHA-256)',
+    '- **metadata**: `jsonb`',
+    '- **createdBy**: `text` (FK `users`)',
+    '- **timestamp**: `timestamp`',
+    '',
+    '### 9. `reviews`',
+    '- **id**: `text` (PK)',
+    '- **caseId**: `text` (FK `cases`)',
+    '- **reviewer**: `text` (FK `users`)',
+    '- **decision**: `text`',
+    '- **reason**: `text`',
+    '- **notes**: `text`',
+    '- **createdAt**: `timestamp`',
+    '',
+    '### 10. `tasks`',
+    '- **id**: `text` (PK)',
+    '- **caseId**: `text` (FK `cases`)',
+    '- **title**: `text`',
+    '- **description**: `text`',
+    '- **priority**: `int`',
+    '- **assignedTeam**: `text`',
+    '- **assignedUser**: `text` (FK `users`)',
+    '- **status**: `text`',
+    '- **version**: `int` (default 1)',
+    '- **createdAt**: `timestamp`',
+    '- **dueAt**: `timestamp`',
+    '- **escalationAt**: `timestamp`',
+    '- **completedAt**: `timestamp`',
+    '',
+    '### 11. `fieldObservations`',
+    '- **id**: `text` (PK)',
+    '- **caseId**: `text` (FK `cases`)',
+    '- **taskId**: `text` (FK `tasks`)',
+    '- **location**: `jsonb`',
+    '- **media**: `jsonb`',
+    '- **notes**: `text`',
+    '- **verificationStatus**: `text`',
+    '- **syncStatus**: `text`',
+    '- **version**: `int` (default 1)',
+    '- **createdAt**: `timestamp`',
+    '',
+    '### 12. `outcomes`',
+    '- **id**: `text` (PK)',
+    '- **caseId**: `text` (FK `cases`)',
+    '- **action**: `text`',
+    '- **result**: `text`',
+    '- **evidence**: `jsonb`',
+    '- **completedBy**: `text` (FK `users`)',
+    '- **completedAt**: `timestamp`',
+    '',
+    '### 13. `caseStatusHistory`',
+    '- **id**: `text` (PK)',
+    '- **caseId**: `text` (FK `cases`)',
+    '- **fromStatus**: `text`',
+    '- **toStatus**: `text`',
+    '- **user**: `text` (FK `users`)',
+    '- **reason**: `text`',
+    '- **timestamp**: `timestamp`',
+    '',
+    '### 14. `auditEvents`',
+    '- **id**: `text` (PK)',
+    '- **actorId**: `text` (FK `users`)',
+    '- **entityType**: `text`',
+    '- **entityId**: `text`',
+    '- **action**: `text`',
+    '- **metadata**: `jsonb`',
+    '- **timestamp**: `timestamp`',
+    '',
+    '### 15. `session`',
+    '- **sid**: `varchar` (PK)',
+    '- **sess**: `jsonb`',
+    '- **expire**: `timestamp`',
+    '*(Used for connect-pg-simple)*'
+  ].join('\n'));
+
+  write('06-database/architecture.md', [
+    '# Database Architecture',
+    '',
+    '<span className="badge-implemented">Implemented</span>',
+    '',
+    '## Database Connection',
+    'We use `pg.Pool` for connecting to the database and pass the pool to `drizzle` to create the ORM instance.',
+    '',
+    'Source file: `lib/db/src/index.ts`',
+    '```typescript',
+    'import { drizzle } from "drizzle-orm/node-postgres";',
+    'import pg from "pg";',
+    'import * as schema from "./schema";',
+    '',
+    'const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });',
+    'export const db = drizzle(pool, { schema });',
+    '```',
+    '',
+    '## Drizzle ORM usage',
+    'Drizzle handles all schema definition, querying, and migrations. Relations between tables are explicitly defined to allow relational queries.',
+    'Migrations are generated and applied via the Drizzle CLI.'
+  ].join('\n'));
+
+  write('06-database/concurrency.md', [
+    '# Database Concurrency',
+    '',
+    '<span className="badge-implemented">Implemented</span>',
+    '',
+    '## Optimistic Concurrency Control (OCC)',
+    'DRAXELYRA implements OCC using a `version` column on critical tables such as `cases`, `tasks`, and `fieldObservations`.',
+    'This prevents lost updates during concurrent edits by multiple operators.',
+    '',
+    'When a transition is made, the query checks that the current database version matches the expected version:',
+    '```sql',
+    'UPDATE cases',
+    'SET status = $1, version = version + 1',
+    'WHERE id = $2 AND version = $3',
+    '```',
+    '',
+    'If 0 rows are affected, the system throws a `VERSION_CONFLICT` error, forcing the client to reload the latest state and retry.',
+    '',
+    '## Transactions',
+    'All state transitions occur within a database transaction. For example:',
+    '```typescript',
+    'await db.transaction(async (tx) => {',
+    '  // 1. Update status and increment version',
+    '  // 2. Insert into caseStatusHistory',
+    '  // 3. Insert into auditEvents',
+    '});',
+    '```',
+    'This ensures atomicity; if the OCC check fails, the history and audit logs are rolled back.'
+  ].join('\n'));
+
+  write('07-authentication/authentication-rbac.md', [
+    '# Authentication & RBAC',
+    '',
+    '<span className="badge-implemented">Implemented</span>',
+    '',
+    '## Session Management',
+    'Authentication is handled via session cookies backed by PostgreSQL using `connect-pg-simple`.',
+    '',
+    '**Configuration (`app.ts`):**',
+    '- **Store**: PostgreSQL `session` table',
+    '- **Secret**: `process.env.SESSION_SECRET || "draxelyra_default_secret"`',
+    '- **Cookie Options**: `httpOnly: true`, `secure: process.env.NODE_ENV === "production"`, `maxAge: 30 days`',
+    '- **Session Settings**: `resave: false`, `saveUninitialized: false`',
+    '',
+    '## Authentication Routes',
+    'Defined in `routes/auth.ts`:',
+    '- **POST /login**: Validates credentials, uses `bcrypt.compare`, and sets `req.session.userId` and `req.session.role`.',
+    '- **POST /logout**: Requires authentication, calls `req.session.destroy()`.',
+    '- **GET /me**: Requires authentication, returns user profile (excluding `passwordHash`).',
+    '',
+    '## Middleware',
+    'Access control is enforced via middleware in `middlewares/auth.ts`:',
+    '```typescript',
+    '// requireAuth: Checks if req.session.userId exists, otherwise returns 401 UNAUTHORIZED',
+    '// requireRole(...roles): Checks authentication, then verifies role, returning 403 FORBIDDEN if unauthorized',
+    '```',
+    '',
+    '## Role Matrix & Demo Users',
+    'DRAXELYRA seeds 6 demo users (password: `demo123`):',
+    '1. **System Admin** (Sam SysAdmin, admin@draxelyra.local) - ALL endpoints',
+    '2. **Organization Admin** (Olivia OrgAdmin, orgadmin@draxelyra.local) - incidents CRUD, cases review, tasks CRUD',
+    '3. **Commander** (Cole Commander, commander@draxelyra.local) - incidents CRUD, cases review, tasks CRUD',
+    '4. **Disaster Officer** - incidents CRUD, cases review, tasks CRUD',
+    '5. **Manager** (Mary Manager, manager@draxelyra.local) - cases review, tasks CRUD',
+    '6. **Analyst** (Alice Analyst, analyst@draxelyra.local) - cases review, case audit',
+    '7. **Field Responder** (Frank Field, field@draxelyra.local) - tasks PATCH, case audit (read)'
+  ].join('\n'));
+
+  write('08-domain/case-lifecycle.md', [
+    '# Case Lifecycle',
+    '',
+    '<span className="badge-implemented">Implemented</span>',
+    '',
+    '## State Machine',
+    'The core domain logic of a case follows a strict state machine implemented in `services/case-state-machine.ts`.',
+    '',
+    '```mermaid',
+    'stateDiagram-v2',
+    '  DETECTED --> NEEDS_REVIEW',
+    '  NEEDS_REVIEW --> CONFIRMED',
+    '  NEEDS_REVIEW --> REJECTED',
+    '  NEEDS_REVIEW --> UNCERTAIN',
+    '  CONFIRMED --> PRIORITIZED',
+    '  CONFIRMED --> TASKED',
+    '  PRIORITIZED --> TASKED',
+    '  TASKED --> IN_PROGRESS',
+    '  IN_PROGRESS --> FIELD_VERIFIED',
+    '  IN_PROGRESS --> ACTIONED',
+    '  FIELD_VERIFIED --> ACTIONED',
+    '  ACTIONED --> CLOSED',
+    '  UNCERTAIN --> CLOSED',
+    '  REJECTED --> CLOSED',
+    '```',
+    '',
+    '## Transition Logic',
+    'Transitions are handled by `transitionCase(caseId, newStatus, userId, expectedVersion, notes?, extraUpdates?)`.',
+    'This function:',
+    '1. Begins a transaction (`db.transaction()`).',
+    '2. Checks `expectedVersion` to enforce OCC. Throws `VERSION_CONFLICT` if mismatched.',
+    '3. Validates the transition (e.g., cannot go from `CLOSED` back to `IN_PROGRESS`). Throws `INVALID_TRANSITION` on failure.',
+    '4. Updates the case status and increments the version.',
+    '5. Inserts an entry into `caseStatusHistory`.',
+    '6. Emits an audit event into `auditEvents`.',
+    '',
+    '## Auto-Transitions',
+    '- **Creating a task** automatically transitions a case to `TASKED`.',
+    '- **Task verification** automatically transitions a case to `FIELD_VERIFIED`.'
+  ].join('\n'));
+
+  write('08-domain/task-evidence-audit.md', [
+    '# Tasks, Evidence, and Audit',
+    '',
+    '<span className="badge-implemented">Implemented</span>',
+    '',
+    '## Task State Machine',
+    'Implemented in `services/task-state-machine.ts`:',
+    '```mermaid',
+    'stateDiagram-v2',
+    '  UNASSIGNED --> ASSIGNED',
+    '  ASSIGNED --> IN_PROGRESS',
+    '  ASSIGNED --> UNASSIGNED',
+    '  IN_PROGRESS --> BLOCKED',
+    '  IN_PROGRESS --> COMPLETED',
+    '  IN_PROGRESS --> VERIFIED',
+    '  BLOCKED --> IN_PROGRESS',
+    '  BLOCKED --> UNASSIGNED',
+    '  COMPLETED --> VERIFIED',
+    '  COMPLETED --> CLOSED',
+    '  VERIFIED --> CLOSED',
+    '```',
+    '',
+    '## SLA Calculation',
+    'When a task is created (`POST /api/tasks`), SLA is determined by priority:',
+    '- Priority >= 75 → 30min',
+    '- Priority >= 45 → 2h',
+    '- Else → 8h',
+    '`escalationAt` is set to `dueAt + 30min`.',
+    '',
+    '## Evidence Upload Pipeline',
+    'Located in `routes/evidence.ts`:',
+    '- Uses **Multer** with memory storage and a 50MB limit.',
+    '- Validates MIME types: `image/jpeg`, `image/png`, `image/webp`, `video/mp4`.',
+    '- Checks magic bytes to prevent spoofing (JPEG=`FFD8FF`, PNG=`89504E47`, WebP=`RIFF+WEBP`, MP4=`ftyp`).',
+    '- Generates a SHA-256 hash.',
+    '- Prevents path traversal and writes securely to the `uploads/` directory.',
+    '',
+    '## Audit Events',
+    'All critical actions record an entry in the `auditEvents` table. These include actor ID, entity type/ID, action, and JSON metadata.'
+  ].join('\n'));
+
+  write('08-domain/priority-engine.md', [
+    '# Priority Engine',
+    '',
+    '<span className="badge-implemented">Implemented</span>',
+    '',
+    '## Scoring Formula',
+    'The Priority Engine (`lib/priority.ts`) calculates a dynamic score based on multiple factors:',
+    '`Score = round(0.30 * S + 0.25 * C + 0.20 * E + 0.15 * U + 0.10 * (confidence * 100))`',
+    '',
+    '### Factors',
+    '- **S (Severity)**: destroyed=100, severe=75, moderate=45, uncertain=35, minor=20, no_damage=0',
+    '- **C (Criticality)**: hospital/emergency=100, bridge=85, gov/utility=75, school=70, residential=40, commercial=30, default=15',
+    '- **E (Exposure)**: high=90, medium=55, low=20',
+    '- **U (Urgency)**: `min(100, max(0, 100 - (hours/72)*100) + (accessConstrained ? 20 : 0))`',
+    '',
+    '## Return Value',
+    'The engine returns an object containing the final score and a detailed breakdown:',
+    '```typescript',
+    '{',
+    '  score: number,',
+    '  breakdown: Array<{ label: string, value: number }>',
+    '}',
+    '```',
+    '',
+    '## Canonical Test',
+    'Input: Severe severity, Hospital criticality, High exposure, 28.8h since event, access constrained, 0.55 confidence.',
+    'Output: Final score `83`.'
+  ].join('\n'));
 }
