@@ -1,6 +1,11 @@
 # DRAXELYRA
 Disaster Intelligence & Response OS
 
+[![Documentation Website](https://img.shields.io/badge/docs-live%20website-259184?style=for-the-badge&logo=docusaurus)](https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/)
+[![GitHub Actions CI](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge)](https://github.com/rohitkumarnaidu/Disaster-Intelligence-Response-OS/actions)
+
+> 📖 **Official Technical Documentation Website**: **[https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/](https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/)**
+
 DRAXELYRA is an end-to-end disaster response operating system that converts post-disaster satellite imagery and sensory data into explainable priority queues, accountable response tasks, and field-verified outcomes for emergency management operations.
 
 ---

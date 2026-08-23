@@ -7,8 +7,12 @@ const config: Config = {
   tagline: 'Disaster Intelligence & Response Operating System',
   favicon: 'img/favicon.ico',
 
-  url: 'https://docs.draxelyra.internal',
-  baseUrl: '/',
+  // GitHub Pages deployment config
+  url: 'https://rohitkumarnaidu.github.io',
+  baseUrl: '/Disaster-Intelligence-Response-OS/',
+  organizationName: 'rohitkumarnaidu',
+  projectName: 'Disaster-Intelligence-Response-OS',
+  trailingSlash: false,
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
@@ -30,7 +34,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: 'docs',
-          editUrl: undefined,
+          editUrl: 'https://github.com/rohitkumarnaidu/Disaster-Intelligence-Response-OS/tree/main/',
         },
         blog: false,
         theme: {
@@ -73,6 +77,11 @@ const config: Config = {
         {
           to: '/docs/roadmap/current-state',
           label: 'Roadmap',
+          position: 'right',
+        },
+        {
+          href: 'https://github.com/rohitkumarnaidu/Disaster-Intelligence-Response-OS',
+          label: 'GitHub',
           position: 'right',
         },
       ],
