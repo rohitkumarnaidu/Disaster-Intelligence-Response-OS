@@ -1,0 +1,171 @@
+/**
+ * Custom CSS for DRAXELYRA Documentation Site
+ * Tactical emergency operations styling with dark mode emphasis
+ */
+
+:root {
+  --ifm-color-primary: #259184;
+  --ifm-color-primary-dark: #218377;
+  --ifm-color-primary-darker: #1f7b70;
+  --ifm-color-primary-darkest: #19655c;
+  --ifm-color-primary-light: #299f91;
+  --ifm-color-primary-lighter: #2ba697;
+  --ifm-color-primary-lightest: #3cbcae;
+  --ifm-code-font-size: 92%;
+  --docusaurus-highlighted-code-line-bg: rgba(37, 145, 132, 0.15);
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+  --ifm-heading-font-weight: 700;
+  --ifm-navbar-height: 4.25rem;
+}
+
+[data-theme='dark'] {
+  --ifm-background-color: #0f1715;
+  --ifm-background-surface-color: #152220;
+  --ifm-color-primary: #34b3a4;
+  --ifm-color-primary-dark: #2f9f92;
+  --ifm-color-primary-darker: #2c978b;
+  --ifm-color-primary-darkest: #257c72;
+  --ifm-color-primary-light: #44bba8;
+  --ifm-color-primary-lighter: #54c1af;
+  --ifm-color-primary-lightest: #79d0c2;
+  --docusaurus-highlighted-code-line-bg: rgba(52, 179, 164, 0.2);
+  --ifm-card-background-color: #172623;
+  --ifm-navbar-background-color: #0b1210;
+  --ifm-footer-background-color: #080d0c;
+  --ifm-toc-border-color: #253934;
+}
+
+/* Operational Badges & Status Pills */
+.badge-implemented {
+  background-color: rgba(37, 145, 132, 0.2);
+  color: #3cbcae;
+  border: 1px solid rgba(60, 188, 174, 0.4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.badge-dev {
+  background-color: rgba(239, 172, 48, 0.2);
+  color: #f7ca68;
+  border: 1px solid rgba(239, 172, 48, 0.4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.badge-mock {
+  background-color: rgba(79, 140, 255, 0.2);
+  color: #8cb6ff;
+  border: 1px solid rgba(79, 140, 255, 0.4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.badge-planned {
+  background-color: rgba(150, 150, 150, 0.2);
+  color: #b8b8b8;
+  border: 1px solid rgba(150, 150, 150, 0.4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+/* Custom Alert & Callout styling */
+.theme-admonition {
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.theme-admonition-tip {
+  border-left-color: #259184;
+}
+
+.theme-admonition-caution,
+.theme-admonition-warning {
+  border-left-color: #efac30;
+}
+
+.theme-admonition-danger {
+  border-left-color: #cd372f;
+}
+
+/* Grid layout for landing and cards */
+.tactical-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.tactical-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--ifm-card-background-color);
+  padding: 1.5rem;
+  border-radius: 6px;
+  transition: transform 0.2s, border-color 0.2s;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.tactical-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ifm-color-primary);
+}
+
+.tactical-card h3 {
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.tactical-card p {
+  color: var(--ifm-font-color-base);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Tables styling */
+table {
+  width: 100%;
+  display: table;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+th {
+  background-color: var(--ifm-background-surface-color);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+}
+
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}

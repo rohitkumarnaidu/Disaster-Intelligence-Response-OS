@@ -1,18 +1,51 @@
 # See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# compiled output
+# Environment variables
+.env
+.env.*
+!.env.example
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Compiled output & build artifacts
 dist
+build
 tmp
+temp
 out-tsc
 *.tsbuildinfo
+.vite/
+.next/
+.turbo/
+.parcel-cache/
 .expo
 .expo-shared
+.docusaurus/
+.docusaurus
 
-# dependencies
+# Archives & Temporary Artifacts
+*.zip
+*.tar.gz
+*.sha256
+zip-manifest.txt
+
+# Dependencies
 node_modules
+.pnpm-store/
+.npm/
+.yarn/
 
 # IDEs and editors
 /.idea
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 .project
 .classpath
 .c9/
@@ -20,27 +53,48 @@ node_modules
 .settings/
 *.sublime-workspace
 
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+testem.log
+/libpeerconnection.log
 
-# misc
+# Testing & Coverage
+/coverage
+coverage/
+
+# Local runtime & databases
+*.sqlite
+*.sqlite3
+*.db
+postgres-data/
+docker-data/
+
+# Uploads & local evidence
+uploads/
+screenshots/
+recordings/
+
+# Misc
 /.sass-cache
 /connect.lock
-/coverage
-/libpeerconnection.log
-npm-debug.log
-yarn-error.log
-testem.log
 /typings
 
 # System Files
 .DS_Store
 Thumbs.db
+desktop.ini
 
+# Agent working directories & cursor rules
+.agents/
+.conversation/
+.gemini/
+.claude/
+.cursor/
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 

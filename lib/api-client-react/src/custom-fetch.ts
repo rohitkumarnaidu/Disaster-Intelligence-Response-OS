@@ -329,6 +329,10 @@ export async function customFetch<T = unknown>(
   input = applyBaseUrl(input);
   const { responseType = "auto", headers: headersInit, ...init } = options;
 
+  if (init.credentials === undefined) {
+    init.credentials = 'include';
+  }
+
   const method = resolveMethod(input, init.method);
 
   if (init.body != null && (method === "GET" || method === "HEAD")) {
@@ -360,12 +364,24 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  try {
+    const response = await fetch(input, { ...init, method, headers });
 
-  if (!response.ok) {
-    const errorData = await parseErrorBody(response, method);
-    throw new ApiError(response, errorData, requestInfo);
+    if (!response.ok) {
+      const errorData = await parseErrorBody(response, method);
+      throw new ApiError(response, errorData, requestInfo);
+    }
+
+    return (await parseSuccessBody(response, responseType, requestInfo)) as T;
+  } catch (error) {
+    if (!navigator.onLine && method !== "GET" && method !== "HEAD") {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent('offline-sync-enqueue', {
+          detail: { url: requestInfo.url, method, body: init.body }
+        }));
+        return { queuedOffline: true } as unknown as T;
+      }
+    }
+    throw error;
   }
-
-  return (await parseSuccessBody(response, responseType, requestInfo)) as T;
 }

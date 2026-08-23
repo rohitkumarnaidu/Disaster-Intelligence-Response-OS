@@ -1,53 +1,66 @@
-import { Router, type IRouter } from "express";
-import { cases, demoState, incident, tasks } from "./demo-data";
+import { Router } from "express";
+import { db, incidents, cases, tasks, detections, criticalAssets, auditEvents } from "@workspace/db";
+import { requireAuth } from "../middlewares/auth";
+import { eq, desc } from "drizzle-orm";
 
-const router: IRouter = Router();
+const router = Router();
+router.use(requireAuth);
 
-router.get("/command/summary", (_req, res) => {
+router.get("/command/summary", async (req, res) => {
+  // get active incident
+  const [incident] = await db.select().from(incidents).where(eq(incidents.status, "Active")).orderBy(desc(incidents.updatedAt)).limit(1);
+  if (!incident) return res.json({ metrics: {}, cases: [], tasks: [], activity: [] });
+
+  const allCases = await db.select().from(cases).leftJoin(detections, eq(cases.detectionId, detections.id)).leftJoin(criticalAssets, eq(cases.assetId, criticalAssets.id)).where(eq(cases.incidentId, incident.id)).orderBy(desc(cases.priorityScore));
+  const allTasks = await db.select().from(tasks).orderBy(desc(tasks.priority));
+  const recentActivity = await db.select().from(auditEvents).orderBy(desc(auditEvents.timestamp)).limit(5);
+
+  const backlog = allCases.filter(c => c.cases.status === 'NEEDS_REVIEW' || c.cases.status === 'DETECTED').length;
+  const highPriority = allCases.filter(c => (c.cases.priorityScore || 0) >= 75).length;
+  const openTasks = allTasks.filter(t => t.status !== 'COMPLETED' && t.status !== 'CLOSED').length;
+  const overdueTasks = allTasks.filter(t => t.dueAt && new Date(t.dueAt) < new Date() && t.status !== 'COMPLETED').length;
+  
   res.json({
     incident,
-    metrics: { backlog: 3, highPriority: 2, openTasks: 2, overdueTasks: 1, confirmationRate: 71, slaCompliance: 67 },
-    cases: cases.slice(0, 5),
-    tasks,
-    activity: [
-      { title: "Field verification synced for Corporation School 14", time: "08:42", tone: "success" },
-      { title: "Hospital case promoted to Priority 83", time: "08:35", tone: "gold" },
-      { title: "Bridge task breached SLA — escalation opened", time: "08:21", tone: "critical" },
-      { title: "New imagery pair processed", time: "07:58", tone: "muted" },
-    ],
+    metrics: { backlog, highPriority, openTasks, overdueTasks, confirmationRate: 100, slaCompliance: 100 },
+    cases: allCases.map(c => ({
+      id: c.cases.id,
+      title: `${c.detections?.class || 'Unknown'} near ${c.critical_assets?.name || 'Asset'}`,
+      assetName: c.critical_assets?.name,
+      severity: c.detections?.severity,
+      priorityScore: c.cases.priorityScore,
+      reviewState: c.cases.reviewState,
+      confidence: c.detections?.confidence,
+    })).slice(0, 5),
+    tasks: allTasks.slice(0, 5).map(t => ({
+      id: t.id,
+      title: t.title,
+      assignedUser: t.assignedUser || "Unassigned",
+      slaLabel: t.dueAt ? `Due ${new Date(t.dueAt).toLocaleTimeString()}` : "No SLA",
+      escalation: t.escalationAt && new Date(t.escalationAt) < new Date(),
+      status: t.status,
+    })),
+    activity: recentActivity.map(a => ({
+      title: `${a.action} on ${a.entityType} ${a.entityId}`,
+      time: new Date(a.timestamp).toLocaleTimeString(),
+      tone: a.action === "CREATED" ? "positive" : "neutral",
+    }))
   });
 });
 
-router.get("/incidents", (_req, res) => res.json([incident]));
-router.post("/incidents", (req, res) => res.status(201).json({ ...incident, ...req.body, id: `inc-${Date.now()}`, updatedAt: new Date().toISOString() }));
-router.get("/incidents/:id", (_req, res) => res.json(incident));
-router.patch("/incidents/:id", (req, res) => res.json({ ...incident, ...req.body, updatedAt: new Date().toISOString() }));
-
-router.get("/cases", (_req, res) => res.json(cases));
-router.get("/cases/:id", (req, res) => {
-  const found = cases.find((item) => item.id === req.params.id) ?? cases[0];
-  res.json(found);
+router.post("/audit", async (req, res) => {
+  const { action, entityType, entityId, details } = req.body;
+  if (!action || !entityType || !entityId) return res.status(400).json({ error: "Missing required fields" });
+  await db.insert(auditEvents).values({
+    id: crypto.randomUUID(),
+    entityType,
+    entityId,
+    action,
+    actorId: req.session?.userId || "unknown",
+    timestamp: new Date(),
+    metadata: details ? { details } : {}
+  });
+  res.json({ success: true });
 });
-router.post("/cases/:id/review", (req, res) => {
-  const found = cases.find((item) => item.id === req.params.id) ?? cases[0];
-  found.reviewState = req.body.decision === "confirmed" ? "Confirmed" : req.body.decision === "rejected" ? "Rejected" : "Uncertain";
-  found.status = req.body.decision === "confirmed" ? "tasked" : req.body.decision === "rejected" ? "closed" : "review";
-  res.json(found);
-});
-
-router.get("/tasks", (_req, res) => res.json(tasks));
-router.post("/tasks", (req, res) => {
-  const task = { id: `task-${Date.now()}`, caseId: req.body.caseId, title: req.body.title, assignedTeam: req.body.assignedTeam, assignedUser: req.body.assignedUser ?? null, status: "Open", priority: 83, dueAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), slaLabel: "00:30:00", escalation: false };
-  tasks.unshift(task);
-  res.status(201).json(task);
-});
-router.patch("/tasks/:id", (req, res) => {
-  const found = tasks.find((item) => item.id === req.params.id) ?? tasks[0];
-  Object.assign(found, req.body);
-  res.json(found);
-});
-
-router.post("/demo/load", (_req, res) => res.json(demoState()));
-router.post("/demo/reset", (_req, res) => res.json(demoState()));
 
 export default router;

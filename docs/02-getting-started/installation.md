@@ -1,0 +1,51 @@
+---
+id: installation
+title: Installation
+sidebar_position: 2
+---
+
+# Installation Guide
+
+<span className="badge-implemented">Implemented</span>
+
+Follow these steps to clone the repository, install dependencies across the monorepo, and prepare the workspace.
+
+---
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/draxelyra/draxelyra-response-os.git
+cd draxelyra-response-os
+```
+
+---
+
+## 2. Install Dependencies
+
+Install all packages across the root workspace, `lib/*`, and `artifacts/*`:
+
+```bash
+pnpm install
+```
+
+This installs:
+- Monorepo developer tooling (`typescript`, `vitest`, `eslint`, `tsx`, `docusaurus`)
+- Backend dependencies (`express`, `drizzle-orm`, `bcryptjs`, `connect-pg-simple`, `multer`, `pino`)
+- Frontend packages (`react`, `vite`, `tailwindcss`, `maplibre-gl`, `@tanstack/react-query`, `wouter`)
+
+---
+
+## 3. Verify TypeScript Builds
+
+Build the shared libraries (`lib/api-zod`, `lib/api-client-react`, `lib/db`):
+
+```bash
+pnpm run typecheck:libs
+```
+
+Run full typecheck across all applications:
+
+```bash
+pnpm run typecheck
+```
