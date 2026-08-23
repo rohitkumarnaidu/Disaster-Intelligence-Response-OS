@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkworkspace=self.webpackChunkworkspace||[]).push([[2712],{2712(e,s,c){c.d(s,{createEventModelingServices:()=>a.g});var a=c(8782);c(2293),c(8795)}}]);
