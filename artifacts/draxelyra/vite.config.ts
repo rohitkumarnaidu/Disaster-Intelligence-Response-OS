@@ -68,6 +68,9 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
   preview: {
     port,
     host: '0.0.0.0',

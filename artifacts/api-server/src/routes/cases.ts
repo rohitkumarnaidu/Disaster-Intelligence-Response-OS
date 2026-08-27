@@ -43,6 +43,14 @@ router.get("/:id", async (req, res) => {
 
   const imageryResult = c.detections?.imageryId ? await db.select().from(imageryAssets).where(eq(imageryAssets.id, c.detections.imageryId)) : [];
   
+    const afterDateStr = imageryResult[0]?.acquisitionTime?.toISOString()?.split('T')[0] || "2025-02-16";
+    let beforeDateStr = "2025-02-08";
+    if (imageryResult[0]?.acquisitionTime) {
+      const d = new Date(imageryResult[0].acquisitionTime);
+      d.setDate(d.getDate() - 8);
+      beforeDateStr = d.toISOString().split('T')[0];
+    }
+    
   res.json({
     id: c.cases.id,
     incidentId: c.cases.incidentId,
@@ -60,8 +68,8 @@ router.get("/:id", async (req, res) => {
     factors: c.cases.priorityBreakdown,
     inferenceBadge: "Change detected",
     imagery: {
-      before: "2025-02-08",
-      after: imageryResult[0]?.acquisitionTime?.toISOString()?.split('T')[0] || "2025-02-16"
+      before: beforeDateStr,
+      after: afterDateStr
     }
   });
 });

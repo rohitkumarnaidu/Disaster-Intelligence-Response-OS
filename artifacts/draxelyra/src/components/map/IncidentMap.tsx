@@ -50,8 +50,22 @@ export function IncidentMap({ incidentId, compact = false }: { incidentId: strin
 
   if (isLoading) return <div className={`flex items-center justify-center bg-[#d8e5e1] ${compact ? "h-[190px]" : "h-[440px]"}`}>Loading Map...</div>;
 
+  let centerLng = 80.27;
+  let centerLat = 13.08;
+  
+  if (data?.cases?.features?.[0]?.geometry?.coordinates) {
+    const coords = data.cases.features[0].geometry.coordinates;
+    if (typeof coords[0] === 'number') { centerLng = coords[0]; centerLat = coords[1]; }
+  } else if (data?.criticalAssets?.features?.[0]?.geometry?.coordinates) {
+    const coords = data.criticalAssets.features[0].geometry.coordinates;
+    if (typeof coords[0] === 'number') { centerLng = coords[0]; centerLat = coords[1]; }
+  } else if (data?.detections?.features?.[0]?.geometry?.coordinates) {
+    const coords = data.detections.features[0].geometry.coordinates;
+    if (typeof coords[0] === 'number') { centerLng = coords[0]; centerLat = coords[1]; }
+  }
+
   const mapProps: any = {
-    initialViewState: { longitude: 80.27, latitude: 13.08, zoom: 12.5 },
+    initialViewState: { longitude: centerLng, latitude: centerLat, zoom: 12.5 },
     mapStyle: OSM_STYLE,
     mapLib: maplibregl,
     interactive: true,
