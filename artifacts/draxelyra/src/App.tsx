@@ -193,7 +193,7 @@ function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'ne
     red: 'bg-destructive/10 text-destructive',
     blue: 'bg-chart-3/10 text-chart-3'
   };
-  return <span className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 text-[10px] font-mono-ui font-medium uppercase tracking-[.08em] ${tones[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[10px] font-mono-ui font-medium uppercase tracking-[.08em] whitespace-nowrap ${tones[tone]}`}>{children}</span>;
 }
 
 function Button({
@@ -489,15 +489,15 @@ function PageHeader({
 }) {
   return (
     <div className="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <div className="mb-2 flex items-center gap-2 font-mono-ui text-[10px] uppercase tracking-[.18em] text-primary">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          {eyebrow}
+      <div className="min-w-0 flex-1">
+        <div className="mb-2 flex items-center gap-2 font-mono-ui text-[10px] uppercase tracking-[.18em] text-primary flex-wrap">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+          <span className="break-all">{eyebrow}</span>
         </div>
-        <h1 className="font-display text-4xl uppercase leading-none tracking-[.015em] text-foreground md:text-5xl">{title}</h1>
-        {detail && <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{detail}</p>}
+        <h1 className="font-display text-3xl sm:text-4xl md:text-5xl uppercase leading-tight tracking-[.015em] text-foreground break-words">{title}</h1>
+        {detail && <p className="mt-2 max-w-2xl text-xs sm:text-sm text-muted-foreground leading-relaxed break-words">{detail}</p>}
       </div>
-      {action}
+      {action && <div className="shrink-0 flex flex-wrap items-center gap-2">{action}</div>}
     </div>
   );
 }
@@ -514,14 +514,14 @@ function Metric({
   tone?: 'default' | 'amber' | 'red';
 }) {
   return (
-    <div className="border-l-2 border-border bg-card px-4 py-3 transition-colors hover:border-primary">
-      <div className="font-mono-ui text-[10px] uppercase tracking-[.12em] text-muted-foreground">{label}</div>
-      <div className={`mt-1 font-display text-4xl leading-none ${
+    <div className="border-l-2 border-border bg-card px-3 sm:px-4 py-3 transition-colors hover:border-primary min-w-0">
+      <div className="font-mono-ui text-[10px] uppercase tracking-[.12em] text-muted-foreground truncate">{label}</div>
+      <div className={`mt-1 font-display text-2xl sm:text-3xl lg:text-4xl leading-none truncate ${
         tone === 'amber' ? 'text-accent-foreground' : tone === 'red' ? 'text-destructive' : 'text-foreground'
       }`}>
         {value}
       </div>
-      <div className="mt-2 text-[11px] text-muted-foreground">{sub}</div>
+      <div className="mt-2 text-[11px] text-muted-foreground truncate">{sub}</div>
     </div>
   );
 }
