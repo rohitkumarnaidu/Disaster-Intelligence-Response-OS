@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react';
 import { useAuth, AuthProvider } from '@/lib/auth';
 import { QueryClient, QueryClientProvider, useQueryClient, useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -130,6 +130,61 @@ const SATELLITE_STYLE: any = {
   ],
 };
 
+export interface ActiveIncidentContextType {
+  activeIncidentId: string;
+  setActiveIncidentId: (id: string) => void;
+  incidents: Incident[];
+  activeIncident: Incident | null;
+  isLoading: boolean;
+}
+
+export const ActiveIncidentContext = createContext<ActiveIncidentContextType>({
+  activeIncidentId: 'inc-fl-chennai-2026',
+  setActiveIncidentId: () => {},
+  incidents: [],
+  activeIncident: null,
+  isLoading: false,
+});
+
+export const useActiveIncident = () => useContext(ActiveIncidentContext);
+
+export function ActiveIncidentProvider({ children }: { children: ReactNode }) {
+  const [selectedId, setSelectedId] = useState<string>('');
+  const incidentsQuery = useListIncidents({
+    query: {
+      queryKey: getListIncidentsQueryKey(),
+      refetchInterval: 30000,
+    }
+  });
+
+  const incidentList = incidentsQuery.data || [];
+
+  const activeIncident = useMemo(() => {
+    if (selectedId) {
+      const found = incidentList.find((i: any) => i.id === selectedId);
+      if (found) return found;
+    }
+    const priority = incidentList.find((i: any) => i.id === 'inc-fl-chennai-2026') || incidentList[0];
+    return priority || null;
+  }, [selectedId, incidentList]);
+
+  const activeIncidentId = activeIncident?.id || selectedId || 'inc-fl-chennai-2026';
+
+  return (
+    <ActiveIncidentContext.Provider
+      value={{
+        activeIncidentId,
+        setActiveIncidentId: setSelectedId,
+        incidents: incidentList,
+        activeIncident,
+        isLoading: incidentsQuery.isLoading,
+      }}
+    >
+      {children}
+    </ActiveIncidentContext.Provider>
+  );
+}
+
 function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'teal' | 'amber' | 'red' | 'blue' }) {
   const tones = {
     neutral: 'bg-secondary text-muted-foreground',
@@ -177,9 +232,10 @@ function Shell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
   const { user, loading, logout } = useAuth();
+  const { activeIncidentId, setActiveIncidentId, activeIncident, incidents } = useActiveIncident();
 
   // Connect Server-Sent Events (SSE) for real-time live events
-  useLiveEvents();
+  useLiveEvents(activeIncidentId);
 
   // Fetch active weather alerts for the banner
   useEffect(() => {
@@ -223,7 +279,6 @@ function Shell({ children }: { children: ReactNode }) {
     }
   });
 
-  const activeIncident = commandSummaryQuery.data?.incident;
   const backlogCount = commandSummaryQuery.data?.metrics?.backlog ?? 0;
 
   if (location === '/login') {
@@ -352,14 +407,28 @@ function Shell({ children }: { children: ReactNode }) {
             </button>
             <div className="hidden h-5 w-px bg-border md:block" />
             <div>
-              <div className="font-mono-ui text-[10px] uppercase tracking-[.12em] text-muted-foreground">Active operation</div>
-              <div className="mt-0.5 flex items-center gap-2 text-sm font-semibold">
-                <span className={`h-2 w-2 rounded-full ${activeIncident?.status === 'Active' ? 'bg-destructive animate-pulse' : 'bg-primary'}`} />
-                {activeIncident?.id || 'NO ACTIVE INCIDENT'}
-                <span className="font-normal text-muted-foreground">{activeIncident?.name || 'Awaiting feeds'}</span>
-                {(activeIncident as any)?.createdAt && (
-                  <span className="ml-2 border-l border-border pl-2 text-xs font-normal text-muted-foreground">
-                    {new Date((activeIncident as any).createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              <div className="flex items-center gap-1.5 font-mono-ui text-[10px] uppercase tracking-[.12em] text-muted-foreground">
+                <span className={`h-2 w-2 rounded-full ${activeIncident?.status?.toLowerCase() === 'active' ? 'bg-destructive animate-pulse' : 'bg-primary'}`} />
+                Active Operation
+              </div>
+              <div className="mt-0.5 flex items-center gap-2">
+                <select
+                  value={activeIncidentId}
+                  onChange={(e) => setActiveIncidentId(e.target.value)}
+                  className="bg-secondary text-foreground text-xs font-semibold px-2.5 py-1 rounded border border-border outline-none focus:border-primary max-w-[190px] sm:max-w-[320px] md:max-w-[420px] truncate cursor-pointer hover:bg-secondary/80 transition-colors"
+                >
+                  {incidents.length === 0 && (
+                    <option value="inc-fl-chennai-2026">[Flood] Cyclone Cyclone Varsha & Coastal Flood</option>
+                  )}
+                  {incidents.map((inc: any) => (
+                    <option key={inc.id} value={inc.id}>
+                      [{inc.disasterType || 'Hazard'}] {inc.name}
+                    </option>
+                  ))}
+                </select>
+                {activeIncident?.severity && (
+                  <span className="hidden md:inline px-1.5 py-0.5 rounded bg-destructive/10 border border-destructive/30 text-[9px] font-mono-ui uppercase font-bold text-destructive">
+                    {activeIncident.severity}
                   </span>
                 )}
               </div>
@@ -483,20 +552,13 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
 
 function CommandCenter() {
   const queryClient = useQueryClient();
-  const [selectedIncidentId, setSelectedIncidentId] = useState<string>('');
+  const { activeIncidentId, setActiveIncidentId, incidents: incidentList } = useActiveIncident();
   const [syncingFeeds, setSyncingFeeds] = useState(false);
   const [toast, setToast] = useState('');
 
-  const incidentsQuery = useListIncidents({
-    query: {
-      queryKey: getListIncidentsQueryKey(),
-      refetchInterval: 30000
-    }
-  });
-
   const query = useQuery({
-    queryKey: ['command-summary', selectedIncidentId],
-    queryFn: () => customFetch<any>(selectedIncidentId ? `/api/command/summary?incidentId=${selectedIncidentId}` : '/api/command/summary'),
+    queryKey: ['command-summary', activeIncidentId],
+    queryFn: () => customFetch<any>(activeIncidentId ? `/api/command/summary?incidentId=${activeIncidentId}` : '/api/command/summary'),
     refetchInterval: 30000
   });
 
@@ -520,7 +582,7 @@ function CommandCenter() {
     }
   };
 
-  if (query.isLoading && !summary && incidentsQuery.isLoading) {
+  if (query.isLoading && !summary) {
     return <LoadingBlock />;
   }
 
@@ -536,9 +598,8 @@ function CommandCenter() {
   const cases = summary?.cases || [];
   const tasks = summary?.tasks || [];
   const activity = summary?.activity || [];
-  const incidentList = incidentsQuery.data || [];
-  const incident = summary?.incident || incidentList[0];
-  const incidentId = incident?.id || incidentList[0]?.id || 'inc-fl-chennai-2026';
+  const incident = summary?.incident || incidentList.find(i => i.id === activeIncidentId) || incidentList[0];
+  const incidentId = incident?.id || activeIncidentId || 'inc-fl-chennai-2026';
 
   return (
     <>
@@ -588,11 +649,11 @@ function CommandCenter() {
           <div className="flex items-center gap-3 shrink-0">
             <span className="text-xs text-muted-foreground font-mono-ui uppercase hidden sm:inline">Switch Incident:</span>
             <select
-              value={selectedIncidentId || incidentId}
-              onChange={(e) => setSelectedIncidentId(e.target.value)}
+              value={activeIncidentId}
+              onChange={(e) => setActiveIncidentId(e.target.value)}
               className="bg-secondary text-foreground text-xs font-medium px-3 py-2 rounded border border-input outline-none focus:border-primary max-w-[280px] sm:max-w-[340px]"
             >
-              {incidentList.map((inc) => (
+              {incidentList.map((inc: any) => (
                 <option key={inc.id} value={inc.id}>
                   [{inc.disasterType || 'Hazard'}] {inc.name.length > 38 ? inc.name.substring(0, 38) + '...' : inc.name}
                 </option>
@@ -638,7 +699,7 @@ function CommandCenter() {
             </div>
           </div>
           <IncidentMap incidentId={incidentId} />
-          <div className="mt-3 grid grid-cols-4 gap-2 text-[10px]">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
             <div className="flex items-center gap-2 text-muted-foreground"><span className="h-2 w-2 rounded-full bg-destructive" />Critical signal</div>
             <div className="flex items-center gap-2 text-muted-foreground"><span className="h-2 w-2 rounded-full bg-accent" />Needs review</div>
             <div className="flex items-center gap-2 text-muted-foreground"><span className="h-2 w-2 rounded-full bg-primary" />Confirmed</div>
@@ -853,9 +914,9 @@ function IncidentDetail() {
         </section>
         <section>
           <IncidentMap incidentId={incident.id} />
-          <div className="mt-3 flex items-center justify-between border border-border bg-card p-3 text-xs">
+          <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-border bg-card p-3 text-xs">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Layers3 size={14} />Live AOI boundary with weather & critical infrastructure layers
+              <Layers3 size={14} className="shrink-0" /><span>Live AOI boundary with weather & critical infrastructure layers</span>
             </div>
             <Link href="/assessment">
               <Button variant="ghost"><ExternalLink size={13} />Open workspace</Button>
@@ -962,12 +1023,12 @@ function Assessment() {
             <Layers3 size={13} className="mr-1 inline" />{item}
           </button>
         ))}
-        <div className="ml-auto flex gap-2">
+        <div className="w-full sm:w-auto sm:ml-auto flex gap-2">
           <select
             data-testid="select-asset-filter"
             value={filter}
             onChange={e => setFilter(e.target.value)}
-            className="border border-input bg-card px-3 py-2 text-xs outline-none focus:border-primary"
+            className="w-full sm:w-auto border border-input bg-card px-3 py-2 text-xs outline-none focus:border-primary"
           >
             <option>All assets</option>
             <option>Hospital</option>
@@ -1198,7 +1259,7 @@ function CaseDetail() {
               </div>
               <Badge tone="blue">Satellite / GIS</Badge>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="relative flex h-[300px] items-end overflow-hidden border border-border bg-zinc-800 rounded-lg">
                 <MapGL
                   mapStyle={SATELLITE_STYLE}
@@ -1609,7 +1670,7 @@ function Field() {
         }
       />
       <div className="mx-auto max-w-3xl">
-        <div className="mb-4 flex items-center justify-between border border-border bg-card p-4">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-border bg-card p-4">
           <div className="flex items-center gap-3">
             <div className="grid h-9 w-9 place-items-center rounded-full bg-accent/20 text-accent-foreground">
               <Navigation size={17} />
@@ -1722,7 +1783,7 @@ function Analytics() {
         detail="Continuous telemetry tracking the feedback loop from AI detection to human confirmation and verified response outcome."
         action={<Button variant="ghost"><ArrowDownUp size={14} />Live metrics</Button>}
       />
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Metric label="Backlog" value={backlog.toString()} sub="Needs review" />
         <Metric label="Confirmation" value={`${Math.round((confirmed / Math.max(reviewed, 1)) * 100)}%`} sub="Of reviewed signals" />
         <Metric label="SLA compliance" value={`${slaCompliance}%`} sub={`${overdueTasks} overdue tasks`} tone={overdueTasks > 0 ? "amber" : "default"} />
@@ -2121,7 +2182,9 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <AuthProvider>
-            <Shell><Router /></Shell>
+            <ActiveIncidentProvider>
+              <Shell><Router /></Shell>
+            </ActiveIncidentProvider>
           </AuthProvider>
         </WouterRouter>
         <Toaster />
