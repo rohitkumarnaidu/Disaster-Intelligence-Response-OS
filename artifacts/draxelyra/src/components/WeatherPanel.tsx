@@ -90,7 +90,7 @@ export function WeatherPanel({ lat, lng }: WeatherPanelProps) {
   }
 
   return (
-    <div className="absolute top-3 right-3 z-30 w-72 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-2">
+    <div className="absolute top-3 right-3 z-30 w-[calc(100%-1.5rem)] sm:w-72 max-w-[300px] bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-2">
       <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-950/70 border-b border-slate-800">
         <h3 className="text-xs font-mono-ui font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
           <CloudRain className="w-3.5 h-3.5 text-teal-400" />

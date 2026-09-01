@@ -86,7 +86,7 @@ export function LiveFeedIndicator() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 right-0 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden backdrop-blur-2xl animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-full mt-2 right-0 w-72 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden backdrop-blur-2xl animate-in fade-in slide-in-from-top-2">
           <div className="p-3 border-b border-slate-800 bg-slate-950/70 flex items-center justify-between">
             <h4 className="text-[11px] font-mono-ui font-bold text-slate-300 uppercase tracking-wider">Feed Status & Poller</h4>
             <button

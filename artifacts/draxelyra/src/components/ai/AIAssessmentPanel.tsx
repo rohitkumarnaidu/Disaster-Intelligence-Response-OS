@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   BrainCircuit,
   Eye,
@@ -93,9 +93,9 @@ export function AIAssessmentPanel({
   return (
     <div className="bg-card border border-border/80 rounded-xl p-5 shadow-sm space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
             <BrainCircuit className="h-5 w-5" />
           </div>
           <div>
@@ -117,7 +117,7 @@ export function AIAssessmentPanel({
           size="sm"
           onClick={handleReassess}
           disabled={isReassessing}
-          className="text-xs h-8 gap-1.5"
+          className="text-xs h-8 gap-1.5 self-start sm:self-center"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isReassessing ? "animate-spin" : ""}`} />
           {isReassessing ? "Re-evaluating..." : "Re-assess with AI"}
@@ -165,7 +165,7 @@ export function AIAssessmentPanel({
       </div>
 
       {/* Navigation Tabs for Observed vs Inferred vs Limitations */}
-      <div className="flex border-b border-border/60 gap-4 text-xs font-medium">
+      <div className="flex border-b border-border/60 gap-3 text-xs font-medium overflow-x-auto pb-1">
         <button
           onClick={() => setActiveTab("observed")}
           className={`pb-2 flex items-center gap-1.5 transition-colors ${

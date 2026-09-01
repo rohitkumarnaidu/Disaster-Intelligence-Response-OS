@@ -326,9 +326,9 @@ export default function ImagerySearchPage() {
                 className="border border-border bg-card p-4 hover:border-primary/50 transition-colors space-y-3"
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono-ui text-xs font-bold text-foreground truncate max-w-lg">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono-ui text-xs font-bold text-foreground truncate max-w-[200px] sm:max-w-md md:max-w-lg">
                         {item.externalId}
                       </span>
                       <span
@@ -350,7 +350,7 @@ export default function ImagerySearchPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     {item.catalogUrl && (
                       <a
                         href={item.catalogUrl}

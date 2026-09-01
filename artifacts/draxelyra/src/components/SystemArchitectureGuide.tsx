@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   BrainCircuit,
   Satellite,
@@ -85,9 +85,9 @@ export function SystemArchitectureGuide({ metrics }: SystemArchitectureGuideProp
 
   return (
     <div className="bg-card border border-border/80 rounded-xl p-4 md:p-5 shadow-sm transition-all">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
             <Zap className="h-5 w-5" />
           </div>
           <div>
@@ -108,7 +108,7 @@ export function SystemArchitectureGuide({ metrics }: SystemArchitectureGuideProp
 
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+          className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline self-end sm:self-center"
         >
           {expanded ? (
             <>
@@ -124,7 +124,7 @@ export function SystemArchitectureGuide({ metrics }: SystemArchitectureGuideProp
 
       {expanded && (
         <div className="mt-5 space-y-4 pt-4 border-t border-border/60">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
             {stages.map((stage) => {
               const Icon = stage.icon;
               return (

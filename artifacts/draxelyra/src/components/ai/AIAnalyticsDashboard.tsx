@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BrainCircuit, CheckCircle2, XCircle, HelpCircle, Activity, Sparkles, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -53,13 +53,13 @@ export function AIAnalyticsDashboard() {
 
   return (
     <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-5">
-      <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
             <BrainCircuit className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
+            <h3 className="font-semibold text-foreground text-sm flex items-center gap-2 flex-wrap">
               AI Decision Support & Model Calibration
               <Badge variant="outline" className="text-[10px] bg-primary/5 text-primary border-primary/20">
                 <Sparkles className="h-2.5 w-2.5 mr-1" />
@@ -72,7 +72,7 @@ export function AIAnalyticsDashboard() {
           </div>
         </div>
 
-        <Badge variant={analytics.modelHealthSummary?.realAIMode ? "default" : "secondary"} className="text-xs">
+        <Badge variant={analytics.modelHealthSummary?.realAIMode ? "default" : "secondary"} className="text-xs self-start sm:self-center">
           {analytics.modelHealthSummary?.realAIMode ? "Real Gemini AI Active" : "Baseline CV Engine"}
         </Badge>
       </div>

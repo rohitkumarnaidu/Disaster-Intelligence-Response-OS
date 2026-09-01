@@ -411,7 +411,7 @@ export function IncidentMap({
       </Map>
 
       {/* Top Left Controls: Base Switcher + Layers + India AOI Switcher */}
-      <div className="absolute top-3 left-3 z-30 flex items-center gap-2 flex-wrap">
+      <div className="absolute top-3 left-3 z-30 flex items-center gap-2 flex-wrap max-w-[calc(100%-1rem)]">
         <div className="flex items-center bg-slate-900/90 border border-slate-700/70 rounded-lg p-1 shadow-lg backdrop-blur-md">
           <button
             type="button"
@@ -449,7 +449,7 @@ export function IncidentMap({
             </button>
 
             {showRegionMenu && (
-              <div className="absolute top-full mt-2 left-0 w-64 max-h-80 overflow-y-auto bg-slate-900/95 border border-slate-800 rounded-lg shadow-2xl p-2 space-y-1 backdrop-blur-xl z-50">
+              <div className="absolute top-full mt-2 left-0 w-64 max-w-[calc(100vw-2rem)] max-h-80 overflow-y-auto bg-slate-900/95 border border-slate-800 rounded-lg shadow-2xl p-2 space-y-1 backdrop-blur-xl z-50">
                 <div className="text-[10px] font-mono-ui uppercase tracking-wider text-slate-400 px-2 py-1 flex items-center justify-between">
                   <span>Pan to Indian Region</span>
                   <MapPin className="w-3 h-3 text-teal-400" />
@@ -484,7 +484,7 @@ export function IncidentMap({
             </button>
 
             {showLayerMenu && (
-              <div className="absolute top-full mt-2 left-0 w-60 bg-slate-900/95 border border-slate-800 rounded-lg shadow-2xl p-2.5 space-y-1 backdrop-blur-xl z-50">
+              <div className="absolute top-full mt-2 left-0 w-60 max-w-[calc(100vw-2rem)] bg-slate-900/95 border border-slate-800 rounded-lg shadow-2xl p-2.5 space-y-1 backdrop-blur-xl z-50">
                 <div className="text-[10px] font-mono-ui uppercase tracking-wider text-slate-400 px-2 py-1">
                   Layer Visibility
                 </div>
@@ -608,7 +608,7 @@ export function IncidentMap({
 
       {/* Selected Feature Detail Card */}
       {selectedFeature && (
-        <div className="absolute bottom-4 left-4 z-40 max-w-sm bg-slate-900/95 border border-slate-700/80 rounded-xl p-3.5 shadow-2xl backdrop-blur-xl text-slate-200 animate-in fade-in slide-in-from-bottom-2">
+        <div className="absolute bottom-4 left-2 right-2 sm:left-4 sm:right-auto sm:max-w-sm z-40 bg-slate-900/95 border border-slate-700/80 rounded-xl p-3.5 shadow-2xl backdrop-blur-xl text-slate-200 animate-in fade-in slide-in-from-bottom-2">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="font-mono-ui text-[9px] uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
@@ -678,7 +678,7 @@ export function IncidentMap({
       )}
 
       {/* Coordinates readout */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-slate-950/80 border border-slate-800 rounded-full font-mono-ui text-[10px] text-slate-400 backdrop-blur-sm">
+      <div className="hidden sm:block absolute bottom-2 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-slate-950/80 border border-slate-800 rounded-full font-mono-ui text-[10px] text-slate-400 backdrop-blur-sm pointer-events-none">
         AOI Centroid: {centerCoords.lat.toFixed(4)}° N, {centerCoords.lng.toFixed(4)}° E
       </div>
 

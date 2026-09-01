@@ -1860,7 +1860,7 @@ function Demo() {
             <Badge tone="teal"><Radio size={11} />Automated Ingestion</Badge>
             <span className="font-mono-ui text-[10px] text-sidebar-foreground/50">ENGINE · ACTIVE</span>
           </div>
-          <h2 className="mt-8 max-w-lg font-display text-5xl uppercase leading-[.9] text-white">
+          <h2 className="mt-8 max-w-lg font-display text-3xl sm:text-4xl lg:text-5xl uppercase leading-[.95] text-white">
             From intelligence<br /><span className="text-sidebar-primary">to verified action.</span>
           </h2>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-sidebar-foreground/60">

@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck, Database, Layers, Cpu, AlertTriangle, CheckCircle, FileText, Activity, Clock } from "lucide-react";
 
@@ -25,9 +25,9 @@ function LineageNode({ icon, category, title, subtitle, details, status, tone = 
 
   return (
     <div className={`relative border p-3.5 transition-all ${borderColors[tone]}`}>
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 border border-border bg-card rounded-sm text-foreground">
+          <div className="p-1.5 border border-border bg-card rounded-sm text-foreground shrink-0">
             {icon}
           </div>
           <div>
@@ -39,7 +39,7 @@ function LineageNode({ icon, category, title, subtitle, details, status, tone = 
           </div>
         </div>
         {status && (
-          <span className="font-mono-ui text-[9px] uppercase px-1.5 py-0.5 rounded-sm border border-border bg-card">
+          <span className="font-mono-ui text-[9px] uppercase px-1.5 py-0.5 rounded-sm border border-border bg-card self-start sm:self-auto shrink-0">
             {status}
           </span>
         )}
@@ -55,9 +55,9 @@ function LineageNode({ icon, category, title, subtitle, details, status, tone = 
       {expanded && (
         <div className="mt-2.5 space-y-1 rounded border border-border/80 bg-black/40 p-2.5 font-mono-ui text-[10px] text-foreground/90 max-h-48 overflow-y-auto">
           {Object.entries(details).map(([k, v]) => (
-            <div key={k} className="flex justify-between border-b border-border/20 py-0.5 last:border-0">
-              <span className="text-muted-foreground">{k}:</span>
-              <span className="truncate max-w-[240px] text-right font-medium">{typeof v === "object" ? JSON.stringify(v) : String(v ?? "—")}</span>
+            <div key={k} className="flex justify-between border-b border-border/20 py-0.5 last:border-0 gap-2">
+              <span className="text-muted-foreground shrink-0">{k}:</span>
+              <span className="truncate max-w-[140px] sm:max-w-[260px] md:max-w-md text-right font-medium">{typeof v === "object" ? JSON.stringify(v) : String(v ?? "—")}</span>
             </div>
           ))}
         </div>
@@ -94,12 +94,12 @@ export function LineageGraph({ caseId }: { caseId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
         <div>
           <h3 className="font-display text-lg uppercase">Zero-Trust Data Provenance Graph</h3>
           <p className="text-xs text-muted-foreground">Full cryptographic and operational lineage from satellite ingestion to active response.</p>
         </div>
-        <span className="font-mono-ui text-[10px] uppercase px-2 py-1 bg-primary/10 text-primary border border-primary/30">
+        <span className="font-mono-ui text-[10px] uppercase px-2 py-1 bg-primary/10 text-primary border border-primary/30 self-start sm:self-center shrink-0">
           Data Mode: {lineage.case?.dataMode || "REAL"}
         </span>
       </div>
