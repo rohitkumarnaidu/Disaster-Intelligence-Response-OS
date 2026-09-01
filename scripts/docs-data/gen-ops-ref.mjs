@@ -1,399 +1,298 @@
 import fs from 'fs';
 import path from 'path';
 
-export function generateOpsRef(DOCS_DIR) {
-  const write = (relPath, content) => {
-    const fullPath = path.join(DOCS_DIR, relPath);
-    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
-  };
+function ensureDir(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
 
-  const deploymentContent = `
-# Deployment Architecture and Strategies
+function writeFile(dir, relPath, content) {
+  const fullPath = path.join(dir, relPath);
+  ensureDir(path.dirname(fullPath));
+  fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
+}
+
+export function generateOpsRef(docsDir) {
+  console.log('Generating 18-maintenance, 19-contributing, 20-reference, and 21-roadmap...');
+
+  // ===========================================================================
+  // 18-maintenance
+  // ===========================================================================
+
+  // 18-maintenance/01-runbooks.md
+  writeFile(docsDir, '18-maintenance/01-runbooks.md', `---
+id: runbooks
+title: Operational Runbooks & Maintenance Procedures
+sidebar_label: Operational Runbooks
+sidebar_position: 1
+---
+
+# Operational Runbooks & Maintenance Procedures
 
 <span className="badge-implemented">Implemented</span>
 
-The DRAXELYRA platform is designed to be deployed across a variety of environments ranging from local development machines to scalable production clusters. This document details the infrastructure requirements, configuration variables, and procedural steps for deploying the DRAXELYRA platform.
+This runbook provides emergency operations center sysadmins and DevOps engineers with standard operating procedures (SOPs) for routine maintenance, database backup/recovery, and incident remediation.
 
-## Infrastructure Architecture
+---
 
-At its core, the platform follows a modular monolith approach wrapped in a workspace-based monorepo. The primary services include:
-1.  **API Server (Backend)**: Express 5.2 application providing the core REST capabilities and database interactions.
-2.  **Web Client (Frontend)**: React 19 application built via Vite.
-3.  **PostgreSQL Database**: Persistent storage for all entities.
+## 1. Database Backup & Point-in-Time Recovery
 
-\`\`\`mermaid
-graph TD
-    Client[Web Browser] -->|HTTPS| Proxy[Reverse Proxy / Ingress]
-    Proxy -->|Static Assets| Static[Static File Server]
-    Proxy -->|/api/*| Express[Express API Server]
-    Express -->|TCP/5432| Postgres[(PostgreSQL 15)]
+### Automated Full Dump
+\`\`\`bash
+# Create timestamped compressed PostgreSQL backup
+docker exec -t draxelyra-postgres pg_dump -U postgres -d draxelyra -F c -b -v -f /var/lib/postgresql/data/backup_$(date +%Y%m%d_%H%M%S).dump
 \`\`\`
 
-## Local Development Deployment
-
-For local development, the platform utilizes Docker Compose to manage dependencies (like PostgreSQL) while running the application services directly on the host using \`pnpm\`.
-
-### Docker Compose Configuration
-
-File: \`docker-compose.yml\`
-
-\`\`\`yaml
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: draxelyra-postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: draxelyra
-    ports: ["5433:5432"]
-    volumes: [postgres-data:/var/lib/postgresql/data]
-    restart: unless-stopped
-volumes:
-  postgres-data:
+### Restore Procedure
+\`\`\`bash
+# Restore from archive into target database
+docker exec -i draxelyra-postgres pg_restore -U postgres -d draxelyra --clean --if-exists -v /var/lib/postgresql/data/backup_20240526.dump
 \`\`\`
 
-### Startup Procedure
+---
 
-1.  **Initialize Database Services**:
-    \`\`\`bash
-    docker compose up -d
-    \`\`\`
-2.  **Migrate Schema**:
-    Push the Drizzle ORM schema to the active database instance.
-    \`\`\`bash
-    pnpm --filter @workspace/db run push
-    \`\`\`
-3.  **Start Development Server**:
-    Launch the Vite development server and the backend API server concurrently.
-    \`\`\`bash
-    pnpm run dev
-    \`\`\`
+## 2. Session Table Pruning
+Expired session records stored via \`connect-pg-simple\` can be cleaned up manually if the automated cleaner is paused:
 
-### Dev Server Proxy Setup
-
-During development, the Vite server operates on port \`5173\` and proxies all requests prefixed with \`/api\` to the Express server running on port \`3000\`. This bypasses CORS issues and perfectly mimics production routing behavior.
-
-File: \`artifacts/draxelyra/vite.config.ts\`
-\`\`\`typescript
-export default defineConfig({
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
-      }
-    }
-  }
-});
+\`\`\`sql
+DELETE FROM session WHERE expire < NOW();
 \`\`\`
 
-## Production Deployment
+---
 
-Production deployments bundle the frontend into static assets and compile the backend into a lightweight Node.js executable script.
+## 3. Clearing Stuck Processing Jobs
+If an asynchronous satellite download or change-detection job hangs due to an external network timeout:
 
-### Build Process
+\`\`\`sql
+UPDATE processing_jobs
+SET status = 'FAILED',
+    error_message = 'Manually timed out by operator after 30 minutes',
+    updated_at = NOW()
+WHERE status = 'RUNNING' AND updated_at < NOW() - INTERVAL '30 minutes';
+\`\`\`
+`);
 
-The production build step executes across all workspace packages:
+  // 18-maintenance/02-troubleshooting.md
+  writeFile(docsDir, '18-maintenance/02-troubleshooting.md', `---
+id: troubleshooting
+title: Production Troubleshooting & Error Remediation
+sidebar_label: Troubleshooting Guide
+sidebar_position: 2
+---
+
+# Production Troubleshooting & Error Remediation
+
+<span className="badge-implemented">Implemented</span>
+
+---
+
+## Common Incident Failure Modes
+
+### 1. HTTP 409 \`VERSION_CONFLICT\` Storms
+- **Symptom**: Multiple operators report being unable to save reviews on high-priority cases.
+- **Root Cause**: Two or more watchstanders are attempting to review the same incident simultaneously without refreshing their local client state.
+- **Remediation**: Advise operators to click the amber "Load Latest Server State" toast alert. The UI will merge non-conflicting fields and update the \`expectedVersion\`.
+
+---
+
+### 2. MapLibre WebGL Context Loss
+- **Symptom**: The tactical map canvas goes black or displays \`WebGL context lost\` in browser console.
+- **Root Cause**: GPU memory exhaustion when loading large Sentinel-2 raster layers on integrated laptop GPUs.
+- **Remediation**: The map error boundary automatically catches the failure and switches to low-overhead vector tile mode. If persistent, toggle off the High-Density Satellite Raster layer in Map Settings.
+
+---
+
+### 3. OpenStreetMap Overpass API 429 Rate Limiting
+- **Symptom**: Automated critical asset extraction fails with HTTP 429 \`Too Many Requests\`.
+- **Root Cause**: Main Overpass server (\`overpass-api.de\`) is experiencing heavy global community load.
+- **Remediation**: \`osm-sync.ts\` automatically retries against secondary community mirrors (\`kumi.systems\`, \`private.overpass-api.de\`) with exponential backoff (2s, 4s, 8s).
+
+---
+
+### 4. Multimodal AI API Quota Exhaustion
+- **Symptom**: Case creation continues, but AI damage reasoning fields display baseline synthetic metrics.
+- **Root Cause**: \`GEMINI_API_KEY\` hit rate limits (15 RPM on free tier or billing threshold).
+- **Remediation**: The system automatically degrades gracefully to \`MockVisionAssessmentProvider\` (\`draxelyra-cv-baseline-v2\`), logging the incident to \`ai_decision_logs\` without crashing the triage pipeline.
+`);
+
+
+  // ===========================================================================
+  // 19-contributing
+  // ===========================================================================
+
+  // 19-contributing/01-development-setup.md
+  writeFile(docsDir, '19-contributing/01-development-setup.md', `---
+id: development-setup
+title: Local Development Setup & Workflows
+sidebar_label: Development Setup
+sidebar_position: 1
+---
+
+# Local Development Setup & Workflows
+
+<span className="badge-implemented">Implemented</span>
+
+---
+
+## Prerequisites
+- **Node.js**: \`>= 20.10.0\`
+- **pnpm**: \`>= 10.0.0\`
+- **Docker**: For running PostgreSQL 15 datastore.
+- **Git**: For version control.
+
+---
+
+## Step-by-Step Setup
 
 \`\`\`bash
-pnpm build
+# 1. Clone repository
+git clone https://github.com/rohitkumarnaidu/Disaster-Intelligence-Response-OS.git
+cd Disaster-Intelligence-Response-OS
+
+# 2. Install workspace dependencies
+pnpm install
+
+# 3. Start local PostgreSQL 15 database
+docker compose -f docker-compose.yml up -d postgres
+
+# 4. Configure environment variables
+cp .env.example .env
+
+# 5. Push schema migrations to PostgreSQL
+pnpm --filter @workspace/db run db:push
+
+# 6. Start development servers with HMR
+pnpm run dev
 \`\`\`
 
-1.  **Backend Target**: \`artifacts/api-server/dist/index.mjs\` (bundled via esbuild).
-2.  **Frontend Target**: \`artifacts/draxelyra/dist/public/\` (bundled via Vite).
+The command center will be available at \`http://localhost:5173\` and the backend API at \`http://localhost:3000\`.
+`);
 
-In production, the Express backend serves the static frontend assets from the \`public\` directory, simplifying deployment down to a single Node.js process and a PostgreSQL database.
+  // 19-contributing/02-coding-standards.md
+  writeFile(docsDir, '19-contributing/02-coding-standards.md', `---
+id: coding-standards
+title: Engineering Standards & Code Governance
+sidebar_label: Coding Standards
+sidebar_position: 2
+---
 
-### Environment Configuration
-
-The following environment variables govern the deployment:
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| \`DATABASE_URL\` | PostgreSQL connection string | Yes | - |
-| \`PORT\` | Server port (validated > 0) | Yes | \`3000\` |
-| \`SESSION_SECRET\` | Express session cryptographic secret | No | \`draxelyra_default_secret\` |
-| \`NODE_ENV\` | Application environment flag | No | \`development\` |
-| \`LOG_LEVEL\` | Pino logger verbosity level | No | \`info\` |
-| \`VITE_PORT\` | Vite development server port | No | \`5173\` |
-| \`BASE_PATH\` | Frontend base routing path | No | \`/\` |
-
-### Cloud / Replit Deployment
-
-When deploying to PaaS providers (like Replit or Render), the platform utilizes a reverse proxy configured by the provider. Ensure that \`DATABASE_URL\` points to a managed PostgreSQL instance and that the start command triggers \`node artifacts/api-server/dist/index.mjs\`.
-  `;
-
-  const operationsContent = `
-# System Operations and Maintenance
+# Engineering Standards & Code Governance
 
 <span className="badge-implemented">Implemented</span>
 
-Maintaining the DRAXELYRA platform involves monitoring system health, managing the monorepo workspace, and utilizing standardized troubleshooting procedures to resolve common operational issues.
+1. **Strict TypeScript**: No \`any\` types in domain entities or route handlers. All API request/response payloads must have corresponding Zod validation schemas.
+2. **ACID Transaction Boundaries**: Any state transition involving multiple table updates must execute within \`db.transaction(async (tx) => ...)\`.
+3. **Mandatory OCC Version Checks**: Mutable entity tables must include a \`version\` column and check \`version = expectedVersion\` on every update.
+4. **Zero-Trust Documentation Rule**: Codebase implementation is the sole source of truth. Features must be explicitly badged (<span className="badge-implemented">Implemented</span>, <span className="badge-live">Real Data Mode</span>, <span className="badge-mock">Mock Baseline</span>).
+`);
 
-## Monorepo Architecture
+  // ===========================================================================
+  // 20-reference
+  // ===========================================================================
 
-The codebase is organized using \`pnpm\` workspaces, explicitly separating operational artifacts from shared libraries.
+  // 20-reference/01-glossary.md
+  writeFile(docsDir, '20-reference/01-glossary.md', `---
+id: glossary
+title: Disaster Intelligence & GIS Technical Glossary
+sidebar_label: Glossary
+sidebar_position: 1
+---
 
-File: \`pnpm-workspace.yaml\`
-\`\`\`yaml
-packages:
-  - "artifacts/*"
-  - "lib/*"
-\`\`\`
-
-### Directory Structure
-
-\`\`\`text
-DRAXELYRA-Response-OS/
-├── artifacts/
-│   ├── api-server/         # Express 5 backend executable
-│   └── draxelyra/          # React 19 + Vite frontend
-├── lib/
-│   ├── db/                 # Drizzle ORM models and PostgreSQL schemas
-│   ├── api-spec/           # Central OpenAPI 3.1 YAML definition
-│   ├── api-zod/            # Generated Zod validation schemas
-│   └── api-client-react/   # Generated TanStack Query hooks
-\`\`\`
-
-This modularity ensures that the backend and frontend are tightly coupled via generated API client code but decoupled in their specific operational lifecycles.
-
-## Observability and Logging
-
-The system relies on \`pino\` for high-performance, low-overhead logging.
-
-- **Level Configuration**: Controlled via the \`LOG_LEVEL\` environment variable. The default is \`info\`. Available levels: \`fatal\`, \`error\`, \`warn\`, \`info\`, \`debug\`, \`trace\`.
-- **Development Output**: Utilizes \`pino-pretty\` to output formatted, color-coded logs to standard output.
-- **Production Output**: Emits raw JSON streams suitable for ingestion by platforms like Datadog, ELK stack, or CloudWatch.
-
-### Redaction Rules
-
-To maintain security compliance, the logger automatically redacts sensitive headers in all incoming requests and outgoing responses.
-
-File: \`artifacts/api-server/src/logger.ts\`
-\`\`\`typescript
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  redact: [
-    'req.headers.authorization',
-    'req.headers.cookie',
-    'res.headers["set-cookie"]'
-  ]
-});
-\`\`\`
-
-## Troubleshooting Playbook
-
-### 1. Database Connection Refused
-
-**Symptoms:**
-Logs output \`error: connection to server at "localhost" (::1), port 5433 failed: Connection refused\`.
-
-**Resolution Steps:**
-1. Check running Docker containers: \`docker compose ps\`
-2. Verify the port mappings. The local development database is mapped to \`5433\` (to avoid conflicts with standard local postgres on \`5432\`).
-3. Ensure \`DATABASE_URL\` points to \`postgresql://postgres:postgres@localhost:5433/draxelyra\`.
-
-### 2. 401 Unauthorized API Responses
-
-**Symptoms:**
-The frontend fails to fetch data with a \`401\` status code logged in the network tab.
-
-**Resolution Steps:**
-1. The session may have expired. Force a clear of local storage and cookies in the browser.
-2. Re-authenticate via the login interface.
-3. If the problem persists, verify the \`SESSION_SECRET\` matches across deployments if operating behind a load balancer.
-
-### 3. 409 Version Conflict (Optimistic Concurrency)
-
-**Symptoms:**
-Updating an entity (like a Case or Task) yields a \`409 Conflict\`.
-
-**Resolution Steps:**
-1. This is an expected operational constraint enforcing optimistic concurrency control.
-2. The client must re-fetch the latest entity state to acquire the current version number before re-attempting the mutation.
-
-### 4. Drizzle Schema Push Fails
-
-**Symptoms:**
-\`pnpm --filter @workspace/db run push\` exits with code 1.
-
-**Resolution Steps:**
-1. Confirm the \`DATABASE_URL\` environment variable is exported in the current shell.
-2. Ensure the postgres container is actually healthy.
-  `;
-
-  const contributingContent = `
-# Contributing Guidelines
+# Disaster Intelligence & GIS Technical Glossary
 
 <span className="badge-implemented">Implemented</span>
 
-This document outlines the standard workflows, architecture patterns, and technical stacks required for contributing to the DRAXELYRA platform. We adhere to a strict API-first, contract-driven development process.
+| Term | Category | Authoritative Technical Definition |
+| :--- | :--- | :--- |
+| **AOI** | Geospatial | **Area of Interest**: Bounding polygon defining the geographic perimeter of a disaster operation. |
+| **CAP** | Ingestion | **Common Alerting Protocol (OASIS CAP-v1.2)**: XML emergency data exchange standard used by NDMA SACHET. |
+| **CAS** | Concurrency | **Compare-And-Swap**: Atomic database update comparing the current version before applying an increment. |
+| **COG** | Remote Sensing | **Cloud Optimized GeoTIFF**: Format allowing tile streaming via HTTP range requests. |
+| **EOC** | Operations | **Emergency Operations Center**: Central command facility for disaster coordination. |
+| **FIRMS** | Remote Sensing | **Fire Information for Resource Management System**: NASA satellite active thermal detection program. |
+| **FSM** | Backend | **Finite State Machine**: State management model enforcing valid transitions between named states. |
+| **GDACS** | Ingestion | **Global Disaster Alert and Coordination System**: Joint UN/EC multi-hazard monitoring framework. |
+| **HITL** | AI / ML | **Human-in-the-Loop**: Operational design requiring human operator authorization for AI recommendations. |
+| **MNDWI** | Remote Sensing | **Modified Normalized Difference Water Index**: Spectral ratio $(Green - SWIR) / (Green + SWIR)$ for flood delineation. |
+| **OCC** | Database | **Optimistic Concurrency Control**: Concurrency strategy detecting stale writes via monotonic versions. |
+| **Overpass QL**| Geospatial | Query language used to interrogate OpenStreetMap spatial databases for critical infrastructure. |
+| **SAR** | Remote Sensing | **Synthetic Aperture Radar**: Cloud-penetrating radar sensor (e.g., Sentinel-1) active day/night. |
+| **SLA** | Operations | **Service Level Agreement**: Target operational time window for task completion based on priority. |
+| **STAC** | Remote Sensing | **SpatioTemporal Asset Catalog**: JSON specification for querying Earth observation imagery catalogs. |
+| **VIIRS** | Remote Sensing | **Visible Infrared Imaging Radiometer Suite**: Thermal sensor on Suomi NPP / NOAA-20 satellites. |
+| **WAQI** | Ingestion | **World Air Quality Index**: Global real-time particulate air quality measurement project. |
+| **WGS84** | Geospatial | **World Geodetic System 1984 (EPSG:4326)**: Standard coordinate reference system $[lng, lat]$. |
+`);
 
-## The OpenAPI-First Workflow
+  // 20-reference/02-configuration.md
+  writeFile(docsDir, '20-reference/02-configuration.md', `---
+id: configuration
+title: Complete System Configuration Reference
+sidebar_label: Configuration Matrix
+sidebar_position: 2
+---
 
-All feature development that involves client-server communication must begin with the OpenAPI specification. This ensures both frontend and backend teams have a unified contract.
-
-\`\`\`mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Spec as OpenAPI YAML
-    participant CodeGen as Codegen Tools
-    participant FE as Frontend
-    participant BE as Backend
-
-    Dev->>Spec: 1. Update openapi.yaml
-    Dev->>CodeGen: 2. pnpm --filter @workspace/api-spec run codegen
-    CodeGen-->>FE: Generates React Query Hooks
-    CodeGen-->>BE: Generates Zod Schemas
-    Dev->>BE: 3. Implement Express Route
-    Dev->>FE: 4. Build React Components
-\`\`\`
-
-### Step-by-step Workflow
-
-1.  **Edit the API Specification**:
-    Navigate to \`lib/api-spec/openapi.yaml\` and define the new endpoints, request bodies, and response definitions using OpenAPI 3.1 syntax.
-2.  **Run Code Generation**:
-    Execute the generation script to create Zod schemas and TanStack Query hooks.
-    \`\`\`bash
-    pnpm --filter @workspace/api-spec run codegen
-    \`\`\`
-3.  **Backend Implementation**:
-    In \`artifacts/api-server\`, create or modify the route handlers. Utilize the newly generated Zod schemas from \`@workspace/api-zod\` to validate incoming requests.
-4.  **Frontend Implementation**:
-    In \`artifacts/draxelyra\`, import the generated TanStack hooks from \`@workspace/api-client-react\` to bind data to your UI components.
-5.  **Run Tests**:
-    Ensure all components remain functional.
-    \`\`\`bash
-    pnpm test
-    \`\`\`
-
-## Technical Stack Reference
-
-Ensure your local development environment supports the following technologies before contributing:
-
-*   **Runtime**: Node.js 20+ with TypeScript 5.x.
-*   **Backend Ecosystem**:
-    *   Framework: Express 5.2
-    *   Database Toolkit: Drizzle ORM
-    *   Database: PostgreSQL 15
-    *   Bundler: esbuild
-*   **Frontend Ecosystem**:
-    *   Framework: React 19
-    *   Build Tool: Vite 6
-    *   Routing: Wouter 3
-    *   Data Fetching: TanStack Query (auto-generated)
-    *   Mapping: MapLibre GL
-    *   Styling: Tailwind CSS 4, Radix UI Primitives
-*   **Testing Framework**: Vitest
-*   **Package Manager**: pnpm (Workspaces)
-
-## Commit and Review Process
-
-*   Prefix commits with conventional tags (e.g., \`feat:\`, \`fix:\`, \`chore:\`, \`docs:\`).
-*   Ensure \`pnpm run build\` and \`pnpm test\` pass cleanly before requesting a review.
-*   Never manually modify files in \`lib/api-zod/\` or \`lib/api-client-react/\`. These are strictly generated artifacts.
-  `;
-
-  const referenceContent = `
-# Core Systems Reference
+# Complete System Configuration Reference
 
 <span className="badge-implemented">Implemented</span>
 
-This reference manual documents the exhaustive list of enumerations, strict data statuses, and authorization matrices utilized across the DRAXELYRA operating environment.
+All configuration variables supported by DRAXELYRA are documented below.
 
-## Status Enumerable Values
+| Variable Name | Required? | Default Value | Description |
+| :--- | :--- | :--- | :--- |
+| **\`PORT\`** | Optional | \`3000\` | HTTP and WebSocket server listen port. |
+| **\`NODE_ENV\`** | Optional | \`development\` | Environment mode: \`development\`, \`test\`, or \`production\`. |
+| **\`DATABASE_URL\`** | **Required**| *(None)* | PostgreSQL connection URI (\`postgresql://user:pass@host:5432/db\`). |
+| **\`SESSION_SECRET\`** | **Required**| \`draxelyra_default_secret\` | Cryptographic secret for signing session cookies. Must be 64+ hex characters in production. |
+| **\`GEMINI_API_KEY\`** | Optional | *(None)* | Google Gemini AI API key. If absent, falls back to \`MockVisionAssessmentProvider\`. |
+| **\`UPLOAD_DIR\`** | Optional | \`./uploads\` | Local filesystem directory for storing uploaded forensic evidence. |
+| **\`DB_POOL_MAX\`** | Optional | \`20\` | Maximum active PostgreSQL connection pool connections. |
+| **\`LOG_LEVEL\`** | Optional | \`info\` | Pino structured logging level: \`debug\`, \`info\`, \`warn\`, \`error\`. |
+| **\`BASE_URL\`** | Optional | \`/\` | Frontend base URL for reverse proxy hosting. |
+`);
 
-The platform strictly tracks states using explicit enumerable fields. All state transitions must adhere to these sets.
+  // ===========================================================================
+  // 21-roadmap
+  // ===========================================================================
 
-### Case Statuses
-- \`DETECTED\`: Initial system or user identification.
-- \`NEEDS_REVIEW\`: Requires human verification.
-- \`CONFIRMED\`: Validation passed, case is active.
-- \`REJECTED\`: Marked as invalid or non-actionable.
-- \`UNCERTAIN\`: Insufficient data to verify.
-- \`PRIORITIZED\`: Escalated for immediate attention.
-- \`TASKED\`: Action items generated and dispatched.
-- \`IN_PROGRESS\`: Active mitigation underway.
-- \`FIELD_VERIFIED\`: Ground truth confirmed by field ops.
-- \`ACTIONED\`: Direct intervention applied.
-- \`CLOSED\`: Case concluded.
+  // 21-roadmap/01-production-roadmap.md
+  writeFile(docsDir, '21-roadmap/01-production-roadmap.md', `---
+id: production-roadmap
+title: Strategic Production Roadmap & Future Architecture
+sidebar_label: Production Roadmap
+sidebar_position: 1
+---
 
-### Task Statuses
-- \`UNASSIGNED\`: Pending resource allocation.
-- \`ASSIGNED\`: Personnel allocated, awaiting acknowledgment.
-- \`IN_PROGRESS\`: Task execution active.
-- \`BLOCKED\`: Execution halted due to external dependencies.
-- \`COMPLETED\`: Execution finished.
-- \`VERIFIED\`: Completion confirmed by oversight.
-- \`CLOSED\`: Final archival state.
+# Strategic Production Roadmap & Future Architecture
 
-### Review Statuses
-- \`PENDING\`: Awaiting intelligence review.
-- \`CONFIRMED\`: Intelligence validated.
-- \`REJECTED\`: Intelligence discarded.
-- \`UNCERTAIN\`: Requires further corroboration.
+<span className="badge-planned">Future Strategic Architecture</span>
 
-### Incident Statuses
-- \`Active\`: Incident requires ongoing management.
-- \`Closed\`: Incident is resolved.
+DRAXELYRA's technical evolution is structured into four upcoming phases:
 
-## Role-Based Access Control (RBAC) Permissions Matrix
+---
 
-Security is enforced via granular endpoint authorizations mapping to predefined organizational roles.
+## Phase 1: High-Throughput gRPC Tile Inference Stream
+- Transitioning satellite raster tile change detection from REST to **gRPC bidirectional streaming**.
+- Sub-second raster chip evaluation with distributed GPU worker nodes.
 
-| Endpoint | System Admin | Org Admin | Commander | Disaster Officer | Manager | Analyst | Field Responder |
-|----------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| \`POST /incidents\` | ✓ | ✓ | — | ✓ | — | — | — |
-| \`PATCH /incidents/:id\` | ✓ | ✓ | — | ✓ | — | — | — |
-| \`POST /cases/:id/review\` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
-| \`GET /cases/:id/audit\` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| \`POST /tasks\` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
-| \`PATCH /tasks/:id\` | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ |
-| \`POST /evidence/upload\` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| \`POST /demo/load\` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+---
 
-## Environment Variables Reference
+## Phase 2: WebRTC Tactical Drone Video Ingestion
+- Ingesting real-time RTSP/WebRTC video streams from emergency reconnaissance drones.
+- Frame-by-frame VLM object detection for survivors, vehicles, and active fire perimeters.
 
-| Variable | Usage Context | Type | Description |
-|----------|---------------|------|-------------|
-| \`DATABASE_URL\` | Backend | String | Standard libpq connection string. Example: \`postgresql://user:pass@host:5432/db\` |
-| \`PORT\` | Backend | Integer | Binding port for the Express HTTP server. |
-| \`SESSION_SECRET\` | Backend | String | Cryptographic key for signing session cookies. Must be rotated regularly in prod. |
-| \`LOG_LEVEL\` | Universal | Enum | Specifies Pino's minimum output severity. |
-| \`VITE_PORT\` | Frontend | Integer | Port utilized by the Vite HMR server in local development. |
-| \`BASE_PATH\` | Frontend | String | Application routing root (useful for sub-directory deployments). |
-| \`NODE_ENV\` | Universal | String | Enables framework-specific production optimizations when set to \`production\`. |
-  `;
+---
 
-  const roadmapContent = `
-# Platform Roadmap
+## Phase 3: Active Learning & Domain LoRA Fine-Tuning
+- Continuous automated curation of duty officer confirmations and rejections from \`ai_evaluation_dataset\`.
+- Scheduled LoRA (Low-Rank Adaptation) fine-tuning runs to customize foundation models to regional geography.
 
-<span className="badge-planned">Planned</span>
+---
 
-The DRAXELYRA platform is under continuous active development. The roadmap outlines strategic architectural enhancements and functional expansions designed to scale the system for larger, concurrent disaster intelligence workflows.
-
-## Upcoming Architectural Enhancements
-
-### 1. Offline-First Synchronization
-Implementation of local-first data caching utilizing RxDB or WatermelonDB to allow Field Responders to execute tasks and capture evidence without persistent network connectivity, synchronizing payloads when connectivity is restored.
-
-### 2. Real-time Telemetry Services
-Migration from standard HTTP polling to WebSocket/SSE streams for live tactical map updates, reducing database query overhead and providing sub-second latency for resource tracking.
-
-### 3. Federated Authentication
-Integration of OIDC (OpenID Connect) and SAML 2.0 to support SSO (Single Sign-On) against existing enterprise directories (e.g., Azure AD, Okta), critical for rapid inter-agency onboarding.
-
-### 4. Machine Learning Ingestion Pipeline
-Establishing a dedicated gRPC microservice to handle asynchronous analysis of uploaded evidence, automatically tagging media and drafting preliminary Review cases for human verification.
-  `;
-
-  write('14-deployment/deployment.md', deploymentContent);
-  write('15-maintenance/operations.md', operationsContent);
-  write('16-contributing/contributing.md', contributingContent);
-  write('17-reference/reference.md', referenceContent);
-  write('18-roadmap/roadmap.md', roadmapContent);
+## Phase 4: Peer-to-Peer Mesh Synchronization
+- Enabling field responder mobile devices to synchronize task observations over ad-hoc Bluetooth LE / Wi-Fi Direct mesh networks during complete communications blackout.
+`);
+  console.log('18-maintenance, 19-contributing, 20-reference, and 21-roadmap generated successfully.');
 }
+

@@ -128,7 +128,7 @@ flowchart TB
 ### 3. Domain Service Layer
 - **Case State Machine**: Strictly validates finite state transitions (\`DETECTED\` to \`CLOSED\`), records immutable status histories, and executes atomic Compare-and-Swap (CAS) version increments.
 - **Task State Machine**: Converts confirmed cases into assigned tasks, computes dynamic priority-based SLA deadlines, and tracks field verification.
-- **Priority Engine**: Computes deterministic, explainable scores ($0\\text{--}100$) using 5 distinct risk factors with 72-hour time decay.
+- **Priority Engine**: Computes deterministic, explainable scores (0 to 100) using 5 distinct risk factors with 72-hour time decay.
 - **Multimodal AI Service**: Integrates Google Gemini 2.5 Flash and deterministic baseline vision models for change detection, structuring outputs into validated Zod schemas.
 - **Transactional Outbox Dispatcher**: Polls the \`outbox_events\` table and dispatches committed domain events asynchronously, guaranteeing zero event loss without two-phase commit overhead.
 
@@ -352,7 +352,7 @@ flowchart TD
 1. **Ingestion & Deduplication**: External APIs are polled at defined intervals (5m for USGS, 10m for Weather, 15m for GDACS/FIRMS). Records are deduplicated by \`externalId\` to prevent duplicate incident creation.
 2. **Spatial Intersection**: Ingested AOI bounding boxes query OpenStreetMap Overpass for critical nodes within a 5km radius.
 3. **Multimodal Analysis**: Paired before/after satellite swaths generate structured detections with damage classification and confidence metrics.
-4. **Priority Scoring**: Features are normalized to standard scales ($0\text{--}100$) and weighted to yield an integer priority score.
+4. **Priority Scoring**: Features are normalized to standard scales (0 to 100) and weighted to yield an integer priority score.
 5. **Transactional Lineage**: Every operational record maintains foreign keys back to its originating detection, imagery asset, and external event ID, ensuring full audit traceability.
 `);
 
@@ -603,7 +603,7 @@ flowchart TD
 | **Prerequisites** | Valid \`GEMINI_API_KEY\` | None (Runs offline with zero configuration) |
 | **Output Format** | Validated JSON conforming to Zod Schema | Validated JSON conforming to Zod Schema |
 | **Token Tracking** | Captures Prompt, Completion, and Total Tokens | Emits zero-token telemetry |
-| **Latency** | $800\text{--}2500\text{ ms}$ (Network dependent) | $20\text{--}50\text{ ms}$ (Local execution) |
+| **Latency** | 800–2500 ms (Network dependent) | 20–50 ms (Local execution) |
 `);
 
   // ===========================================================================

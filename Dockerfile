@@ -4,8 +4,8 @@ FROM node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-# Copy root workspace configurations
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+# Copy root workspace configurations and TypeScript manifests
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig*.json ./
 COPY artifacts/api-server/package.json ./artifacts/api-server/
 COPY artifacts/draxelyra/package.json ./artifacts/draxelyra/
 COPY artifacts/mockup-sandbox/package.json ./artifacts/mockup-sandbox/
@@ -18,10 +18,8 @@ COPY scripts/package.json ./scripts/
 # Install all monorepo dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source trees
-COPY lib ./lib
-COPY scripts ./scripts
-COPY artifacts ./artifacts
+# Copy all source trees and configurations
+COPY . .
 
 # Build all packages (types, DB schema, Vite UI, API server)
 RUN pnpm run build

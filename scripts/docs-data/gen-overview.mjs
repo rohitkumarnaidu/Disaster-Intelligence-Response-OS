@@ -16,8 +16,23 @@ function writeFile(dir, relPath, content) {
 export function generateOverview(docsDir) {
   console.log('Generating 01-overview and 02-getting-started...');
 
+  const write = (relPath, content) => writeFile(docsDir, relPath, content);
+
   // 01-overview/introduction.md
+  write('01-overview/introduction.md', `---
+
+id: introduction
+title: Introduction & Problem Statement
+sidebar_label: Introduction
+sidebar_position: 1
+---
+
+# Introduction & Operational Mission
+
+<span className="badge-implemented">Implemented</span>
+
 In rapid-onset disasters—such as urban flash floods, cyclones, and seismic events—command centers face an acute operational bottleneck: raw Earth Observation (EO) satellite passes and sensor feeds generate vast volumes of unverified damage signals that cannot be translated into rapid, auditable field operations. DRAXELYRA bridges this gap by converting post-event satellite imagery into **explainable priority queues**, **finite-state response tasks**, and **tamper-evident, field-verified outcomes**.
+
 
 \`\`\`mermaid
 flowchart LR

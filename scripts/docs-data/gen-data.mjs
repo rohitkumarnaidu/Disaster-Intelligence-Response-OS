@@ -98,7 +98,7 @@ Metadata registry for ingested satellite swaths, drone orthomosaics, and aerial 
 | \`sensorType\` | \`text\` | \`NOT NULL\` | Modality: \`OPTICAL\`, \`SAR_C_BAND\`, \`INFRARED\`, \`RGB_DRONE\`. |
 | \`acquisitionTime\` | \`timestamp\` | \`NOT NULL\` | Exact UTC sensor capture time. |
 | \`spatialResolution\` | \`real\` | \`NOT NULL\` | Ground sample distance (meters per pixel, e.g., \`10.0\`). |
-| \`cloudCover\` | \`real\` | \`NULLABLE\` | Percentage cloud obscuration ($0.0\text{--}100.0$). |
+| \`cloudCover\` | \`real\` | \`NULLABLE\` | Percentage cloud obscuration (0.0 to 100.0%). |
 | \`bounds\` | \`jsonb\` | \`NOT NULL\` | GeoJSON bounding polygon for the raster swath. |
 | \`thumbnailUrl\` | \`text\` | \`NULLABLE\` | Fast web-optimized RGB preview crop URL. |
 | \`rawStoragePath\` | \`text\` | \`NOT NULL\` | Filesystem path or object store URI of original COG / SAFE archive. |
@@ -126,7 +126,7 @@ Maintains geographic locations, facility types, and baseline capacities of life-
 | \`name\` | \`text\` | \`NOT NULL\` | Facility name (e.g., \`Silchar Medical College & Hospital\`). |
 | \`type\` | \`text\` | \`NOT NULL\` | Category: \`HOSPITAL\`, \`BRIDGE\`, \`POWER_SUBSTATION\`, \`WATER_TREATMENT\`. |
 | \`location\` | \`jsonb\` | \`NOT NULL\` | GeoJSON \`Point\` coordinate \`[longitude, latitude]\`. |
-| \`criticalityScore\` | \`integer\` | \`NOT NULL\` | Base criticality weight ($0\text{--}100$, Hospital=100, Bridge=85). |
+| \`criticalityScore\` | \`integer\` | \`NOT NULL\` | Base criticality weight (0 to 100, Hospital=100, Bridge=85). |
 | \`capacity\` | \`integer\` | \`NULLABLE\` | Bed count, power megawatt rating, or throughput. |
 | \`metadata\` | \`jsonb\` | \`DEFAULT '{}'\` | Ingested OSM tags (e.g., \`phone\`, \`operator\`, \`backup_generator\`). |
 
@@ -144,7 +144,7 @@ Raw machine-generated candidate damage anomalies produced by computer vision mod
 | \`imageryAssetId\` | \`text\` | \`FK -> imagery_assets(id)\` | Imagery swath where anomaly was identified. |
 | \`hazardType\` | \`text\` | \`NOT NULL\` | Hazard: \`INUNDATION\`, \`STRUCTURAL_COLLAPSE\`, \`ROAD_WASHOUT\`. |
 | \`severity\` | \`text\` | \`NOT NULL\` | Model classification: \`DESTROYED\`, \`SEVERE\`, \`MODERATE\`, \`MINOR\`. |
-| \`confidenceScore\`| \`real\` | \`NOT NULL\` | Statistical confidence ($0.00\text{--}1.00$). |
+| \`confidenceScore\`| \`real\` | \`NOT NULL\` | Statistical confidence (0.00 to 1.00). |
 | \`geometry\` | \`jsonb\` | \`NOT NULL\` | GeoJSON \`Polygon\` or \`Point\` of the damage footprint. |
 | \`modelName\` | \`text\` | \`NOT NULL\` | Model: \`gemini-2.5-flash\` or \`draxelyra-cv-baseline-v2\`. |
 | \`modelOutput\` | \`jsonb\` | \`NOT NULL\` | Raw parsed JSON response from AI provider. |
@@ -159,8 +159,8 @@ The core actionable operational aggregate tracking human review, prioritization,
 | \`detectionId\` | \`text\` | \`FK -> detections(id)\` | Originating AI candidate detection. |
 | \`criticalAssetId\` | \`text\` | \`FK -> critical_assets(id)\` | Impacted critical infrastructure (if any). |
 | \`status\` | \`text\` | \`NOT NULL, DEFAULT 'DETECTED'\` | FSM Status: \`DETECTED\`, \`NEEDS_REVIEW\`, \`CONFIRMED\`, \`TASKED\`, \`CLOSED\`. |
-| \`priorityScore\`| \`integer\` | \`NOT NULL\` | Computed explainable priority ($0\text{--}100$). |
-| \`priorityBreakdown\` | \`jsonb\` | \`NOT NULL\` | JSON object containing 5 factor sub-scores ($S, C, E, U, K$). |
+| \`priorityScore\`| \`integer\` | \`NOT NULL\` | Computed explainable priority (0 to 100). |
+| \`priorityBreakdown\` | \`jsonb\` | \`NOT NULL\` | JSON object containing 5 factor sub-scores (S, C, E, U, K). |
 | \`urgencyHours\` | \`integer\` | \`NOT NULL, DEFAULT 0\` | Elapsed hours since hazard onset for time decay. |
 | \`assignedTo\` | \`text\` | \`FK -> users(id)\` | Assigned responder or lead analyst. |
 | \`version\` | \`integer\` | \`NOT NULL, DEFAULT 1\` | Monotonic OCC version counter. |
@@ -337,18 +337,19 @@ export async function transitionCase(
     // 1. Fetch current database record
     const [current] = await tx.select().from(cases).where(eq(cases.id, caseId));
     if (!current) {
-      throw { code: 'NOT_FOUND', message: \`Case \${caseId} not found\` };
+      throw { code: 'NOT_FOUND', message: \`Case \\\${caseId} not found\` };
     }
 
     // 2. Validate version match (OCC Guard)
     if (current.version !== expectedVersion) {
       throw {
         code: 'VERSION_CONFLICT',
-        message: \`Case \${caseId} has been modified by another operator.\`,
+        message: \`Case \\\${caseId} has been modified by another operator.\`,
         serverVersion: current.version,
         serverRecord: current,
       };
     }
+
 
     // 3. Validate state machine transition graph
     validateTransition(current.status, targetStatus);
@@ -679,10 +680,11 @@ export function requireRole(...permittedRoles: string[]) {
         return res.status(403).json({
           error: {
             code: 'FORBIDDEN',
-            message: \`Role '\${req.session.role}' is not authorized for this operation.\`
+            message: \`Role '\\\${req.session.role}' is not authorized for this operation.\`
           }
         });
       }
+
       next();
     });
   };
@@ -738,17 +740,17 @@ stateDiagram-v2
 
 | Current State | Allowed Next States | Required Actor Role | Guard Conditions & Actions |
 | :--- | :--- | :--- | :--- |
-| **\`DETECTED\`** | \`NEEDS_REVIEW\` | System / Ingestion | Generated upon ingestion of candidate anomaly; triggers OSM spatial intersection. |
-| **\`NEEDS_REVIEW\`** | \`CONFIRMED\`, \`REJECTED\`, \`UNCERTAIN\` | \`Duty Officer\`, \`Commander\` | Mandatory review notes ($\ge 10$ chars); records \`reviews\` entry. |
-| **\`CONFIRMED\`** | \`PRIORITIZED\`, \`TASKED\` | \`Duty Officer\`, \`Commander\` | Computes explainable priority score ($0\text{--}100$); attaches priority breakdown. |
-| **\`PRIORITIZED\`** | \`TASKED\` | \`Field Lead\`, \`Commander\` | Generates child \`tasks\` record with dynamic SLA deadline. |
-| **\`TASKED\`** | \`IN_PROGRESS\` | \`Field Lead\`, \`Responder\` | Response team mobilized to target coordinates. |
-| **\`IN_PROGRESS\`** | \`FIELD_VERIFIED\`, \`ACTIONED\` | \`Field Responder\` | Ground observation received with GPS coordinate and photo proof. |
-| **\`FIELD_VERIFIED\`**| \`ACTIONED\` | \`Field Lead\` | Mitigation action completed (e.g., pump installed, levee reinforced). |
-| **\`ACTIONED\`** | \`CLOSED\` | \`Incident Commander\` | Final outcome recorded in \`outcomes\` table. |
-| **\`REJECTED\`** | \`CLOSED\` | \`Duty Officer\`, \`Commander\` | False positive logged into \`ai_evaluation_dataset\` for model tuning. |
-| **\`UNCERTAIN\`** | \`CLOSED\` | \`Duty Officer\`, \`Commander\` | Archived pending higher-resolution reconnaissance. |
-| **\`CLOSED\`** | *(None - Terminal)* | None | Immutable terminal state. |
+| **`DETECTED`** | `NEEDS_REVIEW` | System / Ingestion | Generated upon ingestion of candidate anomaly; triggers OSM spatial intersection. |
+| **`NEEDS_REVIEW`** | `CONFIRMED`, `REJECTED`, `UNCERTAIN` | `Duty Officer`, `Commander` | Mandatory review notes (>= 10 chars); records `reviews` entry. |
+| **`CONFIRMED`** | `PRIORITIZED`, `TASKED` | `Duty Officer`, `Commander` | Computes explainable priority score (0 to 100); attaches priority breakdown. |
+| **`PRIORITIZED`** | `TASKED` | `Field Lead`, `Commander` | Generates child `tasks` record with dynamic SLA deadline. |
+| **`TASKED`** | `IN_PROGRESS` | `Field Lead`, `Responder` | Response team mobilized to target coordinates. |
+| **`IN_PROGRESS`** | `FIELD_VERIFIED`, `ACTIONED` | `Field Responder` | Ground observation received with GPS coordinate and photo proof. |
+| **`FIELD_VERIFIED`**| `ACTIONED` | `Field Lead` | Mitigation action completed (e.g., pump installed, levee reinforced). |
+| **`ACTIONED`** | `CLOSED` | `Incident Commander` | Final outcome recorded in `outcomes` table. |
+| **`REJECTED`** | `CLOSED` | `Duty Officer`, `Commander` | False positive logged into `ai_evaluation_dataset` for model tuning. |
+| **`UNCERTAIN`** | `CLOSED` | `Duty Officer`, `Commander` | Archived pending higher-resolution reconnaissance. |
+| **`CLOSED`** | *(None - Terminal)* | None | Immutable terminal state. |
 `);
 
   // 08-domain/02-task-lifecycle.md
@@ -793,10 +795,10 @@ When a task is created from a confirmed case, its Service Level Agreement (SLA) 
 
 | Priority Score Range | Response Tier | SLA Window | Target Operational Benchmark |
 | :--- | :--- | :--- | :--- |
-| **$P \ge 85$** | Tier 1 (Critical) | **4 Hours** | Immediate life-safety, hospital power loss, flood breach. |
-| **$65 \le P < 85$** | Tier 2 (High) | **8 Hours** | Bridge structural washouts, major transit arterial cut. |
-| **$40 \le P < 65$** | Tier 3 (Moderate) | **16 Hours** | Residential neighborhood inundation, shelter supply delivery. |
-| **$P < 40$** | Tier 4 (Routine) | **36 Hours** | Secondary debris clearance, agricultural drainage survey. |
+| **P >= 85** | Tier 1 (Critical) | **4 Hours** | Immediate life-safety, hospital power loss, flood breach. |
+| **65 <= P < 85** | Tier 2 (High) | **8 Hours** | Bridge structural washouts, major transit arterial cut. |
+| **40 <= P < 65** | Tier 3 (Moderate) | **16 Hours** | Residential neighborhood inundation, shelter supply delivery. |
+| **P < 40** | Tier 4 (Routine) | **36 Hours** | Secondary debris clearance, agricultural drainage survey. |
 
 \`\`\`typescript
 export function computeSlaDeadline(priorityScore: number): Date {
@@ -823,56 +825,60 @@ sidebar_position: 3
 
 <span className="badge-implemented">Implemented</span>
 
-DRAXELYRA rejects opaque black-box prioritization. The Priority Engine computes a fully deterministic, explainable score between $0$ and $100$ using a transparent mathematical formulation implemented in \`artifacts/api-server/src/lib/priority.ts\`.
+DRAXELYRA rejects opaque black-box prioritization. The Priority Engine computes a fully deterministic, explainable score between 0 and 100 using a transparent mathematical formulation implemented in \`artifacts/api-server/src/lib/priority.ts\`.
 
 ---
 
 ## The Mathematical Formula
 
-$$\text{Priority Score } (P) = \text{round}\Big(0.30 \cdot S + 0.25 \cdot C + 0.20 \cdot E + 0.15 \cdot U + 0.10 \cdot (K \times 100)\Big)$$
+\`\`\`text
+Priority Score (P) = round( 0.30 * S + 0.25 * C + 0.20 * E + 0.15 * U + 0.10 * (K * 100) )
+\`\`\`
 
 Where:
-- **$S$ = Structural Damage Severity Score** ($0\text{--}100$)
-- **$C$ = Critical Infrastructure Score** ($0\text{--}100$)
-- **$E$ = Exposed Population / Density Score** ($0\text{--}100$)
-- **$U$ = Urgency & Access Constraint Score** ($0\text{--}100$)
-- **$K$ = AI Model Confidence Metric** ($0.00\text{--}1.00$)
+- **S = Structural Damage Severity Score** (0 to 100)
+- **C = Critical Infrastructure Score** (0 to 100)
+- **E = Exposed Population / Density Score** (0 to 100)
+- **U = Urgency & Access Constraint Score** (0 to 100)
+- **K = AI Model Confidence Metric** (0.00 to 1.00)
 
 ---
 
 ## Exact Factor Weight Matrices
 
-### 1. Severity Weight ($S$) — $30\%$ Weight
+### 1. Severity Weight (S) — 30% Weight
 Derived from optical spectral classification or SAR backscatter loss:
-- \`DESTROYED\` $\to 100$
-- \`SEVERE\` $\to 75$
-- \`MODERATE\` $\to 45$
-- \`UNCERTAIN\` $\to 35$
-- \`MINOR\` $\to 20$
-- \`NO_DAMAGE\` $\to 0$
+- \`DESTROYED\` -> 100
+- \`SEVERE\` -> 75
+- \`MODERATE\` -> 45
+- \`UNCERTAIN\` -> 35
+- \`MINOR\` -> 20
+- \`NO_DAMAGE\` -> 0
 
-### 2. Criticality Weight ($C$) — $25\%$ Weight
+### 2. Criticality Weight (C) — 25% Weight
 Derived from impacted OpenStreetMap infrastructure:
-- \`HOSPITAL\`, \`EMERGENCY_SERVICES\`, \`TRAUMA_CENTER\` $\to 100$
-- \`BRIDGE\`, \`EVACUATION_ROUTE\`, \`AIRPORT\` $\to 85$
-- \`POWER_SUBSTATION\`, \`WATER_TREATMENT\`, \`CELL_TOWER\` $\to 75$
-- \`SCHOOL\`, \`COMMUNITY_SHELTER\` $\to 70$
-- \`RESIDENTIAL_HIGH_DENSITY\` $\to 40$
-- \`COMMERCIAL_INDUSTRIAL\` $\to 30$
-- \`DEFAULT_UNCLASSIFIED\` $\to 15$
+- \`HOSPITAL\`, \`EMERGENCY_SERVICES\`, \`TRAUMA_CENTER\` -> 100
+- \`BRIDGE\`, \`EVACUATION_ROUTE\`, \`AIRPORT\` -> 85
+- \`POWER_SUBSTATION\`, \`WATER_TREATMENT\`, \`CELL_TOWER\` -> 75
+- \`SCHOOL\`, \`COMMUNITY_SHELTER\` -> 70
+- \`RESIDENTIAL_HIGH_DENSITY\` -> 40
+- \`COMMERCIAL_INDUSTRIAL\` -> 30
+- \`DEFAULT_UNCLASSIFIED\` -> 15
 
-### 3. Exposure Weight ($E$) — $20\%$ Weight
+### 3. Exposure Weight (E) — 20% Weight
 Derived from LandScan / WorldPop gridded population density within the 500m hazard buffer:
-- \`HIGH\` ($> 500 \text{ persons/hectare}$) $\to 90$
-- \`MEDIUM\` ($100\text{--}500 \text{ persons/hectare}$) $\to 55$
-- \`LOW\` ($< 100 \text{ persons/hectare}$) $\to 20$
+- \`HIGH\` (> 500 persons/hectare) -> 90
+- \`MEDIUM\` (100 to 500 persons/hectare) -> 55
+- \`LOW\` (< 100 persons/hectare) -> 20
 
-### 4. Urgency Weight ($U$) — $15\%$ Weight
+### 4. Urgency Weight (U) — 15% Weight
 Implements a 72-hour exponential decay curve with access constraint penalties:
-$$U = \min\left(100, \max\left(0, 100 - \frac{\text{hoursElapsed}}{72} \times 100\right) + (\text{accessConstrained} \ ? \ 20 : 0)\right)$$
+\`\`\`text
+U = min(100, max(0, 100 - (hoursElapsed / 72) * 100) + (accessConstrained ? 20 : 0))
+\`\`\`
 
-### 5. Statistical Confidence ($K$) — $10\%$ Weight
-The direct confidence probability ($0.0\text{--}1.0$) generated by the multimodal AI model multiplied by 100.
+### 5. Statistical Confidence (K) — 10% Weight
+The direct confidence probability (0.0 to 1.0) generated by the multimodal AI model multiplied by 100.
 
 ---
 
@@ -880,18 +886,19 @@ The direct confidence probability ($0.0\text{--}1.0$) generated by the multimoda
 
 **Scenario**: A major hospital is flooded (Severe Damage) 4 hours after a cyclone. Population exposure is High. Access roads are blocked. Model confidence is 0.92.
 
-- $S = 75$ (Severe)
-- $C = 100$ (Hospital)
-- $E = 90$ (High Exposure)
-- $U = \min(100, \max(0, 100 - (4/72)\times 100) + 20) = \min(100, 94.4 + 20) = 100$
-- $K = 0.92 \to 92$
+- S = 75 (Severe)
+- C = 100 (Hospital)
+- E = 90 (High Exposure)
+- U = min(100, max(0, 100 - (4/72)*100) + 20) = min(100, 94.4 + 20) = 100
+- K = 0.92 -> 92
 
-$$\begin{aligned}
-P &= \text{round}\Big(0.30(75) + 0.25(100) + 0.20(90) + 0.15(100) + 0.10(92)\Big) \\
-&= \text{round}(22.5 + 25.0 + 18.0 + 15.0 + 9.2) \\
-&= \text{round}(89.7) = \mathbf{90} \quad (\text{Tier 1 Critical - 4h SLA})
-\end{aligned}$$
+\`\`\`text
+P = round( 0.30*(75) + 0.25*(100) + 0.20*(90) + 0.15*(100) + 0.10*(92) )
+  = round( 22.5 + 25.0 + 18.0 + 15.0 + 9.2 )
+  = round( 89.7 ) = 90  (Tier 1 Critical - 4h SLA)
+\`\`\`
 `);
+
 
   // 08-domain/04-evidence-audit.md
   writeFile(docsDir, '08-domain/04-evidence-audit.md', `---
@@ -951,8 +958,9 @@ Every state transition, triage adjudication, task modification, and evidence upl
 
 \`\`\`typescript
 await db.insert(auditEvents).values({
-  id: \`aud_\${crypto.randomUUID()}\`,
+  id: \`aud_\\\${crypto.randomUUID()}\`,
   actorId: req.session.userId,
+
   action: 'CASE_REVIEW_SUBMITTED',
   entityType: 'CASE',
   entityId: caseId,

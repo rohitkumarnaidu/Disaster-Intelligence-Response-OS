@@ -1,85 +1,72 @@
-# Frontend Architecture
+---
+id: architecture
+title: Frontend Application Architecture & Shell
+sidebar_label: Application Architecture
+sidebar_position: 1
+---
+
+# Frontend Application Architecture & Shell
 
 <span className="badge-implemented">Implemented</span>
 
-The DRAXELYRA frontend is a React 18 Single Page Application designed for high-stress disaster response environments. The architecture prioritizes performance, offline capability, and rapid data access.
+The DRAXELYRA frontend application is located in `artifacts/draxelyra/`. It is a modern React 19 Single Page Application configured with Vite 7, Tailwind CSS v4, Wouter routing, and TanStack Query caching.
 
-## Entry Point
+---
 
-**Source:** `artifacts/draxelyra/src/main.tsx`
+## Application Entry Point
 
-The application bootstrap sequence:
-1. Creates the React 18 root via `createRoot(document.getElementById('root')!, { onCaughtError: ... })`
-2. Mounts the root component tree: `<ErrorBoundary><App /></ErrorBoundary>`
-3. Registers the Service Worker: Checks `'serviceWorker' in navigator`, and on window load registers `/sw.js` to enable PWA features.
-4. Imports `./index.css` which loads Tailwind and global CSS variables.
-
-## Provider Hierarchy
-
-The `App.tsx` file establishes the global context providers, wrapping the application in the following order:
+**Source File**: [`artifacts/draxelyra/src/main.tsx`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/draxelyra/src/main.tsx)
 
 ```tsx
-<QueryClientProvider client={queryClient}>
-  <TooltipProvider>
-    <AuthProvider>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-        <Shell>
-          <Router /> {/* Wouter Switch wrapped in RoutedErrorBoundary */}
-        </Shell>
-        <Toaster />
-      </WouterRouter>
-    </AuthProvider>
-  </TooltipProvider>
-</QueryClientProvider>
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import { ErrorBoundary } from '@/components/error-boundary';
+import './index.css';
+
+createRoot(document.getElementById('root')!, {
+  onCaughtError: (error, errorInfo) => {
+    console.error('Uncaught React UI error:', error, errorInfo);
+  },
+}).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
 ```
 
-1. **`QueryClientProvider`**: Configures TanStack Query for server state caching.
-2. **`TooltipProvider`**: Radix UI provider for accessible tooltips globally.
-3. **`AuthProvider`**: Custom context for session management.
-4. **`WouterRouter`**: Minimalist routing context.
-5. **`<Shell>`**: The main layout component providing the sidebar, topbar, and acting as an auth guard.
-6. **`<Toaster />`**: Global notification system.
+---
 
-## Authentication Flow
+## Global Provider Hierarchy
 
-**Source:** `src/lib/auth.tsx`
+**Source File**: [`artifacts/draxelyra/src/App.tsx:2100`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/draxelyra/src/App.tsx#L2100-L2134)
 
-Authentication is strictly enforced before accessing the application shell.
+```tsx
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+              <Shell>
+                <Router />
+              </Shell>
+              <Toaster />
+            </WouterRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
+```
 
-- **Initialization**: On mount, `AuthProvider` calls `customFetch<User>('/api/auth/me')`. 
-  - If successful, sets the user in state.
-  - If error (e.g., 401), sets user to null.
-  - Sets `loading = false` to unblock the UI.
-- **Login (`login(data)`)**: POSTs to `/api/auth/login`. On success, updates context and navigates to `/`.
-- **Logout (`logout()`)**: POSTs to `/api/auth/logout`. Clears context and navigates to `/login`.
-- **Guard**: The `<Shell>` component checks the auth state:
-  - If `loading`, renders a full-screen spinner.
-  - If `!user`, redirects immediately to `/login`.
+---
 
-## Route Definitions
+## Shell Component Features (`Shell` in `App.tsx`)
 
-All 15 routes are defined within the Wouter `<Switch>` inside `App.tsx`.
-
-| Route | Component | Auth Required | Purpose | TanStack Query Hook | Mutations |
-|-------|-----------|---------------|---------|---------------------|-----------|
-| `/` | `CommandCenter` | Yes | Dashboard: 6 KPI metrics, minimap, top 4 cases, owned tasks, activity feed | `useGetCommandSummary` (refetch: 60s) | None |
-| `/login` | `Login` | No | Email/password form, pre-filled demo credentials | None | `login()` (Auth) |
-| `/incidents` | `Incidents` | Yes | Registry of crisis incidents | `useListIncidents` | None |
-| `/incidents/:id`| `IncidentDetail` | Yes | Single incident: metadata, timeline, AOI minimap | `useGetIncident(id)` | None |
-| `/assessment` | `Assessment` | Yes | Map-first triage workspace with layer toggles | `useListCases` | None |
-| `/cases` | `Cases` | Yes | Priority queue table sorted by score/confidence | `useListCases` | None |
-| `/cases/:id` | `CaseDetail` | Yes | Deep case view: before/after imagery, priority ledger, response card | `useGetCase(id)` | None |
-| `/review/:id` | `Review` | Yes | Human-in-the-loop adjudication: confirm/reject/uncertain | `useGetCase(id)` | `useReviewCase()` |
-| `/tasks` | `Tasks` | Yes | Kanban board: queued/in_progress/completed columns | `useListTasks` | `useUpdateTask()` |
-| `/tasks/:id` | `TaskDetail` | Yes | Task inspection: assignment, SLA, verification checklist | None (fallback) | `useUpdateTask()` |
-| `/field` | `Field` | Yes | Mobile field verification with offline sync UI | None (static) | None (local state)|
-| `/analytics` | `Analytics` | Yes | KPIs, funnel chart, confidence vs priority scatter, SLA by team | None (static) | None |
-| `/demo` | `Demo` | Yes | Scenario replay engine with 5-step progress | None | `useLoadDemo()`, `useResetDemo()` |
-| `/settings` | `Settings` | Yes | Demo user directory, integration adapter toggles | None | None |
-| `*` | `NotFound` | No | 404 page | None | None |
-
-## TanStack Query Patterns
-
-- **Query Keys**: Standardized as `['entity', id?]`. Example: `['incident-map', incidentId]`.
-- **Refetching**: Highly dynamic data (like the `CommandCenter` summary) utilizes `refetchInterval` (60000ms).
-- **Invalidation**: Mutations immediately invalidate related query keys. For instance, `useReviewCase()` invalidates `['incident-map']` to trigger a map refresh, showing the new case status color.\n
+1. **Authentication Guard**: Interrogates `useAuth()`. If `loading`, renders a full-screen loading skeleton. If `!user`, redirects to `/login`.
+2. **Real-time Event Listener**: Activates `useLiveEvents()` on mount, establishing WebSocket (`/ws`) connectivity and cache invalidations.
+3. **Active Operation Banner**: Displays the active incident ID, severity pulse dot, and start timestamp.
+4. **Real Data Mode Indicator**: Highlights live data ingestion status.
+5. **Weather Alert Banner**: Fetches active weather warnings from `GET /api/weather/alerts` and displays a dismissible warning bar.
