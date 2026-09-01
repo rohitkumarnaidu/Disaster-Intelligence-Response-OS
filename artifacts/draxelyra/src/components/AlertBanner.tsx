@@ -58,17 +58,17 @@ export function AlertBanner({ alerts, onDismiss }: AlertBannerProps) {
       role="region"
       aria-label="Critical Emergency Alerts"
     >
-      <div className={`mx-auto max-w-[1600px] flex items-center justify-between gap-3 px-3 py-2 rounded border shadow-sm ${styles.bg}`}>
+      <div className={`mx-auto max-w-[1600px] flex items-center justify-between gap-3 px-3 py-2 rounded border shadow-md ${styles.bg}`}>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="flex-shrink-0">{styles.icon}</div>
           <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-            <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${styles.badge}`}>
+            <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider shadow-sm ${styles.badge}`}>
               {currentAlert.severity || 'ALERT'}
             </span>
-            <span className="text-xs font-medium text-foreground truncate max-w-xl">
+            <span className="text-xs font-medium text-white truncate max-w-2xl drop-shadow-sm">
               {currentAlert.headline}
             </span>
-            <span className="text-[10px] font-mono-ui text-muted-foreground border-l border-border pl-2 hidden sm:inline">
+            <span className="text-[10px] font-mono-ui text-slate-300/90 border-l border-white/20 pl-2 hidden sm:inline">
               Source: {currentAlert.source || 'GDACS / NWS'}
             </span>
           </div>
@@ -76,20 +76,20 @@ export function AlertBanner({ alerts, onDismiss }: AlertBannerProps) {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           {alerts.length > 1 && (
-            <div className="flex items-center gap-1 bg-background/40 border border-border/50 rounded px-1.5 py-0.5 text-[11px] font-mono-ui text-muted-foreground">
+            <div className="flex items-center gap-1 bg-black/40 border border-white/20 rounded px-2 py-0.5 text-[11px] font-mono-ui text-slate-200">
               <button
                 type="button"
                 onClick={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : alerts.length - 1))}
-                className="hover:text-foreground p-0.5"
+                className="hover:text-white p-0.5 transition-colors"
                 title="Previous alert"
               >
                 <ChevronLeft size={13} />
               </button>
-              <span>{currentIndex + 1} of {alerts.length}</span>
+              <span className="font-semibold">{currentIndex + 1} of {alerts.length}</span>
               <button
                 type="button"
                 onClick={() => setCurrentIndex((prev) => (prev < alerts.length - 1 ? prev + 1 : 0))}
-                className="hover:text-foreground p-0.5"
+                className="hover:text-white p-0.5 transition-colors"
                 title="Next alert"
               >
                 <ChevronRight size={13} />
@@ -100,7 +100,7 @@ export function AlertBanner({ alerts, onDismiss }: AlertBannerProps) {
           <button 
             type="button"
             onClick={() => onDismiss(currentAlert.id)}
-            className="p-1 rounded hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors outline-none"
+            className="p-1 rounded hover:bg-white/20 text-slate-300 hover:text-white transition-colors outline-none"
             aria-label="Dismiss alert"
             title="Dismiss this alert"
           >
