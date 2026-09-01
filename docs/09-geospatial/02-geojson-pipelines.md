@@ -41,8 +41,10 @@ export function computeBoundingBox(polygon: GeoJSON.Polygon): [number, number, n
 ---
 
 ## Spatial Query Performance
-- Bounding box calculations run in $mathcal{O}(N)$ where $N$ is the vertex count of the AOI perimeter.
+- Bounding box calculations run in O(N) time complexity where N is the vertex count of the AOI perimeter.
 - PostgreSQL GIN indexes on `jsonb` columns support containment searches:
+
+
   ```sql
   SELECT * FROM cases WHERE aoi @> '{"coordinates": [92.79, 24.83]}';
   ```

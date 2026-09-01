@@ -29,12 +29,12 @@ DRAXELYRA enforces session-based authentication backed by PostgreSQL and a granu
 
 | Role Identifier | Operational Title | Primary Mission & Responsibilities |
 | :--- | :--- | :--- |
-| **`System Administrator`** | System Administrator | Infrastructure management, external API credentials, user directory, system configuration. |
-| **`Incident Commander`** | Incident Commander | Strategic authority. Declares incident states, authorizes high-risk tasks, approves final after-action outcomes. |
-| **`Duty Officer`** | EOC Duty Officer | Operational watchstander. Triages AI candidate detections, reviews evidence, confirms cases, sets task priorities. |
-| **`GIS Analyst`** | Geospatial Intelligence Analyst | Manages satellite imagery swaths, AOI polygons, Overpass OSM sync, runs change-detection workflows. |
-| **`Field Lead`** | Tactical Field Coordinator | Assigns response tasks to field teams, monitors SLA adherence, validates incoming field observations. |
-| **`Field Responder`** | Ground Operations Responder | Operates mobile PWA in disaster zone. Executes on-site damage verification, captures geotagged photos. |
+| **System Administrator** | System Administrator | Infrastructure management, external API credentials, user directory, system configuration. |
+| **Incident Commander** | Incident Commander | Strategic authority. Declares incident states, authorizes high-risk tasks, approves final after-action outcomes. |
+| **Duty Officer** | EOC Duty Officer | Operational watchstander. Triages AI candidate detections, reviews evidence, confirms cases, sets task priorities. |
+| **GIS Analyst** | Geospatial Intelligence Analyst | Manages satellite imagery swaths, AOI polygons, Overpass OSM sync, runs change-detection workflows. |
+| **Field Lead** | Tactical Field Coordinator | Assigns response tasks to field teams, monitors SLA adherence, validates incoming field observations. |
+| **Field Responder** | Ground Operations Responder | Operates mobile PWA in disaster zone. Executes on-site damage verification, captures geotagged photos. |
 
 ---
 
@@ -59,7 +59,7 @@ DRAXELYRA enforces session-based authentication backed by PostgreSQL and a granu
 
 ## Middleware Guards
 
-**Source File**: [`artifacts/api-server/src/middlewares/auth.ts`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/middlewares/auth.ts)
+**Source File**: `artifacts/api-server/src/middlewares/auth.ts`
 
 ```typescript
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -78,7 +78,7 @@ export function requireRole(...permittedRoles: string[]) {
         return res.status(403).json({
           error: {
             code: 'FORBIDDEN',
-            message: `Role '${req.session.role}' is not authorized for this operation.`
+            message: 'Role ' + req.session.role + ' is not authorized for this operation.'
           }
         });
       }

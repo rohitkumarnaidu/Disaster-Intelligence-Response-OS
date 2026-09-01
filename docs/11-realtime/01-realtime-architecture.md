@@ -44,7 +44,8 @@ flowchart TD
 
 | Capability | WebSocket (`/ws`) | Server-Sent Events (`/api/events`) | BroadcastChannel API |
 | :--- | :--- | :--- | :--- |
-| **Direction** | Bidirectional (Duplex) | Unidirectional (Server $	o$ Client) | Client-side Cross-Tab Sync |
+| **Direction** | Bidirectional (Duplex) | Unidirectional (Server -> Client) | Client-side Cross-Tab Sync |
+
 | **Authentication** | Session cookie on WS handshake | Session cookie on HTTP stream | Same-origin browser memory |
 | **Heartbeat** | 25-second Ping/Pong | 15-second SSE comment `:keepalive` | None (Local process) |
 | **Primary Use** | Real-time case updates & alerts | Firewall-restricted fallback | Prevents redundant WS connections |

@@ -75,7 +75,7 @@ const config: Config = {
           position: 'left',
         },
         {
-          to: '/docs/roadmap/roadmap',
+          to: '/docs/roadmap/production-roadmap',
           label: 'Roadmap',
           position: 'right',
         },
@@ -104,19 +104,22 @@ const config: Config = {
             { label: 'Getting Started', to: '/docs/getting-started/local-development' },
             { label: 'API Reference', to: '/docs/api/overview' },
             { label: 'State Machines & OCC', to: '/docs/domain/case-lifecycle' },
-            { label: 'Testing Suite', to: '/docs/testing/testing' },
+            { label: 'Testing Suite', to: '/docs/testing/testing-strategy' },
           ],
         },
+
+
         {
           title: 'Operations & Security',
           items: [
-            { label: 'Security Model & RBAC', to: '/docs/authentication/authentication-rbac' },
-            { label: 'Offline PWA Sync', to: '/docs/geospatial/offline-sync' },
-            { label: 'Deployment Guide', to: '/docs/deployment/deployment' },
-            { label: 'Contributing', to: '/docs/contributing/contributing' },
+            { label: 'Security Model & RBAC', to: '/docs/authentication/auth-rbac' },
+            { label: 'Offline PWA Sync', to: '/docs/offline/offline-architecture' },
+            { label: 'Deployment Guide', to: '/docs/deployment/deployment-guide' },
+            { label: 'Contributing Setup', to: '/docs/contributing/development-setup' },
           ],
         },
       ],
+
       copyright: `Copyright © ${new Date().getFullYear()} DRAXELYRA Emergency Response Operations System. All rights reserved.`,
     },
     prism: {

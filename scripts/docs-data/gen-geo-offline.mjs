@@ -45,14 +45,15 @@ flowchart TD
     end
 
     subgraph MapEngine["IncidentMap.tsx (MapLibre GL Canvas)"]
-        STYLE[Carto Dark Matter / Esri World Imagery]
-        L1[Layer: aoi-polygon-fill]
-        L2[Layer: aoi-polygon-outline]
-        L3[Layer: detections-heatmap]
-        L4[Layer: critical-assets-symbols]
-        L5[Layer: case-status-markers]
-        L6[Layer: field-observations-pulse]
+        STYLE["Carto Dark Matter / Esri World Imagery"]
+        L1["Layer: aoi-polygon-fill"]
+        L2["Layer: aoi-polygon-outline"]
+        L3["Layer: detections-heatmap"]
+        L4["Layer: critical-assets-symbols"]
+        L5["Layer: case-status-markers"]
+        L6["Layer: field-observations-pulse"]
     end
+
 
     AOI --> L1 & L2
     DET --> L3 & L5
@@ -120,8 +121,10 @@ export function computeBoundingBox(polygon: GeoJSON.Polygon): [number, number, n
 ---
 
 ## Spatial Query Performance
-- Bounding box calculations run in $\mathcal{O}(N)$ where $N$ is the vertex count of the AOI perimeter.
+- Bounding box calculations run in O(N) time complexity where N is the vertex count of the AOI perimeter.
 - PostgreSQL GIN indexes on \`jsonb\` columns support containment searches:
+
+
   \`\`\`sql
   SELECT * FROM cases WHERE aoi @> '{"coordinates": [92.79, 24.83]}';
   \`\`\`
@@ -165,7 +168,8 @@ out skel qt;
 
 ## Ingested Infrastructure Classifications
 
-| OSM Tag Pattern | Internal Asset Type | Criticality Weight ($C$) | Tactical Priority |
+| OSM Tag Pattern | Internal Asset Type | Criticality Weight (C) | Tactical Priority |
+
 | :--- | :--- | :--- | :--- |
 | \`amenity=hospital\`, \`amenity=clinic\` | \`HOSPITAL\` | **100** | Life-safety, mass casualty receiving, surgical power. |
 | \`highway=bridge\` | \`BRIDGE\` | **85** | Evacuation bottlenecks, logistics supply corridor. |
@@ -195,28 +199,29 @@ DRAXELYRA treats catastrophic network outages as a standard operational environm
 \`\`\`mermaid
 flowchart TD
     subgraph Client["Field Device Browser / PWA"]
-        UI[Field Observation Form]
+        UI["Field Observation Form"]
         IDB[("IndexedDB (draxelyra-offline / syncQueue)")]
-        SW[Service Worker (/sw.js)]
-        STATUS[Network Monitor navigator.onLine]
+        SW["Service Worker (/sw.js)"]
+        STATUS["Network Monitor navigator.onLine"]
     end
 
     subgraph Transport["Network Layer"]
-        CONN{Connection Status?}
+        CONN{"Connection Status?"}
     end
 
     subgraph Backend["API Server Gateway"]
-        API[POST /api/field/observations]
-        OCC[OCC Concurrency Checker]
-        DB[(PostgreSQL)]
+        API["POST /api/field/observations"]
+        OCC["OCC Concurrency Checker"]
+        DB[("PostgreSQL")]
     end
 
     UI --> IDB
     STATUS --> CONN
     CONN -->|Offline| IDB
-    CONN -->|Online Reconnection| FLUSH[syncAllPending Replay Worker]
+    CONN -->|Online Reconnection| FLUSH["syncAllPending Replay Worker"]
     FLUSH --> IDB
     FLUSH --> API --> OCC --> DB
+
 \`\`\`
 
 ---
@@ -386,7 +391,8 @@ flowchart TD
 
 | Capability | WebSocket (\`/ws\`) | Server-Sent Events (\`/api/events\`) | BroadcastChannel API |
 | :--- | :--- | :--- | :--- |
-| **Direction** | Bidirectional (Duplex) | Unidirectional (Server $\to$ Client) | Client-side Cross-Tab Sync |
+| **Direction** | Bidirectional (Duplex) | Unidirectional (Server -> Client) | Client-side Cross-Tab Sync |
+
 | **Authentication** | Session cookie on WS handshake | Session cookie on HTTP stream | Same-origin browser memory |
 | **Heartbeat** | 25-second Ping/Pong | 15-second SSE comment \`:keepalive\` | None (Local process) |
 | **Primary Use** | Real-time case updates & alerts | Firewall-restricted fallback | Prevents redundant WS connections |
@@ -555,7 +561,7 @@ flowchart LR
 | Provider | Telemetry Type | Endpoint / Protocol | Cron Frequency | Deduplication Key |
 | :--- | :--- | :--- | :--- | :--- |
 | **SACHET NDMA** | Common Alerting Protocol (CAP) | RSS/XML Feed | Every 10 min | \`sachet_<identifier>\` |
-| **USGS** | Seismic Events (M $\ge$ 4.0) | GeoJSON HTTP Feed | Every 5 min | \`usgs_<id>\` |
+| **USGS** | Seismic Events (M &ge; 4.0) | GeoJSON HTTP Feed | Every 5 min | \`usgs_<id>\` |
 | **GDACS** | Floods, Cyclones, Volcanoes | RSS & GeoJSON Feed | Every 15 min | \`gdacs_<eventid>\` |
 | **NASA FIRMS** | VIIRS Active Thermal Hotspots | CSV Data Stream | Every 15 min | \`firms_<latitude>_<longitude>_<acq_time>\` |
 | **Open-Meteo** | Hourly Precipitation & Wind | RESTful JSON API | Every 10 min | Spatial Centroid + Hour |
@@ -592,7 +598,8 @@ sidebar_position: 3
 
 - **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:145\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L145-L210)
 - **Endpoint**: \`https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson\`
-- **Filter**: Magnitude $M \ge 4.0$. Calculates estimated Modified Mercalli Intensity (MMI) shake radius and intersects with populated municipal centers.
+- **Filter**: Magnitude M >= 4.0. Calculates estimated Modified Mercalli Intensity (MMI) shake radius and intersects with populated municipal centers.
+
 `);
 
   // 12-data-integrations/04-gdacs.md
@@ -707,8 +714,8 @@ sidebar_position: 10
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:485\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L485-L540)
-- **Telemetry**: Ground station particulate matter ($PM_{2.5}$, $PM_{10}$) and carbon monoxide ($CO$) sensor readings for wildfire smoke plumes and hazardous industrial leaks.
+- **Source File**: \`artifacts/api-server/src/services/ingestion-engine.ts:485\`
+- **Telemetry**: Ground station particulate matter (PM2.5, PM10) and carbon monoxide (CO) sensor readings for wildfire smoke plumes and hazardous industrial leaks.
 `);
 
   // ===========================================================================
@@ -774,9 +781,10 @@ sidebar_position: 2
 
 <span className="badge-implemented">Implemented</span>
 
-**Source File**: [\`artifacts/api-server/src/ai/GeminiMultimodalProvider.ts\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/ai/GeminiMultimodalProvider.ts)
+**Source File**: \`artifacts/api-server/src/ai/GeminiMultimodalProvider.ts\`
 
-The production multimodal AI provider uses Google's official TypeScript SDK (\`@google/genai\`) to invoke **Gemini 2.5 Flash** with low temperature ($0.1$) and enforced JSON output schema.
+The production multimodal AI provider uses Google's official TypeScript SDK (\`@google/genai\`) to invoke **Gemini 2.5 Flash** with low temperature (0.1) and enforced JSON output schema.
+
 
 \`\`\`typescript
 import { GoogleGenAI } from '@google/genai';

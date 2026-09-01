@@ -38,7 +38,7 @@ flowchart LR
 | Provider | Telemetry Type | Endpoint / Protocol | Cron Frequency | Deduplication Key |
 | :--- | :--- | :--- | :--- | :--- |
 | **SACHET NDMA** | Common Alerting Protocol (CAP) | RSS/XML Feed | Every 10 min | `sachet_<identifier>` |
-| **USGS** | Seismic Events (M $ge$ 4.0) | GeoJSON HTTP Feed | Every 5 min | `usgs_<id>` |
+| **USGS** | Seismic Events (M &ge; 4.0) | GeoJSON HTTP Feed | Every 5 min | `usgs_<id>` |
 | **GDACS** | Floods, Cyclones, Volcanoes | RSS & GeoJSON Feed | Every 15 min | `gdacs_<eventid>` |
 | **NASA FIRMS** | VIIRS Active Thermal Hotspots | CSV Data Stream | Every 15 min | `firms_<latitude>_<longitude>_<acq_time>` |
 | **Open-Meteo** | Hourly Precipitation & Wind | RESTful JSON API | Every 10 min | Spatial Centroid + Hour |

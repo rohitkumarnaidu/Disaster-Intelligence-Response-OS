@@ -60,4 +60,4 @@ flowchart TD
 | **Prerequisites** | Valid `GEMINI_API_KEY` | None (Runs offline with zero configuration) |
 | **Output Format** | Validated JSON conforming to Zod Schema | Validated JSON conforming to Zod Schema |
 | **Token Tracking** | Captures Prompt, Completion, and Total Tokens | Emits zero-token telemetry |
-| **Latency** | $800	ext{--}2500	ext{ ms}$ (Network dependent) | $20	ext{--}50	ext{ ms}$ (Local execution) |
+| **Latency** | 800–2500 ms (Network dependent) | 20–50 ms (Local execution) |

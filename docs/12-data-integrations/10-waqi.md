@@ -9,5 +9,5 @@ sidebar_position: 10
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [`artifacts/api-server/src/services/ingestion-engine.ts:485`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L485-L540)
-- **Telemetry**: Ground station particulate matter ($PM_{2.5}$, $PM_{10}$) and carbon monoxide ($CO$) sensor readings for wildfire smoke plumes and hazardous industrial leaks.
+- **Source File**: `artifacts/api-server/src/services/ingestion-engine.ts:485`
+- **Telemetry**: Ground station particulate matter (PM2.5, PM10) and carbon monoxide (CO) sensor readings for wildfire smoke plumes and hazardous industrial leaks.

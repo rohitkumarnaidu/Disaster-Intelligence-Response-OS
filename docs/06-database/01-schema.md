@@ -75,7 +75,7 @@ Metadata registry for ingested satellite swaths, drone orthomosaics, and aerial 
 | `sensorType` | `text` | `NOT NULL` | Modality: `OPTICAL`, `SAR_C_BAND`, `INFRARED`, `RGB_DRONE`. |
 | `acquisitionTime` | `timestamp` | `NOT NULL` | Exact UTC sensor capture time. |
 | `spatialResolution` | `real` | `NOT NULL` | Ground sample distance (meters per pixel, e.g., `10.0`). |
-| `cloudCover` | `real` | `NULLABLE` | Percentage cloud obscuration ($0.0	ext{--}100.0$). |
+| `cloudCover` | `real` | `NULLABLE` | Percentage cloud obscuration (0.0 to 100.0%). |
 | `bounds` | `jsonb` | `NOT NULL` | GeoJSON bounding polygon for the raster swath. |
 | `thumbnailUrl` | `text` | `NULLABLE` | Fast web-optimized RGB preview crop URL. |
 | `rawStoragePath` | `text` | `NOT NULL` | Filesystem path or object store URI of original COG / SAFE archive. |
@@ -103,7 +103,7 @@ Maintains geographic locations, facility types, and baseline capacities of life-
 | `name` | `text` | `NOT NULL` | Facility name (e.g., `Silchar Medical College & Hospital`). |
 | `type` | `text` | `NOT NULL` | Category: `HOSPITAL`, `BRIDGE`, `POWER_SUBSTATION`, `WATER_TREATMENT`. |
 | `location` | `jsonb` | `NOT NULL` | GeoJSON `Point` coordinate `[longitude, latitude]`. |
-| `criticalityScore` | `integer` | `NOT NULL` | Base criticality weight ($0	ext{--}100$, Hospital=100, Bridge=85). |
+| `criticalityScore` | `integer` | `NOT NULL` | Base criticality weight (0 to 100, Hospital=100, Bridge=85). |
 | `capacity` | `integer` | `NULLABLE` | Bed count, power megawatt rating, or throughput. |
 | `metadata` | `jsonb` | `DEFAULT '{}'` | Ingested OSM tags (e.g., `phone`, `operator`, `backup_generator`). |
 
@@ -121,7 +121,7 @@ Raw machine-generated candidate damage anomalies produced by computer vision mod
 | `imageryAssetId` | `text` | `FK -> imagery_assets(id)` | Imagery swath where anomaly was identified. |
 | `hazardType` | `text` | `NOT NULL` | Hazard: `INUNDATION`, `STRUCTURAL_COLLAPSE`, `ROAD_WASHOUT`. |
 | `severity` | `text` | `NOT NULL` | Model classification: `DESTROYED`, `SEVERE`, `MODERATE`, `MINOR`. |
-| `confidenceScore`| `real` | `NOT NULL` | Statistical confidence ($0.00	ext{--}1.00$). |
+| `confidenceScore`| `real` | `NOT NULL` | Statistical confidence (0.00 to 1.00). |
 | `geometry` | `jsonb` | `NOT NULL` | GeoJSON `Polygon` or `Point` of the damage footprint. |
 | `modelName` | `text` | `NOT NULL` | Model: `gemini-2.5-flash` or `draxelyra-cv-baseline-v2`. |
 | `modelOutput` | `jsonb` | `NOT NULL` | Raw parsed JSON response from AI provider. |
@@ -136,8 +136,8 @@ The core actionable operational aggregate tracking human review, prioritization,
 | `detectionId` | `text` | `FK -> detections(id)` | Originating AI candidate detection. |
 | `criticalAssetId` | `text` | `FK -> critical_assets(id)` | Impacted critical infrastructure (if any). |
 | `status` | `text` | `NOT NULL, DEFAULT 'DETECTED'` | FSM Status: `DETECTED`, `NEEDS_REVIEW`, `CONFIRMED`, `TASKED`, `CLOSED`. |
-| `priorityScore`| `integer` | `NOT NULL` | Computed explainable priority ($0	ext{--}100$). |
-| `priorityBreakdown` | `jsonb` | `NOT NULL` | JSON object containing 5 factor sub-scores ($S, C, E, U, K$). |
+| `priorityScore`| `integer` | `NOT NULL` | Computed explainable priority (0 to 100). |
+| `priorityBreakdown` | `jsonb` | `NOT NULL` | JSON object containing 5 factor sub-scores (S, C, E, U, K). |
 | `urgencyHours` | `integer` | `NOT NULL, DEFAULT 0` | Elapsed hours since hazard onset for time decay. |
 | `assignedTo` | `text` | `FK -> users(id)` | Assigned responder or lead analyst. |
 | `version` | `integer` | `NOT NULL, DEFAULT 1` | Monotonic OCC version counter. |

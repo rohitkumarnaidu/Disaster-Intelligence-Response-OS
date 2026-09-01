@@ -39,10 +39,11 @@ When a task is created from a confirmed case, its Service Level Agreement (SLA) 
 
 | Priority Score Range | Response Tier | SLA Window | Target Operational Benchmark |
 | :--- | :--- | :--- | :--- |
-| **$P ge 85$** | Tier 1 (Critical) | **4 Hours** | Immediate life-safety, hospital power loss, flood breach. |
-| **$65 le P < 85$** | Tier 2 (High) | **8 Hours** | Bridge structural washouts, major transit arterial cut. |
-| **$40 le P < 65$** | Tier 3 (Moderate) | **16 Hours** | Residential neighborhood inundation, shelter supply delivery. |
-| **$P < 40$** | Tier 4 (Routine) | **36 Hours** | Secondary debris clearance, agricultural drainage survey. |
+| **P &ge; 85 (Critical)** | Tier 1 (Critical) | **4 Hours** | Immediate life-safety, hospital power loss, flood breach. |
+| **65 to 84 (High)** | Tier 2 (High) | **8 Hours** | Bridge structural washouts, major transit arterial cut. |
+| **40 to 64 (Moderate)** | Tier 3 (Moderate) | **16 Hours** | Residential neighborhood inundation, shelter supply delivery. |
+| **0 to 39 (Routine)** | Tier 4 (Routine) | **36 Hours** | Secondary debris clearance, agricultural drainage survey. |
+
 
 ```typescript
 export function computeSlaDeadline(priorityScore: number): Date {

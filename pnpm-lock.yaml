@@ -182,9 +182,21 @@ importers:
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1
+      '@rollup/rollup-linux-x64-gnu':
+        specifier: ^4.62.5
+        version: 4.63.1
+      '@rollup/rollup-linux-x64-musl':
+        specifier: ^4.62.5
+        version: 4.63.1
       '@rollup/rollup-win32-x64-msvc':
         specifier: ^4.62.5
         version: 4.62.5
+      '@tailwindcss/oxide-linux-x64-gnu':
+        specifier: ^4.3.3
+        version: 4.3.3
+      '@tailwindcss/oxide-linux-x64-musl':
+        specifier: ^4.3.3
+        version: 4.3.3
       '@tailwindcss/oxide-win32-x64-msvc':
         specifier: ^4.3.3
         version: 4.3.3
@@ -194,6 +206,12 @@ importers:
       eslint:
         specifier: ^10.9.0
         version: 10.9.0(jiti@2.7.0)(supports-color@8.1.1)
+      lightningcss-linux-x64-gnu:
+        specifier: ^1.33.0
+        version: 1.33.0
+      lightningcss-linux-x64-musl:
+        specifier: ^1.33.0
+        version: 1.33.0
       lightningcss-win32-x64-msvc:
         specifier: ^1.33.0
         version: 1.33.0
@@ -3102,6 +3120,16 @@ packages:
     os: [linux]
     libc: [glibc]
 
+  '@rollup/rollup-linux-x64-gnu@4.63.1':
+    resolution: {integrity: sha512-gfI5T24WLLuFfSKw7Go/zDXjAAV0fny0swTaDv+WjK7vqcw4cRhFfdsyKL1n+ukI+ooBxn3bVQnyrn06WpI50w==}
+    cpu: [x64]
+    os: [linux]
+
+  '@rollup/rollup-linux-x64-musl@4.63.1':
+    resolution: {integrity: sha512-4h6XqthmB4Hspji84wvgk+ElodTsGj+dbZqHJHHtKxj4mYq0ANSEEPX9ys3moJueqsRjwpaJYH7874Itwnj2ow==}
+    cpu: [x64]
+    os: [linux]
+
   '@rollup/rollup-win32-x64-msvc@4.62.5':
     resolution: {integrity: sha512-/gDJaRs4gl0NPIwqCz+6PkpmhhjRAD2j6P4rSNHBzUkO3naEx2mIU0pRle1vUNRQ7mE/+8OOeXLTv/J56FKiQg==}
     cpu: [x64]
@@ -3279,7 +3307,12 @@ packages:
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
+
+  '@tailwindcss/oxide-linux-x64-musl@4.3.3':
+    resolution: {integrity: sha512-SJxX60smvHgasZoBy11dX6YRjXJFovwWBoedhbQPOBzgFWBHGB+TVPWB9BxzR7TTxU8FQZAI2AyiNCMzFm8Img==}
+    engines: {node: '>= 20'}
+    cpu: [x64]
+    os: [linux]
 
   '@tailwindcss/oxide-wasm32-wasi@4.3.3':
     resolution: {integrity: sha512-jx1+rPhY/5Ympkktd656HBWEBLxP7dH06losBLjjf5vgCODXvi9KhtftWcMIwTFIDqBr7cRnQkdLnAG+IOlGvQ==}
@@ -5954,6 +5987,18 @@ packages:
     cpu: [x64]
     os: [linux]
     libc: [glibc]
+
+  lightningcss-linux-x64-gnu@1.33.0:
+    resolution: {integrity: sha512-ar+Ju7LmcN0Jo4FpL4hpFybwNG9/3A/Br5KW2n2jyODg3MEZXaDYADdemoNS+BDNfMgKvylJLj4S5tyRActuAg==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [x64]
+    os: [linux]
+
+  lightningcss-linux-x64-musl@1.33.0:
+    resolution: {integrity: sha512-RYiYbkokw0trfKqqzfF55lginwEPrD3OJDfTuJzFs1MK6iFnDenaz1fqLLtX4ITG3OktJQXOeTaw1awrBAlZPw==}
+    engines: {node: '>= 12.0.0'}
+    cpu: [x64]
+    os: [linux]
 
   lightningcss-win32-x64-msvc@1.33.0:
     resolution: {integrity: sha512-OlEICDx/Xl0FqSp4bry8zFnCvGpig3Gl4gCquvYwHuqJKEC1+n9NgDniFvqHGmMv1ZkqDJrDqKKSykTDX+ehuA==}
@@ -12193,6 +12238,10 @@ snapshots:
   '@rollup/rollup-linux-x64-gnu@4.62.3':
     optional: true
 
+  '@rollup/rollup-linux-x64-gnu@4.63.1': {}
+
+  '@rollup/rollup-linux-x64-musl@4.63.1': {}
+
   '@rollup/rollup-win32-x64-msvc@4.62.5': {}
 
   '@scalar/helpers@0.9.2': {}
@@ -12389,8 +12438,9 @@ snapshots:
       source-map-js: 1.2.1
       tailwindcss: 4.3.3
 
-  '@tailwindcss/oxide-linux-x64-gnu@4.3.3':
-    optional: true
+  '@tailwindcss/oxide-linux-x64-gnu@4.3.3': {}
+
+  '@tailwindcss/oxide-linux-x64-musl@4.3.3': {}
 
   '@tailwindcss/oxide-wasm32-wasi@4.3.3':
     optional: true
@@ -15269,6 +15319,10 @@ snapshots:
 
   lightningcss-linux-x64-gnu@1.32.0:
     optional: true
+
+  lightningcss-linux-x64-gnu@1.33.0: {}
+
+  lightningcss-linux-x64-musl@1.33.0: {}
 
   lightningcss-win32-x64-msvc@1.33.0: {}
 

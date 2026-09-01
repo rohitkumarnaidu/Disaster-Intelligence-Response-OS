@@ -42,8 +42,8 @@ stateDiagram-v2
 | Current State | Allowed Next States | Required Actor Role | Guard Conditions & Actions |
 | :--- | :--- | :--- | :--- |
 | **`DETECTED`** | `NEEDS_REVIEW` | System / Ingestion | Generated upon ingestion of candidate anomaly; triggers OSM spatial intersection. |
-| **`NEEDS_REVIEW`** | `CONFIRMED`, `REJECTED`, `UNCERTAIN` | `Duty Officer`, `Commander` | Mandatory review notes ($ge 10$ chars); records `reviews` entry. |
-| **`CONFIRMED`** | `PRIORITIZED`, `TASKED` | `Duty Officer`, `Commander` | Computes explainable priority score ($0	ext{--}100$); attaches priority breakdown. |
+| **`NEEDS_REVIEW`** | `CONFIRMED`, `REJECTED`, `UNCERTAIN` | `Duty Officer`, `Commander` | Mandatory review notes (>= 10 chars); records `reviews` entry. |
+| **`CONFIRMED`** | `PRIORITIZED`, `TASKED` | `Duty Officer`, `Commander` | Computes explainable priority score (0 to 100); attaches priority breakdown. |
 | **`PRIORITIZED`** | `TASKED` | `Field Lead`, `Commander` | Generates child `tasks` record with dynamic SLA deadline. |
 | **`TASKED`** | `IN_PROGRESS` | `Field Lead`, `Responder` | Response team mobilized to target coordinates. |
 | **`IN_PROGRESS`** | `FIELD_VERIFIED`, `ACTIONED` | `Field Responder` | Ground observation received with GPS coordinate and photo proof. |

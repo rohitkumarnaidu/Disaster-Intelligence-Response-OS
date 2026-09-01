@@ -105,7 +105,7 @@ flowchart TB
 ### 3. Domain Service Layer
 - **Case State Machine**: Strictly validates finite state transitions (`DETECTED` to `CLOSED`), records immutable status histories, and executes atomic Compare-and-Swap (CAS) version increments.
 - **Task State Machine**: Converts confirmed cases into assigned tasks, computes dynamic priority-based SLA deadlines, and tracks field verification.
-- **Priority Engine**: Computes deterministic, explainable scores ($0\text{--}100$) using 5 distinct risk factors with 72-hour time decay.
+- **Priority Engine**: Computes deterministic, explainable scores (0 to 100) using 5 distinct risk factors with 72-hour time decay.
 - **Multimodal AI Service**: Integrates Google Gemini 2.5 Flash and deterministic baseline vision models for change detection, structuring outputs into validated Zod schemas.
 - **Transactional Outbox Dispatcher**: Polls the `outbox_events` table and dispatches committed domain events asynchronously, guaranteeing zero event loss without two-phase commit overhead.
 

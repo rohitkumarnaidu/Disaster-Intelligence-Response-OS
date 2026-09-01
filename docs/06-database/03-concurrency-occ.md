@@ -47,18 +47,20 @@ export async function transitionCase(
     // 1. Fetch current database record
     const [current] = await tx.select().from(cases).where(eq(cases.id, caseId));
     if (!current) {
-      throw { code: 'NOT_FOUND', message: `Case ${caseId} not found` };
+      throw { code: 'NOT_FOUND', message: 'Case ' + caseId + ' not found' };
     }
 
     // 2. Validate version match (OCC Guard)
     if (current.version !== expectedVersion) {
       throw {
         code: 'VERSION_CONFLICT',
-        message: `Case ${caseId} has been modified by another operator.`,
+        message: 'Case ' + caseId + ' has been modified by another operator.',
         serverVersion: current.version,
         serverRecord: current,
       };
     }
+
+
 
     // 3. Validate state machine transition graph
     validateTransition(current.status, targetStatus);

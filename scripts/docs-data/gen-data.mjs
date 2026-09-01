@@ -337,18 +337,19 @@ export async function transitionCase(
     // 1. Fetch current database record
     const [current] = await tx.select().from(cases).where(eq(cases.id, caseId));
     if (!current) {
-      throw { code: 'NOT_FOUND', message: \`Case \\\${caseId} not found\` };
+      throw { code: 'NOT_FOUND', message: 'Case ' + caseId + ' not found' };
     }
 
     // 2. Validate version match (OCC Guard)
     if (current.version !== expectedVersion) {
       throw {
         code: 'VERSION_CONFLICT',
-        message: \`Case \\\${caseId} has been modified by another operator.\`,
+        message: 'Case ' + caseId + ' has been modified by another operator.',
         serverVersion: current.version,
         serverRecord: current,
       };
     }
+
 
 
     // 3. Validate state machine transition graph
@@ -631,12 +632,12 @@ DRAXELYRA enforces session-based authentication backed by PostgreSQL and a granu
 
 | Role Identifier | Operational Title | Primary Mission & Responsibilities |
 | :--- | :--- | :--- |
-| **\`System Administrator\`** | System Administrator | Infrastructure management, external API credentials, user directory, system configuration. |
-| **\`Incident Commander\`** | Incident Commander | Strategic authority. Declares incident states, authorizes high-risk tasks, approves final after-action outcomes. |
-| **\`Duty Officer\`** | EOC Duty Officer | Operational watchstander. Triages AI candidate detections, reviews evidence, confirms cases, sets task priorities. |
-| **\`GIS Analyst\`** | Geospatial Intelligence Analyst | Manages satellite imagery swaths, AOI polygons, Overpass OSM sync, runs change-detection workflows. |
-| **\`Field Lead\`** | Tactical Field Coordinator | Assigns response tasks to field teams, monitors SLA adherence, validates incoming field observations. |
-| **\`Field Responder\`** | Ground Operations Responder | Operates mobile PWA in disaster zone. Executes on-site damage verification, captures geotagged photos. |
+| **System Administrator** | System Administrator | Infrastructure management, external API credentials, user directory, system configuration. |
+| **Incident Commander** | Incident Commander | Strategic authority. Declares incident states, authorizes high-risk tasks, approves final after-action outcomes. |
+| **Duty Officer** | EOC Duty Officer | Operational watchstander. Triages AI candidate detections, reviews evidence, confirms cases, sets task priorities. |
+| **GIS Analyst** | Geospatial Intelligence Analyst | Manages satellite imagery swaths, AOI polygons, Overpass OSM sync, runs change-detection workflows. |
+| **Field Lead** | Tactical Field Coordinator | Assigns response tasks to field teams, monitors SLA adherence, validates incoming field observations. |
+| **Field Responder** | Ground Operations Responder | Operates mobile PWA in disaster zone. Executes on-site damage verification, captures geotagged photos. |
 
 ---
 
@@ -661,7 +662,7 @@ DRAXELYRA enforces session-based authentication backed by PostgreSQL and a granu
 
 ## Middleware Guards
 
-**Source File**: [\`artifacts/api-server/src/middlewares/auth.ts\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/middlewares/auth.ts)
+**Source File**: \`artifacts/api-server/src/middlewares/auth.ts\`
 
 \`\`\`typescript
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -680,17 +681,17 @@ export function requireRole(...permittedRoles: string[]) {
         return res.status(403).json({
           error: {
             code: 'FORBIDDEN',
-            message: \`Role '\\\${req.session.role}' is not authorized for this operation.\`
+            message: 'Role ' + req.session.role + ' is not authorized for this operation.'
           }
         });
       }
-
       next();
     });
   };
 }
 \`\`\`
 `);
+
 
   // ===========================================================================
   // 08-domain
@@ -740,18 +741,19 @@ stateDiagram-v2
 
 | Current State | Allowed Next States | Required Actor Role | Guard Conditions & Actions |
 | :--- | :--- | :--- | :--- |
-| **`DETECTED`** | `NEEDS_REVIEW` | System / Ingestion | Generated upon ingestion of candidate anomaly; triggers OSM spatial intersection. |
-| **`NEEDS_REVIEW`** | `CONFIRMED`, `REJECTED`, `UNCERTAIN` | `Duty Officer`, `Commander` | Mandatory review notes (>= 10 chars); records `reviews` entry. |
-| **`CONFIRMED`** | `PRIORITIZED`, `TASKED` | `Duty Officer`, `Commander` | Computes explainable priority score (0 to 100); attaches priority breakdown. |
-| **`PRIORITIZED`** | `TASKED` | `Field Lead`, `Commander` | Generates child `tasks` record with dynamic SLA deadline. |
-| **`TASKED`** | `IN_PROGRESS` | `Field Lead`, `Responder` | Response team mobilized to target coordinates. |
-| **`IN_PROGRESS`** | `FIELD_VERIFIED`, `ACTIONED` | `Field Responder` | Ground observation received with GPS coordinate and photo proof. |
-| **`FIELD_VERIFIED`**| `ACTIONED` | `Field Lead` | Mitigation action completed (e.g., pump installed, levee reinforced). |
-| **`ACTIONED`** | `CLOSED` | `Incident Commander` | Final outcome recorded in `outcomes` table. |
-| **`REJECTED`** | `CLOSED` | `Duty Officer`, `Commander` | False positive logged into `ai_evaluation_dataset` for model tuning. |
-| **`UNCERTAIN`** | `CLOSED` | `Duty Officer`, `Commander` | Archived pending higher-resolution reconnaissance. |
-| **`CLOSED`** | *(None - Terminal)* | None | Immutable terminal state. |
+| **\`DETECTED\`** | \`NEEDS_REVIEW\` | System / Ingestion | Generated upon ingestion of candidate anomaly; triggers OSM spatial intersection. |
+| **\`NEEDS_REVIEW\`** | \`CONFIRMED\`, \`REJECTED\`, \`UNCERTAIN\` | \`Duty Officer\`, \`Commander\` | Mandatory review notes (>= 10 chars); records \`reviews\` entry. |
+| **\`CONFIRMED\`** | \`PRIORITIZED\`, \`TASKED\` | \`Duty Officer\`, \`Commander\` | Computes explainable priority score (0 to 100); attaches priority breakdown. |
+| **\`PRIORITIZED\`** | \`TASKED\` | \`Field Lead\`, \`Commander\` | Generates child \`tasks\` record with dynamic SLA deadline. |
+| **\`TASKED\`** | \`IN_PROGRESS\` | \`Field Lead\`, \`Responder\` | Response team mobilized to target coordinates. |
+| **\`IN_PROGRESS\`** | \`FIELD_VERIFIED\`, \`ACTIONED\` | \`Field Responder\` | Ground observation received with GPS coordinate and photo proof. |
+| **\`FIELD_VERIFIED\`**| \`ACTIONED\` | \`Field Lead\` | Mitigation action completed (e.g., pump installed, levee reinforced). |
+| **\`ACTIONED\`** | \`CLOSED\` | \`Incident Commander\` | Final outcome recorded in \`outcomes\` table. |
+| **\`REJECTED\`** | \`CLOSED\` | \`Duty Officer\`, \`Commander\` | False positive logged into \`ai_evaluation_dataset\` for model tuning. |
+| **\`UNCERTAIN\`** | \`CLOSED\` | \`Duty Officer\`, \`Commander\` | Archived pending higher-resolution reconnaissance. |
+| **\`CLOSED\`** | *(None - Terminal)* | None | Immutable terminal state. |
 `);
+
 
   // 08-domain/02-task-lifecycle.md
   writeFile(docsDir, '08-domain/02-task-lifecycle.md', `---
@@ -795,10 +797,11 @@ When a task is created from a confirmed case, its Service Level Agreement (SLA) 
 
 | Priority Score Range | Response Tier | SLA Window | Target Operational Benchmark |
 | :--- | :--- | :--- | :--- |
-| **P >= 85** | Tier 1 (Critical) | **4 Hours** | Immediate life-safety, hospital power loss, flood breach. |
-| **65 <= P < 85** | Tier 2 (High) | **8 Hours** | Bridge structural washouts, major transit arterial cut. |
-| **40 <= P < 65** | Tier 3 (Moderate) | **16 Hours** | Residential neighborhood inundation, shelter supply delivery. |
-| **P < 40** | Tier 4 (Routine) | **36 Hours** | Secondary debris clearance, agricultural drainage survey. |
+| **P &ge; 85 (Critical)** | Tier 1 (Critical) | **4 Hours** | Immediate life-safety, hospital power loss, flood breach. |
+| **65 to 84 (High)** | Tier 2 (High) | **8 Hours** | Bridge structural washouts, major transit arterial cut. |
+| **40 to 64 (Moderate)** | Tier 3 (Moderate) | **16 Hours** | Residential neighborhood inundation, shelter supply delivery. |
+| **0 to 39 (Routine)** | Tier 4 (Routine) | **36 Hours** | Secondary debris clearance, agricultural drainage survey. |
+
 
 \`\`\`typescript
 export function computeSlaDeadline(priorityScore: number): Date {
@@ -924,17 +927,18 @@ Every file uploaded via \`POST /api/evidence\` traverses a strict validation seq
 
 \`\`\`mermaid
 flowchart TD
-    UP[Upload Stream (Multer Memory Storage)] --> SZ{File Size <= 50MB?}
-    SZ -->|No| ERR1[HTTP 413 Payload Too Large]
-    SZ -->|Yes| MB{Magic Byte MIME Verification}
+    UP["Upload Stream (Multer Memory Storage)"] --> SZ{"File Size <= 50MB?"}
+    SZ -->|No| ERR1["HTTP 413 Payload Too Large"]
+    SZ -->|Yes| MB{"Magic Byte MIME Verification"}
     
-    MB -->|Invalid| ERR2[HTTP 415 Unsupported Media Type]
-    MB -->|Valid JPEG / PNG / WebP / MP4| HASH[Calculate SHA-256 Checksum]
+    MB -->|Invalid| ERR2["HTTP 415 Unsupported Media Type"]
+    MB -->|Valid JPEG / PNG / WebP / MP4| HASH["Calculate SHA-256 Checksum"]
     
-    HASH --> PATH[Sanitize Path & Disallow Directory Traversal]
-    PATH --> DISK[Write File to ./uploads/sha256.ext]
-    DISK --> DB[(Insert into evidence Table)]
-    DB --> AUDIT[(Insert into audit_events Table)]
+    HASH --> PATH["Sanitize Path & Disallow Directory Traversal"]
+    PATH --> DISK["Write File to ./uploads/sha256.ext"]
+    DISK --> DB[("Insert into evidence Table")]
+    DB --> AUDIT[("Insert into audit_events Table")]
+
 \`\`\`
 
 ---
@@ -958,8 +962,9 @@ Every state transition, triage adjudication, task modification, and evidence upl
 
 \`\`\`typescript
 await db.insert(auditEvents).values({
-  id: \`aud_\\\${crypto.randomUUID()}\`,
+  id: 'aud_' + crypto.randomUUID(),
   actorId: req.session.userId,
+
 
   action: 'CASE_REVIEW_SUBMITTED',
   entityType: 'CASE',

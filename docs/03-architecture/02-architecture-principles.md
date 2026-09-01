@@ -23,10 +23,10 @@ DRAXELYRA's architecture is guided by six foundational principles engineered spe
 
 ---
 
-## 2. Statistical Confidence $\neq$ Operational Priority
-In automated disaster screening, raw model confidence (e.g., *0.92 probability of standing water*) does not communicate operational consequence. DRAXELYRA enforces an explicit separation:
-- **Confidence ($K$)**: Statistical uncertainty of the computer vision model or sensor reading.
-- **Priority Score ($P$)**: Multi-factor decision matrix incorporating structural damage severity ($30\%$), infrastructure criticality ($25\%$), exposed population density ($20\%$), emergency urgency decay ($15\%$), and model confidence ($10\%$).
+## 2. Statistical Confidence vs Operational Priority
+
+- **Confidence (K)**: Statistical uncertainty of the computer vision model or sensor reading.
+- **Priority Score (P)**: Multi-factor decision matrix incorporating structural damage severity (30%), infrastructure criticality (25%), exposed population density (20%), emergency urgency decay (15%), and model confidence (10%).
 
 ---
 

@@ -30,11 +30,11 @@ sidebar_position: 2
 ### 3. OpenStreetMap Overpass API 429 Rate Limiting
 - **Symptom**: Automated critical asset extraction fails with HTTP 429 `Too Many Requests`.
 - **Root Cause**: Main Overpass server (`overpass-api.de`) is experiencing heavy global community load.
-- **Remediation**: `osm-sync.ts` automatically retries against secondary community mirrors (`kumi.systems`, `private.overpass-api.de`) with exponential backoff ($2	ext{s}, 4	ext{s}, 8	ext{s}$).
+- **Remediation**: `osm-sync.ts` automatically retries against secondary community mirrors (`kumi.systems`, `private.overpass-api.de`) with exponential backoff (2s, 4s, 8s).
 
 ---
 
 ### 4. Multimodal AI API Quota Exhaustion
 - **Symptom**: Case creation continues, but AI damage reasoning fields display baseline synthetic metrics.
-- **Root Cause**: `GEMINI_API_KEY` hit rate limits ($15	ext{ RPM}$ on free tier or billing threshold).
+- **Root Cause**: `GEMINI_API_KEY` hit rate limits (15 RPM on free tier or billing threshold).
 - **Remediation**: The system automatically degrades gracefully to `MockVisionAssessmentProvider` (`draxelyra-cv-baseline-v2`), logging the incident to `ai_decision_logs` without crashing the triage pipeline.

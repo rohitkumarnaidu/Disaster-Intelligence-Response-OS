@@ -73,26 +73,29 @@ function PillarSection() {
     },
     {
       title: 'Offline-First Field Sync',
-      link: '/docs/geospatial/offline-sync',
+      link: '/docs/offline/offline-architecture',
       description: 'IndexedDB mutation queue with automatic replay on network reconnection for disconnected field responders.',
       status: 'Implemented',
       statusClass: 'badge-implemented'
     },
     {
       title: 'Evidence Integrity',
-      link: '/docs/domain/task-evidence-audit',
+      link: '/docs/domain/evidence-audit',
       description: 'Multipart file ingestion with magic-byte header validation, SHA-256 integrity checksums, and traversal defenses.',
       status: 'Implemented',
       statusClass: 'badge-implemented'
     },
     {
       title: 'Deterministic Scenario Replay',
-      link: '/docs/api/endpoints',
+      link: '/docs/api/overview',
       description: 'End-to-end replay scenarios (Chennai Urban Flood) with synthetic Sentinel-2 imagery and seeded personas.',
       status: 'Development-Only',
       statusClass: 'badge-dev'
     }
   ];
+
+
+
 
   return (
     <section style={{ padding: '2.5rem 1.5rem', maxWidth: '1050px', margin: '0 auto' }}>

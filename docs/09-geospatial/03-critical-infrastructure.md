@@ -35,7 +35,8 @@ out skel qt;
 
 ## Ingested Infrastructure Classifications
 
-| OSM Tag Pattern | Internal Asset Type | Criticality Weight ($C$) | Tactical Priority |
+| OSM Tag Pattern | Internal Asset Type | Criticality Weight (C) | Tactical Priority |
+
 | :--- | :--- | :--- | :--- |
 | `amenity=hospital`, `amenity=clinic` | `HOSPITAL` | **100** | Life-safety, mass casualty receiving, surgical power. |
 | `highway=bridge` | `BRIDGE` | **85** | Evacuation bottlenecks, logistics supply corridor. |

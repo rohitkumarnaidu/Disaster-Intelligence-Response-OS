@@ -9,9 +9,10 @@ sidebar_position: 2
 
 <span className="badge-implemented">Implemented</span>
 
-**Source File**: [`artifacts/api-server/src/ai/GeminiMultimodalProvider.ts`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/ai/GeminiMultimodalProvider.ts)
+**Source File**: `artifacts/api-server/src/ai/GeminiMultimodalProvider.ts`
 
-The production multimodal AI provider uses Google's official TypeScript SDK (`@google/genai`) to invoke **Gemini 2.5 Flash** with low temperature ($0.1$) and enforced JSON output schema.
+The production multimodal AI provider uses Google's official TypeScript SDK (`@google/genai`) to invoke **Gemini 2.5 Flash** with low temperature (0.1) and enforced JSON output schema.
+
 
 ```typescript
 import { GoogleGenAI } from '@google/genai';

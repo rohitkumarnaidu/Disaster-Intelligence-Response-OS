@@ -55,8 +55,10 @@ Every state transition, triage adjudication, task modification, and evidence upl
 
 ```typescript
 await db.insert(auditEvents).values({
-  id: `aud_${crypto.randomUUID()}`,
+  id: 'aud_' + crypto.randomUUID(),
   actorId: req.session.userId,
+
+
   action: 'CASE_REVIEW_SUBMITTED',
   entityType: 'CASE',
   entityId: caseId,

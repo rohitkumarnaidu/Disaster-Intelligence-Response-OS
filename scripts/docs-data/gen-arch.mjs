@@ -164,10 +164,10 @@ DRAXELYRA's architecture is guided by six foundational principles engineered spe
 
 ---
 
-## 2. Statistical Confidence $\\neq$ Operational Priority
-In automated disaster screening, raw model confidence (e.g., *0.92 probability of standing water*) does not communicate operational consequence. DRAXELYRA enforces an explicit separation:
-- **Confidence ($K$)**: Statistical uncertainty of the computer vision model or sensor reading.
-- **Priority Score ($P$)**: Multi-factor decision matrix incorporating structural damage severity ($30\\%$), infrastructure criticality ($25\\%$), exposed population density ($20\\%$), emergency urgency decay ($15\\%$), and model confidence ($10\\%$).
+## 2. Statistical Confidence vs Operational Priority
+
+- **Confidence (K)**: Statistical uncertainty of the computer vision model or sensor reading.
+- **Priority Score (P)**: Multi-factor decision matrix incorporating structural damage severity (30%), infrastructure criticality (25%), exposed population density (20%), emergency urgency decay (15%), and model confidence (10%).
 
 ---
 
@@ -292,42 +292,42 @@ This document illustrates the end-to-end data lineage across DRAXELYRA—from ra
 \`\`\`mermaid
 flowchart TD
     subgraph ExternalSources["1. Multi-Source Raw Feeds"]
-        E1[Copernicus CDSE STAC<br/>Sentinel-1 SAR / Sentinel-2]
-        E2[USGS Earthquakes API<br/>GeoJSON Feed M ≥ 4.0]
-        E3[GDACS Alerts<br/>Multi-Hazard RSS & GeoJSON]
-        E4[SACHET NDMA<br/>India CAP XML Feeds]
-        E5[NASA FIRMS<br/>VIIRS Active Fire CSV]
-        E6[OpenStreetMap<br/>Overpass QL Infrastructure]
+        E1["Copernicus CDSE STAC<br/>Sentinel-1 SAR / Sentinel-2"]
+        E2["USGS Earthquakes API<br/>GeoJSON Feed M >= 4.0"]
+        E3["GDACS Alerts<br/>Multi-Hazard RSS & GeoJSON"]
+        E4["SACHET NDMA<br/>India CAP XML Feeds"]
+        E5["NASA FIRMS<br/>VIIRS Active Fire CSV"]
+        E6["OpenStreetMap<br/>Overpass QL Infrastructure"]
     end
 
     subgraph Normalization["2. Ingestion & Normalization Layer"]
-        N1[IngestionEngine Workers]
-        N2[Schema Normalizer & Validator]
-        N3[Spatial Bounding Box Clipper]
+        N1["IngestionEngine Workers"]
+        N2["Schema Normalizer & Validator"]
+        N3["Spatial Bounding Box Clipper"]
     end
 
     subgraph Datastore["3. Relational Datastore (PostgreSQL)"]
-        D1[(disaster_events / weather_alerts)]
-        D2[(incidents & AOI Polygons)]
-        D3[(osm_critical_assets)]
-        D4[(imagery_assets & imagery_pairs)]
-        D5[(detections & ai_decision_logs)]
-        D6[(cases status=DETECTED)]
-        D7[(tasks status=ASSIGNED)]
-        D8[(field_observations)]
-        D9[(outcomes & audit_events)]
+        D1[("disaster_events / weather_alerts")]
+        D2[("incidents & AOI Polygons")]
+        D3[("osm_critical_assets")]
+        D4[("imagery_assets & imagery_pairs")]
+        D5[("detections & ai_decision_logs")]
+        D6[("cases status=DETECTED")]
+        D7[("tasks status=ASSIGNED")]
+        D8[("field_observations")]
+        D9[("outcomes & audit_events")]
     end
 
     subgraph AnalyticsAI["4. AI & Priority Computation"]
-        A1[Multimodal AI Vision Provider]
-        A2[5-Factor Priority Scoring Engine]
+        A1["Multimodal AI Vision Provider"]
+        A2["5-Factor Priority Scoring Engine"]
     end
 
     subgraph HumanOps["5. Human Operations & Field Execution"]
-        H1[Duty Officer Triage Modal]
-        H2[Incident Commander Tasking]
-        H3[Field Responder Offline PWA]
-        H4[Executive Analytics Dashboard]
+        H1["Duty Officer Triage Modal"]
+        H2["Incident Commander Tasking"]
+        H3["Field Responder Offline PWA"]
+        H4["Executive Analytics Dashboard"]
     end
 
     E1 & E2 & E3 & E4 & E5 --> N1
@@ -343,6 +343,7 @@ flowchart TD
     D7 --> H3 --> D8
     D8 --> H2 --> D9
     D9 --> H4
+
 \`\`\`
 
 ---
@@ -373,28 +374,28 @@ The DRAXELYRA frontend is a high-performance Single Page Application (SPA) built
 \`\`\`mermaid
 flowchart TD
     subgraph Bootstrap["Application Bootstrap (main.tsx)"]
-        ROOT[createRoot #root]
-        ERR_ROOT[ErrorBoundary]
-        APP[App Component]
-        SW[Service Worker Registration /sw.js]
+        ROOT["createRoot #root"]
+        ERR_ROOT["ErrorBoundary"]
+        APP["App Component"]
+        SW["Service Worker Registration /sw.js"]
     end
 
     subgraph Providers["Provider Hierarchy (App.tsx)"]
-        P1[QueryClientProvider client=queryClient]
-        P2[TooltipProvider]
-        P3[AuthProvider /api/auth/me]
-        P4[WouterRouter base=BASE_URL]
-        SHELL[Shell Layout Component]
-        ROUTER[Wouter Switch Router]
-        TOAST[Toaster & AlertBanner]
+        P1["QueryClientProvider client=queryClient"]
+        P2["TooltipProvider"]
+        P3["AuthProvider /api/auth/me"]
+        P4["WouterRouter base=BASE_URL"]
+        SHELL["Shell Layout Component"]
+        ROUTER["Wouter Switch Router"]
+        TOAST["Toaster & AlertBanner"]
     end
 
     subgraph ShellComp["Shell Layout (App.tsx:174)"]
-        SIDEBAR[Sidebar Navigation]
-        HEADER[Operational Header & Incident Switcher]
-        INDICATOR[LiveFeedIndicator SSE/WS]
-        BANNER[Active Weather Alerts Banner]
-        MAIN[Main Tactical Content Outlet]
+        SIDEBAR["Sidebar Navigation"]
+        HEADER["Operational Header & Incident Switcher"]
+        INDICATOR["LiveFeedIndicator SSE/WS"]
+        BANNER["Active Weather Alerts Banner"]
+        MAIN["Main Tactical Content Outlet"]
     end
 
     ROOT --> ERR_ROOT --> APP
@@ -404,21 +405,21 @@ flowchart TD
     MAIN --> ROUTER
     APP --> TOAST
     ROOT --> SW
-\`\`\`
+```
 
 ---
 
 ## Component & State Architecture
 
 ### 1. Provider Tree Ordering
-1. **\`QueryClientProvider\`**: Configures TanStack Query server caching with standardized query keys.
-2. **\`TooltipProvider\`**: Radix UI tooltip context for accessible operational hints.
-3. **\`AuthProvider\`**: Deserializes session user via \`GET /api/auth/me\`. Enforces login redirection on 401.
-4. **\`WouterRouter\`**: Lightweight client-side router matching 15 discrete application routes.
-5. **\`<Shell>\`**: Enforces authentication guards, renders responsive sidebar/topbar navigation, and listens to real-time events via \`useLiveEvents()\`.
+1. **`QueryClientProvider`**: Configures TanStack Query server caching with standardized query keys.
+2. **`TooltipProvider`**: Radix UI tooltip context for accessible operational hints.
+3. **`AuthProvider`**: Deserializes session user via `GET /api/auth/me`. Enforces login redirection on 401.
+4. **`WouterRouter`**: Lightweight client-side router matching 15 discrete application routes.
+5. **`<Shell>`**: Enforces authentication guards, renders responsive sidebar/topbar navigation, and listens to real-time events via `useLiveEvents()`.
 
 ### 2. Styling System
-- **Tailwind CSS v4**: Modular utility-first design utilizing CSS variables for theme tokens (e.g., \`bg-sidebar\`, \`border-border\`, \`text-primary\`).
+- **Tailwind CSS v4**: Modular utility-first design utilizing CSS variables for theme tokens (e.g., `bg-sidebar`, `border-border`, `text-primary`).
 - **Tactical Dark Palette**: High-contrast, dark-mode optimized colors designed for low-fatigue 24/7 EOC operations.
 `);
 
@@ -439,30 +440,30 @@ The DRAXELYRA backend is an Express 5 application organized as a modular monolit
 \`\`\`mermaid
 flowchart TD
     subgraph ExpressApp["Express 5 Server (artifacts/api-server/src/)"]
-        ENTRY[index.ts & app.ts]
-        MIDDLEWARE[Middlewares: CookieParser, Session, requireAuth, requireRole, Logger]
-        ROUTERS[Routes: /auth, /incidents, /cases, /tasks, /evidence, /ai, /demo]
+        ENTRY["index.ts & app.ts"]
+        MIDDLEWARE["Middlewares: CookieParser, Session, requireAuth, requireRole, Logger"]
+        ROUTERS["Routes: /auth, /incidents, /cases, /tasks, /evidence, /ai, /demo"]
     end
 
     subgraph Services["Domain Service Layer (src/services/)"]
-        FSM_CASE[case-state-machine.ts]
-        FSM_TASK[task-state-machine.ts]
-        INGEST[ingestion-engine.ts]
-        AI_SVC[damage-assessment.ts]
-        ASSET_SVC[asset-enrichment.ts]
-        OSM_SVC[osm-sync.ts]
-        JOB_RUNNER[job-runner.ts]
+        FSM_CASE["case-state-machine.ts"]
+        FSM_TASK["task-state-machine.ts"]
+        INGEST["ingestion-engine.ts"]
+        AI_SVC["damage-assessment.ts"]
+        ASSET_SVC["asset-enrichment.ts"]
+        OSM_SVC["osm-sync.ts"]
+        JOB_RUNNER["job-runner.ts"]
     end
 
     subgraph Realtime["Real-Time Engine (src/realtime/)"]
-        OUTBOX[outbox.ts Transactional Outbox Worker]
-        GATEWAY[gateway.ts WebSocket Server /ws]
-        CONTRACTS[contracts.ts Event Typings]
+        OUTBOX["outbox.ts Transactional Outbox Worker"]
+        GATEWAY["gateway.ts WebSocket Server /ws"]
+        CONTRACTS["contracts.ts Event Typings"]
     end
 
     subgraph DatabasePackage["Shared DB Package (@workspace/db)"]
-        DRIZZLE[Drizzle ORM Connection Pool]
-        SCHEMA[schema/index.ts 18 PostgreSQL Tables]
+        DRIZZLE["Drizzle ORM Connection Pool"]
+        SCHEMA["schema/index.ts 18 PostgreSQL Tables"]
     end
 
     ENTRY --> MIDDLEWARE --> ROUTERS
@@ -470,6 +471,7 @@ flowchart TD
     Services --> Realtime
     Services --> DatabasePackage
     Realtime --> DatabasePackage
+
 \`\`\`
 
 ---
@@ -557,31 +559,31 @@ DRAXELYRA implements a dual-provider AI architecture designed to support real mu
 \`\`\`mermaid
 flowchart TD
     subgraph Input["Input Data"]
-        IMG_BEFORE[Pre-Disaster Baseline Imagery]
-        IMG_AFTER[Post-Disaster Target Imagery]
-        ASSET_CTX[Critical Asset Context & Exposure]
-        INC_CTX[Incident Hazard & Weather Context]
+        IMG_BEFORE["Pre-Disaster Baseline Imagery"]
+        IMG_AFTER["Post-Disaster Target Imagery"]
+        ASSET_CTX["Critical Asset Context & Exposure"]
+        INC_CTX["Incident Hazard & Weather Context"]
     end
 
     subgraph Factory["AIProviderFactory (src/ai/AIProviderFactory.ts)"]
-        CHECK{GEMINI_API_KEY Configured?}
-        P_GEMINI[GeminiMultimodalProvider<br/>Google Gemini 2.5 Flash]
-        P_MOCK[MockVisionAssessmentProvider<br/>Baseline Vision Engine v2.4]
+        CHECK{"GEMINI_API_KEY Configured?"}
+        P_GEMINI["GeminiMultimodalProvider<br/>Google Gemini 2.5 Flash"]
+        P_MOCK["MockVisionAssessmentProvider<br/>Baseline Vision Engine v2.4"]
     end
 
     subgraph Prompting["Prompt Template & Security Layer"]
-        SANITIZE[InputSanitizer: Prompt Injection Shield]
-        PROMPT_CAT[Prompt Catalog: damage_assessment_v1]
+        SANITIZE["InputSanitizer: Prompt Injection Shield"]
+        PROMPT_CAT["Prompt Catalog: damage_assessment_v1"]
     end
 
     subgraph Execution["Model Execution & Schema Validation"]
-        LLM[generateContent responseMimeType=application/json]
-        ZOD[Zod Schema Validator: DamageAssessmentOutputSchema]
+        LLM["generateContent responseMimeType=application/json"]
+        ZOD["Zod Schema Validator: DamageAssessmentOutputSchema"]
     end
 
     subgraph Logging["Cryptographic Audit & Caching"]
-        CACHE[AICacheService: SHA-256 Input Hash]
-        LOGS[(PostgreSQL: ai_decision_logs & detections)]
+        CACHE["AICacheService: SHA-256 Input Hash"]
+        LOGS[("PostgreSQL: ai_decision_logs & detections")]
     end
 
     IMG_BEFORE & IMG_AFTER & ASSET_CTX & INC_CTX --> SANITIZE
@@ -590,6 +592,7 @@ flowchart TD
     CHECK -->|No| P_MOCK
     P_GEMINI & P_MOCK --> LLM --> ZOD
     ZOD --> CACHE --> LOGS
+
 \`\`\`
 
 ---

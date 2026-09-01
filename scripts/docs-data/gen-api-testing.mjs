@@ -399,7 +399,7 @@ flowchart TD
         VOL[("Persistent Docker Volume (/uploads)")]
     end
 
-    CLIENT[Internet / EOC Intranet] --> NGINX
+    CLIENT["Internet / EOC Intranet"] --> NGINX
     NGINX -->|/| WEB
     NGINX -->|/api & /ws| API
     API --> DB
