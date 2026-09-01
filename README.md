@@ -27,6 +27,124 @@ During major disaster events (urban floods, cyclones, landslides, and earthquake
 
 ---
 
+---
+
+## 🎯 What is DRAXELYRA & What Problem Does It Solve?
+
+During major crisis events, emergency response agencies suffer from **"Data Deluge vs. Action Paralysis"**:
+
+```
+❌ Traditional Emergency Response Pain Points:
+┌──────────────────────────┐    ┌──────────────────────────┐    ┌──────────────────────────┐
+│  Disparate Raw Data      │    │  Opaque Prioritization   │    │  Unverified Field Action │
+│  • Satellite TIFFs       │───>│  • "Black box" AI scores │───>│  • Duplicated dispatches │
+│  • Unstructured reports  │    │  • Conflicting triage    │    │  • No offline sync       │
+│  • Siloed agency APIs    │    │  • Lost write collisions │    │  • Lost accountability   │
+└──────────────────────────┘    └──────────────────────────┘    └──────────────────────────┘
+
+✅ DRAXELYRA End-to-End Operating Picture:
+┌──────────────────────────┐    ┌──────────────────────────┐    ┌──────────────────────────┐
+│  Continuous Live Ingest  │    │  Explainable Priority    │    │  Accountable Verification│
+│  • USGS, GDACS, Meteo    │───>│  • 5-factor math formula │───>│  • FSM lifecycle states │
+│  • NASA FIRMS, NDMA      │    │  • Realtime OCC locks    │    │  • Offline-first PWA sync│
+│  • OSM infrastructure    │    │  • WebSocket live sync   │    │  • Zero-trust audit trail│
+└──────────────────────────┘    └──────────────────────────┘    └──────────────────────────┘
+```
+
+---
+
+## 🏛️ System Architecture Diagram
+
+DRAXELYRA connects satellite remote sensing, global hazard APIs, deterministic state machines, and real-time operational interfaces through an event-driven architecture:
+
+```mermaid
+flowchart TB
+    subgraph INGESTION["1. Multi-Source Live Telemetry & Ingestion"]
+        direction LR
+        USGS["USGS (Earthquakes M2.5+)"]
+        GDACS["GDACS (Multi-Hazard Alerts)"]
+        METEO["Open-Meteo (Severe Weather)"]
+        NASA["NASA FIRMS / EONET (Wildfire)"]
+        NDMA["NDMA / SACHET (India Alerts)"]
+        OSM["OSM Overpass (Critical Assets)"]
+        SAT["Satellite Rasters (Sentinel / Landsat)"]
+    end
+
+    subgraph ENGINE["2. Intelligence & Processing Core"]
+        NORM["Multi-Hazard Normalizer & Ingestion Engine"]
+        AI["Damage Detection & Footprint Extractor"]
+        SCORER["Explainable 5-Factor Priority Scorer\n(Severity + Asset + Exposure + Distance + Confidence)"]
+    end
+
+    subgraph STORAGE["3. State Machines & Dual-Engine Persistence"]
+        OUTBOX["Transactional Outbox Event Log"]
+        FSM["Finite State Machine (Case & Task Lifecycle)"]
+        OCC["Optimistic Concurrency Control (OCC Versioning)"]
+        DB[("Dual-Engine Database\nPostgreSQL 15+ / Embedded PGlite WASM")]
+    end
+
+    subgraph REALTIME["4. Real-Time Distribution Gateway"]
+        WS["WebSocket Gateway (/ws)"]
+        SSE["Server-Sent Events & Replay Stream"]
+        BROADCAST["Multi-Tab BroadcastChannel Sync"]
+    end
+
+    subgraph INTERFACES["5. Operational Command & Field Frontends"]
+        direction LR
+        CMD["Command Center (Situation Overview)"]
+        GIS["Geospatial Workspace (MapLibre GL + 10 AOIs)"]
+        QUEUE["Explainable Priority Queue (Analyst Triage)"]
+        TASKS["Response Task Manager (Dispatch & SLA)"]
+        FIELD["Field Verification PWA (Offline Sync)"]
+    end
+
+    INGESTION --> NORM
+    NORM --> AI
+    AI --> SCORER
+    SCORER --> FSM
+    FSM --> DB
+    FSM --> OUTBOX
+    OUTBOX --> WS
+    OUTBOX --> SSE
+    WS --> REALTIME
+    REALTIME --> INTERFACES
+```
+
+---
+
+## 🔄 Finite State Machine & Case Lifecycle
+
+Every disaster damage detection progresses through a strictly audited, tamper-evident Finite State Machine (FSM):
+
+```mermaid
+stateDiagram-v2
+    [*] --> DETECTED: Satellite / Sensor Ingestion
+    DETECTED --> TRIAGED: Priority Scorer (Score >= 75: High)
+    
+    state TRIAGED {
+        [*] --> UNDER_REVIEW
+        UNDER_REVIEW --> CONFIRMED: Analyst Verification
+        UNDER_REVIEW --> UNCERTAIN: Needs Ground Truth
+        UNDER_REVIEW --> REJECTED: False Positive / Cloud Artifact
+    }
+    
+    CONFIRMED --> TASKED: Operational Task Created
+    UNCERTAIN --> TASKED: Reconnaissance Task Created
+    
+    state TASKED {
+        [*] --> ASSIGNED: Dispatched to Field Team
+        ASSIGNED --> IN_PROGRESS: Team On Site
+        IN_PROGRESS --> BLOCKED: Access Route Inundated
+        BLOCKED --> IN_PROGRESS: Alternate Route Identified
+        IN_PROGRESS --> COMPLETED: Evidence & Coordinates Logged
+    }
+    
+    TASKED --> VERIFIED: Field Inspection Verified
+    VERIFIED --> [*]: Outcome Closed with Audit Trail
+```
+
+---
+
 ## Key Capabilities & Features
 
 - **Command Center Dashboard**: Real-time situational awareness metrics, active incidents summary, severity distributions, and critical asset tracking.
