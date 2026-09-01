@@ -12,8 +12,10 @@
     "lint": "eslint .",
     "docs:dev": "docusaurus start",
     "docs:build": "docusaurus build",
-    "docs:serve": "docusaurus serve"
+    "docs:serve": "docusaurus serve",
+    "docs:deploy": "docusaurus deploy"
   },
+
   "private": true,
   "dependencies": {
     "@replit/connectors-sdk": "^0.4.1"
