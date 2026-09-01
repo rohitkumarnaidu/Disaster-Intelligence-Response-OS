@@ -10,6 +10,7 @@ import fs from "fs";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+app.set("trust proxy", 1);
 const PgSession = connectPgSimple(session);
 
 app.use(
@@ -42,9 +43,10 @@ app.use(
     }),
     secret: process.env.SESSION_SECRET || "draxelyra_default_secret",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: "auto",
+      sameSite: "lax",
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     },
