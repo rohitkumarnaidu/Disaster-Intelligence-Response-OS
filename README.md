@@ -224,15 +224,49 @@ DRAXELYRA-Response-OS/
    cp .env.example .env
    ```
 
-2. Configure the `.env` file with your local parameters:
+2. Configure `.env` with your parameters (all external API keys are optional for demo and development):
    ```env
-   DATABASE_URL=postgresql://postgres:postgres@localhost:5433/draxelyra
-   SESSION_SECRET=your_secure_random_session_secret_here
-   PORT=3000
+   # --- Core Server & Runtime ---
    NODE_ENV=development
-   LOG_LEVEL=info
+   PORT=3000
    VITE_PORT=5173
    BASE_PATH=/
+   LOG_LEVEL=info
+
+   # --- Database & Session Security ---
+   # Local Docker: postgresql://postgres:postgres@localhost:5433/draxelyra
+   # Railway Cloud: ${{Postgres.DATABASE_URL}}
+   DATABASE_URL=postgresql://postgres:postgres@localhost:5433/draxelyra
+   SESSION_SECRET=your_secure_random_session_secret_here
+
+   # --- Google Gemini Multimodal AI (Optional - Real Damage Assessment) ---
+   # Get free key: https://aistudio.google.com/
+   GEMINI_API_KEY=your_gemini_api_key_here
+   GEMINI_MODEL=gemini-2.5-flash
+   AI_PROVIDER_DEFAULT=gemini-multimodal
+
+   # --- Copernicus Data Space Ecosystem (CDSE) — Sentinel Satellites ---
+   # Register: https://dataspace.copernicus.eu/
+   CDSE_CLIENT_ID=your_cdse_client_id_here
+   CDSE_CLIENT_SECRET=your_cdse_client_secret_here
+
+   # --- NASA FIRMS (Wildfire Thermal Anomalies) ---
+   # Get free MAP_KEY: https://firms.modaps.eosdis.nasa.gov/api/area/
+   NASA_FIRMS_MAP_KEY=your_nasa_firms_map_key_here
+
+   # --- OpenWeatherMap (Atmospheric Radar & Pressure) ---
+   # Get free key: https://openweathermap.org/api
+   OPENWEATHERMAP_API_KEY=your_openweathermap_api_key_here
+
+   # --- WAQI Air Quality (Post-Disaster Particulate & Toxicity) ---
+   # Get free token: https://aqicn.org/data-platform/token/
+   WAQI_API_TOKEN=your_waqi_api_token_here
+
+   # --- Ingestion Engine & Regional Feeds ---
+   INGESTION_ENABLED=true
+   DATA_MODE_DEFAULT=REAL
+   SACHET_FEED_URL=https://sachet.ndma.gov.in/cap_feed/rss.xml
+   OSM_OVERPASS_URL=https://overpass-api.de/api/interpreter
    ```
 
 ---
