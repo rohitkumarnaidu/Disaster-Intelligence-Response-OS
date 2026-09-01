@@ -27,4 +27,5 @@ export interface Case {
   owner?: string | null;
   /** @nullable */
   dueAt?: Date | null;
+  version?: number;
 }

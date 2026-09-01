@@ -1,7 +1,10 @@
 version: '3.8'
+
 services:
   db:
     image: postgres:15-alpine
+    container_name: draxelyra-db
+    restart: unless-stopped
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
@@ -10,5 +13,40 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d draxelyra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api-server:
+    build:
+      context: .
+      dockerfile: artifacts/api-server/Dockerfile
+    container_name: draxelyra-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/draxelyra
+      SESSION_SECRET: ${SESSION_SECRET:-draxelyra_session_secret_2026}
+      INGESTION_ENABLED: ${INGESTION_ENABLED:-true}
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: artifacts/draxelyra/Dockerfile
+    container_name: draxelyra-web
+    restart: unless-stopped
+    depends_on:
+      - api-server
+    ports:
+      - "5173:80"
+
 volumes:
   pgdata:

@@ -18,4 +18,5 @@ export interface Task {
   dueAt: Date;
   slaLabel: string;
   escalation?: boolean;
+  version?: number;
 }

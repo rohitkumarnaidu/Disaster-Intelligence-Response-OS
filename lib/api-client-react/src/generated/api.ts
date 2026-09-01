@@ -20,18 +20,24 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AirQuality,
   Case,
   CommandSummary,
+  CurrentWeather,
   DemoState,
+  ExternalFeed,
+  FloodForecast,
   HealthStatus,
   Incident,
   IncidentInput,
   IncidentUpdate,
   ListCasesParams,
   ReviewInput,
+  SyncFeed200,
   Task,
   TaskInput,
-  TaskUpdate
+  TaskUpdate,
+  WeatherAlert
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -1106,5 +1112,476 @@ export const useResetDemo = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getResetDemoMutationOptions(options));
+    }
+
+export const getGetWeatherAlertsUrl = () => {
+
+
+
+
+  return `/api/weather/alerts`
+}
+
+/**
+ * @summary Get active weather alerts
+ */
+export const getWeatherAlerts = async ( options?: Parameters<typeof customFetch>[1]): Promise<WeatherAlert[]> => {
+
+  return customFetch<WeatherAlert[]>(getGetWeatherAlertsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWeatherAlertsQueryKey = () => {
+    return [
+    `/api/weather/alerts`
+    ] as const;
+    }
+
+
+export const getGetWeatherAlertsQueryOptions = <TData = Awaited<ReturnType<typeof getWeatherAlerts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWeatherAlerts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWeatherAlertsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWeatherAlerts>>> = ({ signal }) => getWeatherAlerts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWeatherAlerts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWeatherAlertsQueryResult = NonNullable<Awaited<ReturnType<typeof getWeatherAlerts>>>
+export type GetWeatherAlertsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get active weather alerts
+ */
+
+export function useGetWeatherAlerts<TData = Awaited<ReturnType<typeof getWeatherAlerts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWeatherAlerts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWeatherAlertsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCurrentWeatherUrl = (lat: number,
+    lng: number,) => {
+
+
+
+
+  return `/api/weather/current/${lat}/${lng}`
+}
+
+/**
+ * @summary Get current weather conditions for coordinates
+ */
+export const getCurrentWeather = async (lat: number,
+    lng: number, options?: Parameters<typeof customFetch>[1]): Promise<CurrentWeather> => {
+
+  return customFetch<CurrentWeather>(getGetCurrentWeatherUrl(lat,lng),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCurrentWeatherQueryKey = (lat: number,
+    lng: number,) => {
+    return [
+    `/api/weather/current/${lat}/${lng}`
+    ] as const;
+    }
+
+
+export const getGetCurrentWeatherQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentWeather>>, TError = ErrorType<unknown>>(lat: number,
+    lng: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentWeather>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCurrentWeatherQueryKey(lat,lng);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentWeather>>> = ({ signal }) => getCurrentWeather(lat,lng, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: lat !== null && lat !== undefined && lng !== null && lng !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCurrentWeather>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCurrentWeatherQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentWeather>>>
+export type GetCurrentWeatherQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get current weather conditions for coordinates
+ */
+
+export function useGetCurrentWeather<TData = Awaited<ReturnType<typeof getCurrentWeather>>, TError = ErrorType<unknown>>(
+ lat: number,
+    lng: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentWeather>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCurrentWeatherQueryOptions(lat,lng,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAirQualityUrl = (lat: number,
+    lng: number,) => {
+
+
+
+
+  return `/api/weather/air-quality/${lat}/${lng}`
+}
+
+/**
+ * @summary Get real-time AQI for coordinates
+ */
+export const getAirQuality = async (lat: number,
+    lng: number, options?: Parameters<typeof customFetch>[1]): Promise<AirQuality> => {
+
+  return customFetch<AirQuality>(getGetAirQualityUrl(lat,lng),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAirQualityQueryKey = (lat: number,
+    lng: number,) => {
+    return [
+    `/api/weather/air-quality/${lat}/${lng}`
+    ] as const;
+    }
+
+
+export const getGetAirQualityQueryOptions = <TData = Awaited<ReturnType<typeof getAirQuality>>, TError = ErrorType<unknown>>(lat: number,
+    lng: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAirQuality>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAirQualityQueryKey(lat,lng);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAirQuality>>> = ({ signal }) => getAirQuality(lat,lng, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: lat !== null && lat !== undefined && lng !== null && lng !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAirQuality>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAirQualityQueryResult = NonNullable<Awaited<ReturnType<typeof getAirQuality>>>
+export type GetAirQualityQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get real-time AQI for coordinates
+ */
+
+export function useGetAirQuality<TData = Awaited<ReturnType<typeof getAirQuality>>, TError = ErrorType<unknown>>(
+ lat: number,
+    lng: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAirQuality>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAirQualityQueryOptions(lat,lng,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetFloodForecastUrl = (lat: number,
+    lng: number,) => {
+
+
+
+
+  return `/api/weather/flood/${lat}/${lng}`
+}
+
+/**
+ * @summary Get river discharge and flood risk forecast
+ */
+export const getFloodForecast = async (lat: number,
+    lng: number, options?: Parameters<typeof customFetch>[1]): Promise<FloodForecast> => {
+
+  return customFetch<FloodForecast>(getGetFloodForecastUrl(lat,lng),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFloodForecastQueryKey = (lat: number,
+    lng: number,) => {
+    return [
+    `/api/weather/flood/${lat}/${lng}`
+    ] as const;
+    }
+
+
+export const getGetFloodForecastQueryOptions = <TData = Awaited<ReturnType<typeof getFloodForecast>>, TError = ErrorType<unknown>>(lat: number,
+    lng: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFloodForecast>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFloodForecastQueryKey(lat,lng);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFloodForecast>>> = ({ signal }) => getFloodForecast(lat,lng, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: lat !== null && lat !== undefined && lng !== null && lng !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFloodForecast>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFloodForecastQueryResult = NonNullable<Awaited<ReturnType<typeof getFloodForecast>>>
+export type GetFloodForecastQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get river discharge and flood risk forecast
+ */
+
+export function useGetFloodForecast<TData = Awaited<ReturnType<typeof getFloodForecast>>, TError = ErrorType<unknown>>(
+ lat: number,
+    lng: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFloodForecast>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFloodForecastQueryOptions(lat,lng,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListFeedsUrl = () => {
+
+
+
+
+  return `/api/feeds`
+}
+
+/**
+ * @summary List external API data feeds
+ */
+export const listFeeds = async ( options?: Parameters<typeof customFetch>[1]): Promise<ExternalFeed[]> => {
+
+  return customFetch<ExternalFeed[]>(getListFeedsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFeedsQueryKey = () => {
+    return [
+    `/api/feeds`
+    ] as const;
+    }
+
+
+export const getListFeedsQueryOptions = <TData = Awaited<ReturnType<typeof listFeeds>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFeeds>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFeedsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFeeds>>> = ({ signal }) => listFeeds({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFeeds>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFeedsQueryResult = NonNullable<Awaited<ReturnType<typeof listFeeds>>>
+export type ListFeedsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List external API data feeds
+ */
+
+export function useListFeeds<TData = Awaited<ReturnType<typeof listFeeds>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFeeds>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFeedsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSyncFeedUrl = (id: string,) => {
+
+
+
+
+  return `/api/feeds/${id}/sync`
+}
+
+/**
+ * @summary Manually trigger feed sync
+ */
+export const syncFeed = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<SyncFeed200> => {
+
+  return customFetch<SyncFeed200>(getSyncFeedUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSyncFeedMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncFeed>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof syncFeed>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['syncFeed'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncFeed>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  syncFeed(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SyncFeedMutationResult = NonNullable<Awaited<ReturnType<typeof syncFeed>>>
+
+    export type SyncFeedMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually trigger feed sync
+ */
+export const useSyncFeed = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncFeed>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof syncFeed>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getSyncFeedMutationOptions(options));
     }
 

@@ -242,6 +242,114 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DemoState"
+  /weather/alerts:
+    get:
+      operationId: getWeatherAlerts
+      tags: [weather]
+      summary: Get active weather alerts
+      responses:
+        "200":
+          description: List of weather alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WeatherAlert"
+  /weather/current/{lat}/{lng}:
+    get:
+      operationId: getCurrentWeather
+      tags: [weather]
+      summary: Get current weather conditions for coordinates
+      parameters:
+        - in: path
+          name: lat
+          required: true
+          schema: { type: number }
+        - in: path
+          name: lng
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Current weather conditions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentWeather"
+  /weather/air-quality/{lat}/{lng}:
+    get:
+      operationId: getAirQuality
+      tags: [weather]
+      summary: Get real-time AQI for coordinates
+      parameters:
+        - in: path
+          name: lat
+          required: true
+          schema: { type: number }
+        - in: path
+          name: lng
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Air quality index
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AirQuality"
+  /weather/flood/{lat}/{lng}:
+    get:
+      operationId: getFloodForecast
+      tags: [weather]
+      summary: Get river discharge and flood risk forecast
+      parameters:
+        - in: path
+          name: lat
+          required: true
+          schema: { type: number }
+        - in: path
+          name: lng
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Flood forecast data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FloodForecast"
+  /feeds:
+    get:
+      operationId: listFeeds
+      tags: [feeds]
+      summary: List external API data feeds
+      responses:
+        "200":
+          description: List of external feeds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExternalFeed"
+  /feeds/{id}/sync:
+    post:
+      operationId: syncFeed
+      tags: [feeds]
+      summary: Manually trigger feed sync
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Sync triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
 components:
   parameters:
     Id:
@@ -320,6 +428,7 @@ components:
           required: [before, after]
         owner: { type: ["string", "null"] }
         dueAt: { type: ["string", "null"], format: date-time }
+        version: { type: number }
     ReviewInput:
       type: object
       required: [decision]
@@ -327,6 +436,7 @@ components:
         decision: { type: string, enum: [confirmed, rejected, uncertain] }
         reason: { type: string }
         notes: { type: string }
+        version: { type: number }
     Task:
       type: object
       required: [id, caseId, title, assignedTeam, status, priority, dueAt, slaLabel]
@@ -341,6 +451,7 @@ components:
         dueAt: { type: string, format: date-time }
         slaLabel: { type: string }
         escalation: { type: boolean }
+        version: { type: number }
     TaskInput:
       type: object
       required: [caseId, title, assignedTeam]
@@ -355,6 +466,7 @@ components:
         status: { type: string }
         assignedTeam: { type: string }
         assignedUser: { type: string }
+        version: { type: number }
     CommandSummary:
       type: object
       required: [incident, metrics, cases, tasks, activity]
@@ -397,4 +509,46 @@ components:
           type: array
           items: { $ref: "#/components/schemas/Task" }
         heroCaseId: { type: string }
+    WeatherAlert:
+      type: object
+      properties:
+        id: { type: string }
+        externalId: { type: string }
+        alertType: { type: string }
+        severity: { type: string }
+        headline: { type: string }
+        description: { type: string }
+        source: { type: string }
+    CurrentWeather:
+      type: object
+      properties:
+        temperature: { type: number }
+        feelsLike: { type: number }
+        humidity: { type: number }
+        windSpeed: { type: number }
+        windDirection: { type: string }
+        description: { type: string }
+    AirQuality:
+      type: object
+      properties:
+        aqi: { type: number }
+        category: { type: string }
+        pm25: { type: number }
+        pm10: { type: number }
+    FloodForecast:
+      type: object
+      properties:
+        latitude: { type: number }
+        longitude: { type: number }
+        riskLevel: { type: string }
+        discharge: { type: number }
+    ExternalFeed:
+      type: object
+      properties:
+        id: { type: string }
+        source: { type: string }
+        feedType: { type: string }
+        status: { type: string }
+        lastSyncAt: { type: string }
+
 

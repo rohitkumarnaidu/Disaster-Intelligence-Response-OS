@@ -9,7 +9,7 @@
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "test": "vitest run --passWithNoTests",
-    "lint": "eslint . || true",
+    "lint": "eslint .",
     "docs:dev": "docusaurus start",
     "docs:build": "docusaurus build",
     "docs:serve": "docusaurus serve"
@@ -37,5 +37,12 @@
     "tsx": "catalog:",
     "typescript": "~5.9.3",
     "vitest": "^4.1.11"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@google/genai",
+      "protobufjs",
+      "esbuild"
+    ]
   }
 }

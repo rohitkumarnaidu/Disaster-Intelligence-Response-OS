@@ -6,9 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface TaskUpdate {
-  status?: string;
-  assignedTeam?: string;
-  assignedUser?: string;
-  version?: number;
-}
+export type SyncFeed200 = {
+  success?: boolean;
+  message?: string;
+};

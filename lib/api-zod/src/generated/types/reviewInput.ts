@@ -11,4 +11,5 @@ export interface ReviewInput {
   decision: ReviewInputDecision;
   reason?: string;
   notes?: string;
+  version?: number;
 }

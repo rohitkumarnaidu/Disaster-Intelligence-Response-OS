@@ -6,12 +6,16 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './airQuality';
 export * from './case';
 export * from './caseImagery';
 export * from './commandSummary';
 export * from './commandSummaryActivityItem';
 export * from './commandSummaryMetrics';
+export * from './currentWeather';
 export * from './demoState';
+export * from './externalFeed';
+export * from './floodForecast';
 export * from './healthStatus';
 export * from './incident';
 export * from './incidentInput';
@@ -20,6 +24,8 @@ export * from './listCasesParams';
 export * from './priorityFactor';
 export * from './reviewInput';
 export * from './reviewInputDecision';
+export * from './syncFeed200';
 export * from './task';
 export * from './taskInput';
 export * from './taskUpdate';
+export * from './weatherAlert';

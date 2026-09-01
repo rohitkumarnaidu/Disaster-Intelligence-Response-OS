@@ -63,7 +63,8 @@ export const GetCommandSummaryResponse = zod.object({
   "after": zod.string()
 }).optional(),
   "owner": zod.string().nullish(),
-  "dueAt": zod.coerce.date().nullish()
+  "dueAt": zod.coerce.date().nullish(),
+  "version": zod.number().optional()
 })),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
@@ -75,7 +76,8 @@ export const GetCommandSummaryResponse = zod.object({
   "priority": zod.number(),
   "dueAt": zod.coerce.date(),
   "slaLabel": zod.string(),
-  "escalation": zod.boolean().optional()
+  "escalation": zod.boolean().optional(),
+  "version": zod.number().optional()
 })),
   "activity": zod.array(zod.object({
   "title": zod.string(),
@@ -209,7 +211,8 @@ export const ListCasesResponseItem = zod.object({
   "after": zod.string()
 }).optional(),
   "owner": zod.string().nullish(),
-  "dueAt": zod.coerce.date().nullish()
+  "dueAt": zod.coerce.date().nullish(),
+  "version": zod.number().optional()
 })
 export const ListCasesResponse = zod.array(ListCasesResponseItem)
 
@@ -243,7 +246,8 @@ export const GetCaseResponse = zod.object({
   "after": zod.string()
 }).optional(),
   "owner": zod.string().nullish(),
-  "dueAt": zod.coerce.date().nullish()
+  "dueAt": zod.coerce.date().nullish(),
+  "version": zod.number().optional()
 })
 
 
@@ -257,7 +261,8 @@ export const ReviewCaseParams = zod.object({
 export const ReviewCaseBody = zod.object({
   "decision": zod.enum(['confirmed', 'rejected', 'uncertain']),
   "reason": zod.string().optional(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "version": zod.number().optional()
 })
 
 export const ReviewCaseResponse = zod.object({
@@ -282,7 +287,8 @@ export const ReviewCaseResponse = zod.object({
   "after": zod.string()
 }).optional(),
   "owner": zod.string().nullish(),
-  "dueAt": zod.coerce.date().nullish()
+  "dueAt": zod.coerce.date().nullish(),
+  "version": zod.number().optional()
 })
 
 
@@ -299,7 +305,8 @@ export const ListTasksResponseItem = zod.object({
   "priority": zod.number(),
   "dueAt": zod.coerce.date(),
   "slaLabel": zod.string(),
-  "escalation": zod.boolean().optional()
+  "escalation": zod.boolean().optional(),
+  "version": zod.number().optional()
 })
 export const ListTasksResponse = zod.array(ListTasksResponseItem)
 
@@ -324,7 +331,8 @@ export const CreateTaskResponse = zod.object({
   "priority": zod.number(),
   "dueAt": zod.coerce.date(),
   "slaLabel": zod.string(),
-  "escalation": zod.boolean().optional()
+  "escalation": zod.boolean().optional(),
+  "version": zod.number().optional()
 })
 
 
@@ -338,7 +346,8 @@ export const UpdateTaskParams = zod.object({
 export const UpdateTaskBody = zod.object({
   "status": zod.string().optional(),
   "assignedTeam": zod.string().optional(),
-  "assignedUser": zod.string().optional()
+  "assignedUser": zod.string().optional(),
+  "version": zod.number().optional()
 })
 
 export const UpdateTaskResponse = zod.object({
@@ -351,7 +360,8 @@ export const UpdateTaskResponse = zod.object({
   "priority": zod.number(),
   "dueAt": zod.coerce.date(),
   "slaLabel": zod.string(),
-  "escalation": zod.boolean().optional()
+  "escalation": zod.boolean().optional(),
+  "version": zod.number().optional()
 })
 
 
@@ -393,7 +403,8 @@ export const LoadDemoResponse = zod.object({
   "after": zod.string()
 }).optional(),
   "owner": zod.string().nullish(),
-  "dueAt": zod.coerce.date().nullish()
+  "dueAt": zod.coerce.date().nullish(),
+  "version": zod.number().optional()
 })),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
@@ -405,7 +416,8 @@ export const LoadDemoResponse = zod.object({
   "priority": zod.number(),
   "dueAt": zod.coerce.date(),
   "slaLabel": zod.string(),
-  "escalation": zod.boolean().optional()
+  "escalation": zod.boolean().optional(),
+  "version": zod.number().optional()
 })),
   "heroCaseId": zod.string()
 })
@@ -449,7 +461,8 @@ export const ResetDemoResponse = zod.object({
   "after": zod.string()
 }).optional(),
   "owner": zod.string().nullish(),
-  "dueAt": zod.coerce.date().nullish()
+  "dueAt": zod.coerce.date().nullish(),
+  "version": zod.number().optional()
 })),
   "tasks": zod.array(zod.object({
   "id": zod.string(),
@@ -461,9 +474,101 @@ export const ResetDemoResponse = zod.object({
   "priority": zod.number(),
   "dueAt": zod.coerce.date(),
   "slaLabel": zod.string(),
-  "escalation": zod.boolean().optional()
+  "escalation": zod.boolean().optional(),
+  "version": zod.number().optional()
 })),
   "heroCaseId": zod.string()
+})
+
+
+/**
+ * @summary Get active weather alerts
+ */
+export const GetWeatherAlertsResponseItem = zod.object({
+  "id": zod.string().optional(),
+  "externalId": zod.string().optional(),
+  "alertType": zod.string().optional(),
+  "severity": zod.string().optional(),
+  "headline": zod.string().optional(),
+  "description": zod.string().optional(),
+  "source": zod.string().optional()
+})
+export const GetWeatherAlertsResponse = zod.array(GetWeatherAlertsResponseItem)
+
+
+/**
+ * @summary Get current weather conditions for coordinates
+ */
+export const GetCurrentWeatherParams = zod.object({
+  "lat": zod.coerce.number(),
+  "lng": zod.coerce.number()
+})
+
+export const GetCurrentWeatherResponse = zod.object({
+  "temperature": zod.number().optional(),
+  "feelsLike": zod.number().optional(),
+  "humidity": zod.number().optional(),
+  "windSpeed": zod.number().optional(),
+  "windDirection": zod.string().optional(),
+  "description": zod.string().optional()
+})
+
+
+/**
+ * @summary Get real-time AQI for coordinates
+ */
+export const GetAirQualityParams = zod.object({
+  "lat": zod.coerce.number(),
+  "lng": zod.coerce.number()
+})
+
+export const GetAirQualityResponse = zod.object({
+  "aqi": zod.number().optional(),
+  "category": zod.string().optional(),
+  "pm25": zod.number().optional(),
+  "pm10": zod.number().optional()
+})
+
+
+/**
+ * @summary Get river discharge and flood risk forecast
+ */
+export const GetFloodForecastParams = zod.object({
+  "lat": zod.coerce.number(),
+  "lng": zod.coerce.number()
+})
+
+export const GetFloodForecastResponse = zod.object({
+  "latitude": zod.number().optional(),
+  "longitude": zod.number().optional(),
+  "riskLevel": zod.string().optional(),
+  "discharge": zod.number().optional()
+})
+
+
+/**
+ * @summary List external API data feeds
+ */
+export const ListFeedsResponseItem = zod.object({
+  "id": zod.string().optional(),
+  "source": zod.string().optional(),
+  "feedType": zod.string().optional(),
+  "status": zod.string().optional(),
+  "lastSyncAt": zod.string().optional()
+})
+export const ListFeedsResponse = zod.array(ListFeedsResponseItem)
+
+
+/**
+ * @summary Manually trigger feed sync
+ */
+export const SyncFeedParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const SyncFeedResponse = zod.object({
+  "success": zod.boolean().optional(),
+  "message": zod.string().optional()
 })
 
 

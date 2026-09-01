@@ -16,4 +16,6 @@ function writeFile(relPath, content) {
   console.log(`Generated: ${relPath}`);
 }
 
-console.log('Generating DRAXELYRA Technical Documentation...');
+console.log('DRAXELYRA Technical Documentation Generator Ready.');
+
+

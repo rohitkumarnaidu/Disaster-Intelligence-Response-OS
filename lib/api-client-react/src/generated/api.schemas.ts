@@ -67,6 +67,7 @@ export interface Case {
   owner?: string | null;
   /** @nullable */
   dueAt?: string | null;
+  version?: number;
 }
 
 export type ReviewInputDecision = typeof ReviewInputDecision[keyof typeof ReviewInputDecision];
@@ -82,6 +83,7 @@ export interface ReviewInput {
   decision: ReviewInputDecision;
   reason?: string;
   notes?: string;
+  version?: number;
 }
 
 export interface Task {
@@ -96,6 +98,7 @@ export interface Task {
   dueAt: string;
   slaLabel: string;
   escalation?: boolean;
+  version?: number;
 }
 
 export interface TaskInput {
@@ -109,6 +112,7 @@ export interface TaskUpdate {
   status?: string;
   assignedTeam?: string;
   assignedUser?: string;
+  version?: number;
 }
 
 export type CommandSummaryMetrics = {
@@ -141,6 +145,47 @@ export interface DemoState {
   heroCaseId: string;
 }
 
+export interface WeatherAlert {
+  id?: string;
+  externalId?: string;
+  alertType?: string;
+  severity?: string;
+  headline?: string;
+  description?: string;
+  source?: string;
+}
+
+export interface CurrentWeather {
+  temperature?: number;
+  feelsLike?: number;
+  humidity?: number;
+  windSpeed?: number;
+  windDirection?: string;
+  description?: string;
+}
+
+export interface AirQuality {
+  aqi?: number;
+  category?: string;
+  pm25?: number;
+  pm10?: number;
+}
+
+export interface FloodForecast {
+  latitude?: number;
+  longitude?: number;
+  riskLevel?: string;
+  discharge?: number;
+}
+
+export interface ExternalFeed {
+  id?: string;
+  source?: string;
+  feedType?: string;
+  status?: string;
+  lastSyncAt?: string;
+}
+
 export type ListCasesParams = {
 /**
  * @nullable
@@ -150,5 +195,10 @@ incidentId?: string | null;
  * @nullable
  */
 status?: string | null;
+};
+
+export type SyncFeed200 = {
+  success?: boolean;
+  message?: string;
 };
 
