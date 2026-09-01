@@ -44,3 +44,33 @@ export async function clearQueueItem(id: number) {
     tx.onerror = () => reject(tx.error);
   });
 }
+
+export async function syncAllPending(): Promise<{ synced: number; conflicts: any[] }> {
+  const queue = await getQueue();
+  let synced = 0;
+  const conflicts: any[] = [];
+
+  for (const item of queue) {
+    try {
+      const res = await fetch(item.url, {
+        method: item.method,
+        headers: { "Content-Type": "application/json" },
+        body: item.body ? JSON.stringify(item.body) : undefined,
+        credentials: "include"
+      });
+
+      if (res.status === 409) {
+        const errorData = await res.json().catch(() => ({}));
+        conflicts.push({ item, error: errorData });
+      } else if (res.ok) {
+        await clearQueueItem(item.id);
+        synced++;
+      }
+    } catch (err) {
+      console.warn("Failed to sync offline item:", item, err);
+      // Keep in queue for next retry
+    }
+  }
+
+  return { synced, conflicts };
+}

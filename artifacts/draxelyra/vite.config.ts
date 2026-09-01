@@ -51,6 +51,27 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('maplibre-gl') || id.includes('react-map-gl')) {
+            return 'maplibre-vendor';
+          }
+          if (id.includes('recharts')) {
+            return 'charts-vendor';
+          }
+          if (id.includes('lucide-react')) {
+            return 'icons-vendor';
+          }
+          if (id.includes('@tanstack/react-query')) {
+            return 'query-vendor';
+          }
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/wouter/')) {
+            return 'react-core';
+          }
+        },
+      },
+    },
   },
   server: {
     port,
