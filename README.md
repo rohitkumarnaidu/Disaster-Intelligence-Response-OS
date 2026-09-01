@@ -1,35 +1,40 @@
 # DRAXELYRA
 Disaster Intelligence & Response OS
 
+[![Live Production App](https://img.shields.io/badge/Railway-Live%20App-0B0D0E?style=for-the-badge&logo=railway)](https://disaster-intelligence-response-os.up.railway.app/)
 [![Documentation Website](https://img.shields.io/badge/docs-live%20website-259184?style=for-the-badge&logo=docusaurus)](https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/)
-[![GitHub Actions CI](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge)](https://github.com/rohitkumarnaidu/Disaster-Intelligence-Response-OS/actions)
+[![GitHub Actions CI](https://img.shields.io/badge/CI-passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/rohitkumarnaidu/Disaster-Intelligence-Response-OS/actions)
 
-> 📖 **Official Technical Documentation Website**: **[https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/](https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/)**
+> 🚀 **Live Production Application**: **[https://disaster-intelligence-response-os.up.railway.app/](https://disaster-intelligence-response-os.up.railway.app/)**  
+> 📖 **Technical Documentation Website**: **[https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/](https://rohitkumarnaidu.github.io/Disaster-Intelligence-Response-OS/)**
 
-DRAXELYRA is an end-to-end disaster response operating system that converts post-disaster satellite imagery and sensory data into explainable priority queues, accountable response tasks, and field-verified outcomes for emergency management operations.
+DRAXELYRA is an end-to-end disaster response operating system that converts post-disaster satellite imagery, weather telemetry, and multi-agency sensor feeds into explainable priority queues, accountable field tasks, and verified outcomes for emergency management operations.
 
 ---
 
 ## Overview
 
-During major disaster events (such as urban floods, cyclones, and earthquakes), emergency command centers are inundated with unstructured incoming reports, remote sensing data, and conflicting damage reports. DRAXELYRA bridges the gap between raw intelligence and field action by providing:
+During major disaster events (urban floods, cyclones, landslides, and earthquakes), emergency command centers are inundated with unstructured incoming reports, remote sensing data, and conflicting damage reports. DRAXELYRA bridges the gap between raw intelligence and field action by providing:
 
-- **Evidence-to-Action Pipeline**: Explainable prioritization combining damage severity, asset criticality, population exposure, and model confidence into deterministic priority scores.
+- **Live Multi-Source Ingestion**: Continuous background ingestion from USGS Earthquakes, GDACS Multi-Hazard Alerts, Open-Meteo Weather, NASA FIRMS/EONET, and NDMA/SACHET bulletins.
+- **Explainable Evidence-to-Action Scoring**: Deterministic 5-factor priority formula combining damage severity, asset criticality, population exposure, proximity penalties, and model confidence.
+- **Interactive Global Crisis Switcher**: Dynamic header dropdown synchronizing the Command Center, Geospatial Workspace, Priority Queue, and Task Manager across active crisis zones.
 - **Accountable Task Lifecycle**: Formal finite state machines governing case lifecycle (from detection to triage, assignment, field observation, and outcome verification).
-- **Optimistic Concurrency Control (OCC)**: Versioned entities ensuring seamless multi-operator collaboration without overwrites.
-- **Offline Field Synchronization**: PWA capabilities enabling field responders to document observations and sync when connectivity resumes.
-- **Auditable History**: Comprehensive audit logging tracking all review decisions, state transitions, and operator interventions.
+- **Real-Time WebSocket Gateway**: Low-latency bi-directional event stream (`/ws`) backed by a Transactional Outbox and optimistic client caching.
+- **Optimistic Concurrency Control (OCC)**: Version-checked domain entities preventing concurrent write collisions (HTTP 409 handling).
+- **Offline Field Synchronization**: PWA field interface enabling responders to document observations offline and auto-sync when connectivity resumes.
+- **Dual-Engine Persistence**: High-throughput PostgreSQL with dynamic pooling and automatic embedded PGlite fallback for zero-dependency standalone execution.
 
 ---
 
-## Features
+## Key Capabilities & Features
 
 - **Command Center Dashboard**: Real-time situational awareness metrics, active incidents summary, severity distributions, and critical asset tracking.
-- **Geospatial Incident Map**: Interactive MapLibre-powered mapping visualizing Area of Interest (AOI), damage detections, and critical infrastructure (e.g., hospitals, power stations).
-- **Explainable Priority Queue**: Transparent score calculation detailing severity, asset type, population exposure tier, distance penalties, and confidence weighting.
-- **Evidence Review & Triage**: Dual-pane comparison of pre/post disaster imagery, bounding box detections, and structured analyst review workflows.
-- **Task Dispatch & Management**: Operational dispatch of actionable response tasks to field teams with priority, due dates, and escalation timeouts.
-- **Field Verification & Mobile Sync**: Mobile-responsive field inspection interface supporting offline observation logging and conflict detection.
+- **Geospatial Workspace**: Interactive MapLibre GL mapping with clean OpenStreetMap raster tiles, Esri satellite imagery toggle, and 10 dynamic Indian & global disaster region presets (Chennai, Mumbai, Kolkata, Brahmaputra Basin, Kochi, Delhi NCR, Wayanad Highland, Dehradun Valley, Shimla).
+- **Explainable Priority Queue**: Transparent mathematical score calculation with 5 weighted criteria, complete evidence cards, and analyst triage controls (Confirm, Uncertain, Reject).
+- **Task Dispatch & Management**: Operational dispatch of actionable response tasks to field teams with priority ratings, target coordinates, due dates, and escalation timeouts.
+- **Field Verification & Mobile Sync**: Mobile-responsive field inspection view supporting offline observation logging, geolocation tracking, and conflict detection.
+- **Zero-Trust Audit & Provenance**: Cryptographic lineage graph tracing every case from raw satellite/sensor ingestion to analyst review and field task verification.
 - **Role-Based Access Control (RBAC)**: Fine-grained permissions for Analysts, Field Responders, Managers, Incident Commanders, Organization Admins, and System Admins.
 - **Deterministic Replay Mode**: Built-in historical flood scenario replay (Chennai Urban Flood AOI) for training, testing, and operational simulation.
 
@@ -224,22 +229,32 @@ This command runs `typecheck` across all workspace libraries and artifacts, and 
 
 ## Deployment
 
-### Production Container Deployment
-1. Build the production artifacts:
-   ```bash
-   pnpm run build
+### Option 1: Railway Continuous Deployment (Recommended)
+
+1. Connect the GitHub repository `rohitkumarnaidu/Disaster-Intelligence-Response-OS` in [Railway](https://railway.com/).
+2. Add a **PostgreSQL** database service in Railway.
+3. Configure the following environment variables on the web service:
+   ```env
+   NODE_ENV=production
+   PORT=3000
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   SESSION_SECRET=your_production_secure_secret_key
    ```
-2. Run database migrations:
+4. Railway builds via the production `Dockerfile` (Debian Bookworm + Node 22 + glibc) and auto-deploys every `git push origin main` with zero downtime.
+
+### Option 2: Production Container / Docker Deployment
+
+1. Build and run using Docker:
    ```bash
-   pnpm --filter @workspace/db exec tsx migrate.ts
-   ```
-3. Start the production server:
-   ```bash
-   pnpm start
+   docker build -t draxelyra-os .
+   docker run -p 3000:3000 -e DATABASE_URL=postgresql://user:pass@host:5432/draxelyra draxelyra-os
    ```
 
-### Reverse Proxy & Static Asset Serving
-In a unified deployment, the API server handles `/api/*` endpoints and can serve the frontend build from `artifacts/draxelyra/dist/public` or via an external ingress controller / CDN (e.g. Nginx, Cloudflare).
+2. Or run via pnpm:
+   ```bash
+   pnpm run build
+   pnpm start
+   ```
 
 ---
 
