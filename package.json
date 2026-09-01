@@ -2,7 +2,9 @@
   "name": "workspace",
   "description": "DRAXELYRA — End-to-end Disaster Intelligence & Emergency Response OS converting satellite/sensor data into explainable priority queues, accountable field tasks, and verified outcomes.",
   "version": "0.0.0",
+  "packageManager": "pnpm@11.20.0",
   "license": "MIT",
+
   "scripts": {
     "start": "pnpm -F @workspace/api-server run start",
     "dev": "pnpm -F @workspace/db run push && pnpm -F @workspace/api-server run dev & pnpm -F @workspace/draxelyra run dev",
