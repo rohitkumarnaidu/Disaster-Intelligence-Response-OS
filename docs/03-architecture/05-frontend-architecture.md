@@ -14,28 +14,28 @@ The DRAXELYRA frontend is a high-performance Single Page Application (SPA) built
 ```mermaid
 flowchart TD
     subgraph Bootstrap["Application Bootstrap (main.tsx)"]
-        ROOT[createRoot #root]
-        ERR_ROOT[ErrorBoundary]
-        APP[App Component]
-        SW[Service Worker Registration /sw.js]
+        ROOT["createRoot #root"]
+        ERR_ROOT["ErrorBoundary"]
+        APP["App Component"]
+        SW["Service Worker Registration /sw.js"]
     end
 
     subgraph Providers["Provider Hierarchy (App.tsx)"]
-        P1[QueryClientProvider client=queryClient]
-        P2[TooltipProvider]
-        P3[AuthProvider /api/auth/me]
-        P4[WouterRouter base=BASE_URL]
-        SHELL[Shell Layout Component]
-        ROUTER[Wouter Switch Router]
-        TOAST[Toaster & AlertBanner]
+        P1["QueryClientProvider client=queryClient"]
+        P2["TooltipProvider"]
+        P3["AuthProvider /api/auth/me"]
+        P4["WouterRouter base=BASE_URL"]
+        SHELL["Shell Layout Component"]
+        ROUTER["Wouter Switch Router"]
+        TOAST["Toaster & AlertBanner"]
     end
 
     subgraph ShellComp["Shell Layout (App.tsx:174)"]
-        SIDEBAR[Sidebar Navigation]
-        HEADER[Operational Header & Incident Switcher]
-        INDICATOR[LiveFeedIndicator SSE/WS]
-        BANNER[Active Weather Alerts Banner]
-        MAIN[Main Tactical Content Outlet]
+        SIDEBAR["Sidebar Navigation"]
+        HEADER["Operational Header & Incident Switcher"]
+        INDICATOR["LiveFeedIndicator SSE/WS"]
+        BANNER["Active Weather Alerts Banner"]
+        MAIN["Main Tactical Content Outlet"]
     end
 
     ROOT --> ERR_ROOT --> APP
@@ -48,6 +48,7 @@ flowchart TD
 ```
 
 ---
+
 
 ## Component & State Architecture
 

@@ -14,27 +14,27 @@ DRAXELYRA incorporates a dual-provider multimodal AI architecture designed to ex
 ```mermaid
 flowchart TD
     subgraph Inputs["Multimodal Telemetry Inputs"]
-        IMG_PRE[Pre-Disaster Baseline Imagery]
-        IMG_POST[Post-Disaster Target Imagery]
-        VEC_OSM[OSM Critical Asset Attributes]
-        ENV_CTX[Hazard Type & Weather Conditions]
+        IMG_PRE["Pre-Disaster Baseline Imagery"]
+        IMG_POST["Post-Disaster Target Imagery"]
+        VEC_OSM["OSM Critical Asset Attributes"]
+        ENV_CTX["Hazard Type & Weather Conditions"]
     end
 
     subgraph Factory["AIProviderFactory (src/ai/AIProviderFactory.ts)"]
-        DECISION{GEMINI_API_KEY Available?}
+        DECISION{"GEMINI_API_KEY Available?"}
         P_GEMINI["GeminiMultimodalProvider (@google/genai)"]
         P_MOCK["MockVisionAssessmentProvider (Baseline CV Engine)"]
     end
 
     subgraph Engine["Inference & Schema Parsing"]
-        PROMPT[Catalog Prompt Template]
-        LLM[Model Execution responseMimeType=application/json]
-        ZOD[Zod DamageAssessmentOutputSchema]
+        PROMPT["Catalog Prompt Template"]
+        LLM["Model Execution responseMimeType=application/json"]
+        ZOD["Zod DamageAssessmentOutputSchema"]
     end
 
     subgraph Persistence["Storage & Decision Ledger"]
-        DB_LOG[(PostgreSQL: ai_decision_logs)]
-        CACHE[AICacheService: SHA-256 Hash Key]
+        DB_LOG[("PostgreSQL: ai_decision_logs")]
+        CACHE["AICacheService: SHA-256 Hash Key"]
     end
 
     Inputs --> Factory

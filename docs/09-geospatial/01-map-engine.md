@@ -22,14 +22,15 @@ flowchart TD
     end
 
     subgraph MapEngine["IncidentMap.tsx (MapLibre GL Canvas)"]
-        STYLE[Carto Dark Matter / Esri World Imagery]
-        L1[Layer: aoi-polygon-fill]
-        L2[Layer: aoi-polygon-outline]
-        L3[Layer: detections-heatmap]
-        L4[Layer: critical-assets-symbols]
-        L5[Layer: case-status-markers]
-        L6[Layer: field-observations-pulse]
+        STYLE["Carto Dark Matter / Esri World Imagery"]
+        L1["Layer: aoi-polygon-fill"]
+        L2["Layer: aoi-polygon-outline"]
+        L3["Layer: detections-heatmap"]
+        L4["Layer: critical-assets-symbols"]
+        L5["Layer: case-status-markers"]
+        L6["Layer: field-observations-pulse"]
     end
+
 
     AOI --> L1 & L2
     DET --> L3 & L5

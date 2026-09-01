@@ -14,42 +14,42 @@ This document illustrates the end-to-end data lineage across DRAXELYRA—from ra
 ```mermaid
 flowchart TD
     subgraph ExternalSources["1. Multi-Source Raw Feeds"]
-        E1[Copernicus CDSE STAC<br/>Sentinel-1 SAR / Sentinel-2]
-        E2[USGS Earthquakes API<br/>GeoJSON Feed M ≥ 4.0]
-        E3[GDACS Alerts<br/>Multi-Hazard RSS & GeoJSON]
-        E4[SACHET NDMA<br/>India CAP XML Feeds]
-        E5[NASA FIRMS<br/>VIIRS Active Fire CSV]
-        E6[OpenStreetMap<br/>Overpass QL Infrastructure]
+        E1["Copernicus CDSE STAC<br/>Sentinel-1 SAR / Sentinel-2"]
+        E2["USGS Earthquakes API<br/>GeoJSON Feed M >= 4.0"]
+        E3["GDACS Alerts<br/>Multi-Hazard RSS & GeoJSON"]
+        E4["SACHET NDMA<br/>India CAP XML Feeds"]
+        E5["NASA FIRMS<br/>VIIRS Active Fire CSV"]
+        E6["OpenStreetMap<br/>Overpass QL Infrastructure"]
     end
 
     subgraph Normalization["2. Ingestion & Normalization Layer"]
-        N1[IngestionEngine Workers]
-        N2[Schema Normalizer & Validator]
-        N3[Spatial Bounding Box Clipper]
+        N1["IngestionEngine Workers"]
+        N2["Schema Normalizer & Validator"]
+        N3["Spatial Bounding Box Clipper"]
     end
 
     subgraph Datastore["3. Relational Datastore (PostgreSQL)"]
-        D1[(disaster_events / weather_alerts)]
-        D2[(incidents & AOI Polygons)]
-        D3[(osm_critical_assets)]
-        D4[(imagery_assets & imagery_pairs)]
-        D5[(detections & ai_decision_logs)]
-        D6[(cases status=DETECTED)]
-        D7[(tasks status=ASSIGNED)]
-        D8[(field_observations)]
-        D9[(outcomes & audit_events)]
+        D1[("disaster_events / weather_alerts")]
+        D2[("incidents & AOI Polygons")]
+        D3[("osm_critical_assets")]
+        D4[("imagery_assets & imagery_pairs")]
+        D5[("detections & ai_decision_logs")]
+        D6[("cases status=DETECTED")]
+        D7[("tasks status=ASSIGNED")]
+        D8[("field_observations")]
+        D9[("outcomes & audit_events")]
     end
 
     subgraph AnalyticsAI["4. AI & Priority Computation"]
-        A1[Multimodal AI Vision Provider]
-        A2[5-Factor Priority Scoring Engine]
+        A1["Multimodal AI Vision Provider"]
+        A2["5-Factor Priority Scoring Engine"]
     end
 
     subgraph HumanOps["5. Human Operations & Field Execution"]
-        H1[Duty Officer Triage Modal]
-        H2[Incident Commander Tasking]
-        H3[Field Responder Offline PWA]
-        H4[Executive Analytics Dashboard]
+        H1["Duty Officer Triage Modal"]
+        H2["Incident Commander Tasking"]
+        H3["Field Responder Offline PWA"]
+        H4["Executive Analytics Dashboard"]
     end
 
     E1 & E2 & E3 & E4 & E5 --> N1
@@ -65,6 +65,7 @@ flowchart TD
     D7 --> H3 --> D8
     D8 --> H2 --> D9
     D9 --> H4
+
 ```
 
 ---

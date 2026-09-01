@@ -22,10 +22,10 @@ flowchart LR
     end
 
     subgraph Engine["IngestionEngine (src/services/ingestion-engine.ts)"]
-        SCHED[Cron Scheduler]
-        DEDUP[Deduplication by externalId]
-        NORM[Schema Normalizer]
-        DB[(PostgreSQL Store)]
+        SCHED["Cron Scheduler"]
+        DEDUP["Deduplication by externalId"]
+        NORM["Schema Normalizer"]
+        DB[("PostgreSQL Store")]
     end
 
     Feeds --> SCHED --> DEDUP --> NORM --> DB

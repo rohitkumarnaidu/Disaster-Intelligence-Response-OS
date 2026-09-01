@@ -405,22 +405,24 @@ flowchart TD
     MAIN --> ROUTER
     APP --> TOAST
     ROOT --> SW
-```
+\`\`\`
 
 ---
+
 
 ## Component & State Architecture
 
 ### 1. Provider Tree Ordering
-1. **`QueryClientProvider`**: Configures TanStack Query server caching with standardized query keys.
-2. **`TooltipProvider`**: Radix UI tooltip context for accessible operational hints.
-3. **`AuthProvider`**: Deserializes session user via `GET /api/auth/me`. Enforces login redirection on 401.
-4. **`WouterRouter`**: Lightweight client-side router matching 15 discrete application routes.
-5. **`<Shell>`**: Enforces authentication guards, renders responsive sidebar/topbar navigation, and listens to real-time events via `useLiveEvents()`.
+1. **\`QueryClientProvider\`**: Configures TanStack Query server caching with standardized query keys.
+2. **\`TooltipProvider\`**: Radix UI tooltip context for accessible operational hints.
+3. **\`AuthProvider\`**: Deserializes session user via \`GET /api/auth/me\`. Enforces login redirection on 401.
+4. **\`WouterRouter\`**: Lightweight client-side router matching 15 discrete application routes.
+5. **\`<Shell>\`**: Enforces authentication guards, renders responsive sidebar/topbar navigation, and listens to real-time events via \`useLiveEvents()\`.
 
 ### 2. Styling System
-- **Tailwind CSS v4**: Modular utility-first design utilizing CSS variables for theme tokens (e.g., `bg-sidebar`, `border-border`, `text-primary`).
+- **Tailwind CSS v4**: Modular utility-first design utilizing CSS variables for theme tokens (e.g., \`bg-sidebar\`, \`border-border\`, \`text-primary\`).
 - **Tactical Dark Palette**: High-contrast, dark-mode optimized colors designed for low-fatigue 24/7 EOC operations.
+
 `);
 
   // 03-architecture/06-backend-architecture.md

@@ -14,30 +14,30 @@ The DRAXELYRA backend is an Express 5 application organized as a modular monolit
 ```mermaid
 flowchart TD
     subgraph ExpressApp["Express 5 Server (artifacts/api-server/src/)"]
-        ENTRY[index.ts & app.ts]
-        MIDDLEWARE[Middlewares: CookieParser, Session, requireAuth, requireRole, Logger]
-        ROUTERS[Routes: /auth, /incidents, /cases, /tasks, /evidence, /ai, /demo]
+        ENTRY["index.ts & app.ts"]
+        MIDDLEWARE["Middlewares: CookieParser, Session, requireAuth, requireRole, Logger"]
+        ROUTERS["Routes: /auth, /incidents, /cases, /tasks, /evidence, /ai, /demo"]
     end
 
     subgraph Services["Domain Service Layer (src/services/)"]
-        FSM_CASE[case-state-machine.ts]
-        FSM_TASK[task-state-machine.ts]
-        INGEST[ingestion-engine.ts]
-        AI_SVC[damage-assessment.ts]
-        ASSET_SVC[asset-enrichment.ts]
-        OSM_SVC[osm-sync.ts]
-        JOB_RUNNER[job-runner.ts]
+        FSM_CASE["case-state-machine.ts"]
+        FSM_TASK["task-state-machine.ts"]
+        INGEST["ingestion-engine.ts"]
+        AI_SVC["damage-assessment.ts"]
+        ASSET_SVC["asset-enrichment.ts"]
+        OSM_SVC["osm-sync.ts"]
+        JOB_RUNNER["job-runner.ts"]
     end
 
     subgraph Realtime["Real-Time Engine (src/realtime/)"]
-        OUTBOX[outbox.ts Transactional Outbox Worker]
-        GATEWAY[gateway.ts WebSocket Server /ws]
-        CONTRACTS[contracts.ts Event Typings]
+        OUTBOX["outbox.ts Transactional Outbox Worker"]
+        GATEWAY["gateway.ts WebSocket Server /ws"]
+        CONTRACTS["contracts.ts Event Typings"]
     end
 
     subgraph DatabasePackage["Shared DB Package (@workspace/db)"]
-        DRIZZLE[Drizzle ORM Connection Pool]
-        SCHEMA[schema/index.ts 18 PostgreSQL Tables]
+        DRIZZLE["Drizzle ORM Connection Pool"]
+        SCHEMA["schema/index.ts 18 PostgreSQL Tables"]
     end
 
     ENTRY --> MIDDLEWARE --> ROUTERS
@@ -45,6 +45,7 @@ flowchart TD
     Services --> Realtime
     Services --> DatabasePackage
     Realtime --> DatabasePackage
+
 ```
 
 ---

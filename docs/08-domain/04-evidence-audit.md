@@ -21,17 +21,18 @@ Every file uploaded via `POST /api/evidence` traverses a strict validation seque
 
 ```mermaid
 flowchart TD
-    UP[Upload Stream (Multer Memory Storage)] --> SZ{File Size <= 50MB?}
-    SZ -->|No| ERR1[HTTP 413 Payload Too Large]
-    SZ -->|Yes| MB{Magic Byte MIME Verification}
+    UP["Upload Stream (Multer Memory Storage)"] --> SZ{"File Size <= 50MB?"}
+    SZ -->|No| ERR1["HTTP 413 Payload Too Large"]
+    SZ -->|Yes| MB{"Magic Byte MIME Verification"}
     
-    MB -->|Invalid| ERR2[HTTP 415 Unsupported Media Type]
-    MB -->|Valid JPEG / PNG / WebP / MP4| HASH[Calculate SHA-256 Checksum]
+    MB -->|Invalid| ERR2["HTTP 415 Unsupported Media Type"]
+    MB -->|Valid JPEG / PNG / WebP / MP4| HASH["Calculate SHA-256 Checksum"]
     
-    HASH --> PATH[Sanitize Path & Disallow Directory Traversal]
-    PATH --> DISK[Write File to ./uploads/sha256.ext]
-    DISK --> DB[(Insert into evidence Table)]
-    DB --> AUDIT[(Insert into audit_events Table)]
+    HASH --> PATH["Sanitize Path & Disallow Directory Traversal"]
+    PATH --> DISK["Write File to ./uploads/sha256.ext"]
+    DISK --> DB[("Insert into evidence Table")]
+    DB --> AUDIT[("Insert into audit_events Table")]
+
 ```
 
 ---

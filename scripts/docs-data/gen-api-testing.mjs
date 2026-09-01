@@ -416,13 +416,13 @@ PORT=3000
 NODE_ENV=production
 
 # Database Connection URL
-DATABASE_URL=postgresql://postgres:SecureSecretPassword@postgres:5432/draxelyra
+DATABASE_URL=postgresql://postgres:your_db_password_here@postgres:5432/draxelyra
 
 # Session Security Secret (Generate with openssl rand -base64 32)
-SESSION_SECRET=c84f9a0d2e5b71c89012f3e45a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b
+SESSION_SECRET=your_secure_random_session_secret_min_32_chars
 
 # Multimodal AI Credentials (Optional: Falls back to baseline engine if omitted)
-GEMINI_API_KEY=AIzaSyYourGeminiApiKeyHere
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Persistent Evidence Storage Directory
 UPLOAD_DIR=/uploads

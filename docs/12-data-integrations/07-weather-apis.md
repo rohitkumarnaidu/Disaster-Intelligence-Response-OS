@@ -1,13 +1,14 @@
 ---
 id: weather-apis
-title: Weather Telemetry (Open-Meteo & IMD)
+title: Weather Radar & Precipitation Telemetry
 sidebar_label: Weather Feeds
 sidebar_position: 7
 ---
 
-# Weather Telemetry (Open-Meteo & IMD)
+# Weather Radar & Precipitation Telemetry
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [`artifacts/api-server/src/services/ingestion-engine.ts:405`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L405-L480)
-- **Parameters Ingested**: Precipitation rate (mm/h), wind gust velocity (km/h), barometric pressure, river basin runoff estimates. Populates `weather_alerts`.
+- **Source File**: [`artifacts/api-server/src/services/ingestion-engine.ts:385`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L385-L430)
+- **Providers**: Open-Meteo REST API & NOAA Global Forecast System (GFS).
+- **Telemetry**: Hourly precipitation accumulation, wind gust speed, barometric pressure, flood crest estimations.

@@ -1,14 +1,14 @@
 ---
 id: copernicus-sentinel
-title: Copernicus CDSE Sentinel STAC & SAR Ingestion
-sidebar_label: Copernicus Sentinel
+title: Copernicus Sentinel STAC Catalog Discovery
+sidebar_label: Copernicus Sentinel STAC
 sidebar_position: 9
 ---
 
-# Copernicus CDSE Sentinel STAC & SAR Ingestion
+# Copernicus Sentinel STAC Catalog Discovery
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [`artifacts/api-server/src/services/sentinel-stac.ts`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/sentinel-stac.ts)
-- **STAC Catalog**: Copernicus Data Space Ecosystem (`https://catalogue.dataspace.copernicus.eu/stac`).
-- **Sensors**: Sentinel-1 SAR (Synthetic Aperture Radar) C-band for cloud-penetrating flood mapping; Sentinel-2 MSI MultiSpectral Optical (10m bands).
+- **Source File**: [`artifacts/api-server/src/services/ingestion-engine.ts:435`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L435-L480)
+- **Standard**: STAC API v1.0.0.
+- **Collections**: Sentinel-2 L2A (optical multi-spectral) & Sentinel-1 GRD (Synthetic Aperture Radar).

@@ -14,31 +14,31 @@ DRAXELYRA implements a dual-provider AI architecture designed to support real mu
 ```mermaid
 flowchart TD
     subgraph Input["Input Data"]
-        IMG_BEFORE[Pre-Disaster Baseline Imagery]
-        IMG_AFTER[Post-Disaster Target Imagery]
-        ASSET_CTX[Critical Asset Context & Exposure]
-        INC_CTX[Incident Hazard & Weather Context]
+        IMG_BEFORE["Pre-Disaster Baseline Imagery"]
+        IMG_AFTER["Post-Disaster Target Imagery"]
+        ASSET_CTX["Critical Asset Context & Exposure"]
+        INC_CTX["Incident Hazard & Weather Context"]
     end
 
     subgraph Factory["AIProviderFactory (src/ai/AIProviderFactory.ts)"]
-        CHECK{GEMINI_API_KEY Configured?}
-        P_GEMINI[GeminiMultimodalProvider<br/>Google Gemini 2.5 Flash]
-        P_MOCK[MockVisionAssessmentProvider<br/>Baseline Vision Engine v2.4]
+        CHECK{"GEMINI_API_KEY Configured?"}
+        P_GEMINI["GeminiMultimodalProvider<br/>Google Gemini 2.5 Flash"]
+        P_MOCK["MockVisionAssessmentProvider<br/>Baseline Vision Engine v2.4"]
     end
 
     subgraph Prompting["Prompt Template & Security Layer"]
-        SANITIZE[InputSanitizer: Prompt Injection Shield]
-        PROMPT_CAT[Prompt Catalog: damage_assessment_v1]
+        SANITIZE["InputSanitizer: Prompt Injection Shield"]
+        PROMPT_CAT["Prompt Catalog: damage_assessment_v1"]
     end
 
     subgraph Execution["Model Execution & Schema Validation"]
-        LLM[generateContent responseMimeType=application/json]
-        ZOD[Zod Schema Validator: DamageAssessmentOutputSchema]
+        LLM["generateContent responseMimeType=application/json"]
+        ZOD["Zod Schema Validator: DamageAssessmentOutputSchema"]
     end
 
     subgraph Logging["Cryptographic Audit & Caching"]
-        CACHE[AICacheService: SHA-256 Input Hash]
-        LOGS[(PostgreSQL: ai_decision_logs & detections)]
+        CACHE["AICacheService: SHA-256 Input Hash"]
+        LOGS[("PostgreSQL: ai_decision_logs & detections")]
     end
 
     IMG_BEFORE & IMG_AFTER & ASSET_CTX & INC_CTX --> SANITIZE
@@ -47,6 +47,7 @@ flowchart TD
     CHECK -->|No| P_MOCK
     P_GEMINI & P_MOCK --> LLM --> ZOD
     ZOD --> CACHE --> LOGS
+
 ```
 
 ---

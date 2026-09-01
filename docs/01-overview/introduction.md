@@ -15,12 +15,13 @@ In rapid-onset disasters—such as urban flash floods, cyclones, and seismic eve
 
 ```mermaid
 flowchart LR
-    A[Earth Observation / Satellite Imagery] --> B[Detection & Change Analysis]
-    B --> C[Explainable Priority Engine]
-    C --> D[Human-in-the-Loop Review]
-    D --> E[Accountable Response Tasking]
-    E --> F[Offline-First Field Verification]
-    F --> G[Tamper-Evident Audit & Outcome]
+    A["Earth Observation / Satellite Imagery"] --> B["Detection & Change Analysis"]
+    B --> C["Explainable Priority Engine"]
+    C --> D["Human-in-the-Loop Review"]
+    D --> E["Accountable Response Tasking"]
+    E --> F["Offline-First Field Verification"]
+    F --> G["Tamper-Evident Audit & Outcome"]
+
 ```
 
 ---

@@ -12,7 +12,7 @@ DRAXELYRA services read configuration from environment variables defined in `.en
 | :--- | :--- | :--- | :--- | :--- |
 | `DATABASE_URL` | PostgreSQL connection URI | **Yes** | — | `postgres://postgres:postgres@localhost:5433/draxelyra` |
 | `PORT` | HTTP port for the Express API server | No | `5000` | `5000` |
-| `SESSION_SECRET` | Secret key used to sign Express session cookies | **Yes (Prod)** | `draxelyra_default_secret` | `c89f3a1e9b724f8d...a4e7` |
+| `SESSION_SECRET` | Secret key used to sign Express session cookies | **Yes (Prod)** | `draxelyra_default_secret` | `your_session_secret_here` |
 | `NODE_ENV` | Runtime environment mode | No | `development` | `production` / `development` |
 | `VITE_API_URL` | Custom API base URL for frontend client | No | `/api` (relative) | `http://localhost:5000/api` |
 
@@ -30,7 +30,7 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5433/draxelyra
 PORT=5000
 
 # Session Cookie Encryption Secret
-SESSION_SECRET=e7b4c921389e4726af829103c847e920d3f2810a9c
+SESSION_SECRET=your_secure_random_session_secret_here
 
 # Node Runtime Mode
 NODE_ENV=development

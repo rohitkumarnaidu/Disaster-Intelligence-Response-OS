@@ -545,10 +545,10 @@ flowchart LR
     end
 
     subgraph Engine["IngestionEngine (src/services/ingestion-engine.ts)"]
-        SCHED[Cron Scheduler]
-        DEDUP[Deduplication by externalId]
-        NORM[Schema Normalizer]
-        DB[(PostgreSQL Store)]
+        SCHED["Cron Scheduler"]
+        DEDUP["Deduplication by externalId"]
+        NORM["Schema Normalizer"]
+        DB[("PostgreSQL Store")]
     end
 
     Feeds --> SCHED --> DEDUP --> NORM --> DB
@@ -615,91 +615,93 @@ sidebar_position: 4
 <span className="badge-implemented">Implemented</span>
 
 - **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:215\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L215-L270)
-- **Provider**: Global Disaster Alert and Coordination System (UN / European Commission).
-- **Hazard Classes**: Tropical Cyclones (\`TC\`), Floods (\`FL\`), Earthquakes (\`EQ\`), Volcanic Eruptions (\`VO\`).
+- **Endpoints**: \`https://www.gdacs.org/xml/rss.xml\` & \`https://www.gdacs.org/datareport/resources/GDACS_events.geojson\`
+- **Monitored Hazards**: Floods, Tropical Cyclones, Volcanic Eruptions, Wildfires, Droughts.
 `);
 
   // 12-data-integrations/05-nasa-firms.md
   writeFile(docsDir, '12-data-integrations/05-nasa-firms.md', `---
 id: nasa-firms
-title: NASA FIRMS VIIRS Active Fire Hotspots
+title: NASA FIRMS Active Thermal Hotspot Ingestion
 sidebar_label: NASA FIRMS
 sidebar_position: 5
 ---
 
-# NASA FIRMS VIIRS Active Fire Hotspots
+# NASA FIRMS Active Thermal Hotspot Ingestion
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:275\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L275-L340)
-- **Instrument**: Suomi NPP / NOAA-20 VIIRS 375m thermal imaging.
-- **Processing**: Filters low-confidence detections, aggregates thermal clusters into fire fronts, and populates the \`fire_detections\` table.
+- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:275\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L275-L330)
+- **Sensor**: VIIRS (375m spatial resolution) aboard Suomi NPP & NOAA-20 satellites.
+- **Data Ingestion**: Parses Near-Real-Time (NRT) active fire thermal coordinates, brightness temperatures, and confidence categories (\`nominal\`, \`high\`).
 `);
 
   // 12-data-integrations/06-nasa-eonet.md
   writeFile(docsDir, '12-data-integrations/06-nasa-eonet.md', `---
 id: nasa-eonet
-title: NASA EONET Earth Observatory Natural Events
+title: NASA EONET Natural Event Telemetry
 sidebar_label: NASA EONET
 sidebar_position: 6
 ---
 
-# NASA EONET Earth Observatory Natural Events
+# NASA EONET Natural Event Telemetry
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:345\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L345-L400)
-- **Endpoint**: \`https://eonet.gsfc.nasa.gov/api/v3/events\`
-- **Functionality**: Tracks long-duration global climate and severe storm phenomena with historical trajectory coordinates.
+- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:335\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L335-L380)
+- **Endpoint**: \`https://eonet.gsfc.nasa.gov/api/v3/events?status=open\`
+- **Categories**: Severe storms, sea & lake ice, volcanoes, and wildfires.
 `);
 
   // 12-data-integrations/07-weather-apis.md
   writeFile(docsDir, '12-data-integrations/07-weather-apis.md', `---
 id: weather-apis
-title: Weather Telemetry (Open-Meteo & IMD)
+title: Weather Radar & Precipitation Telemetry
 sidebar_label: Weather Feeds
 sidebar_position: 7
 ---
 
-# Weather Telemetry (Open-Meteo & IMD)
+# Weather Radar & Precipitation Telemetry
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:405\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L405-L480)
-- **Parameters Ingested**: Precipitation rate (mm/h), wind gust velocity (km/h), barometric pressure, river basin runoff estimates. Populates \`weather_alerts\`.
+- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:385\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L385-L430)
+- **Providers**: Open-Meteo REST API & NOAA Global Forecast System (GFS).
+- **Telemetry**: Hourly precipitation accumulation, wind gust speed, barometric pressure, flood crest estimations.
 `);
 
   // 12-data-integrations/08-osm-overpass.md
   writeFile(docsDir, '12-data-integrations/08-osm-overpass.md', `---
 id: osm-overpass
-title: OpenStreetMap Overpass QL Infrastructure Connector
+title: OpenStreetMap Overpass Connector
 sidebar_label: OSM Overpass
 sidebar_position: 8
 ---
 
-# OpenStreetMap Overpass QL Infrastructure Connector
+# OpenStreetMap Overpass Connector
 
 <span className="badge-implemented">Implemented</span>
 
 - **Source File**: [\`artifacts/api-server/src/services/osm-sync.ts\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/osm-sync.ts)
-- **Functionality**: Dynamically queries public Overpass endpoints (\`https://overpass-api.de/api/interpreter\`) with automatic failover to alternative community mirrors, extracting critical tags within incident AOIs.
+- **Endpoint**: \`https://overpass-api.de/api/interpreter\`
+- **Extraction**: Critical infrastructure nodes & ways within the incident Area of Interest (AOI).
 `);
 
   // 12-data-integrations/09-copernicus-sentinel.md
   writeFile(docsDir, '12-data-integrations/09-copernicus-sentinel.md', `---
 id: copernicus-sentinel
-title: Copernicus CDSE Sentinel STAC & SAR Ingestion
-sidebar_label: Copernicus Sentinel
+title: Copernicus Sentinel STAC Catalog Discovery
+sidebar_label: Copernicus Sentinel STAC
 sidebar_position: 9
 ---
 
-# Copernicus CDSE Sentinel STAC & SAR Ingestion
+# Copernicus Sentinel STAC Catalog Discovery
 
 <span className="badge-implemented">Implemented</span>
 
-- **Source File**: [\`artifacts/api-server/src/services/sentinel-stac.ts\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/sentinel-stac.ts)
-- **STAC Catalog**: Copernicus Data Space Ecosystem (\`https://catalogue.dataspace.copernicus.eu/stac\`).
-- **Sensors**: Sentinel-1 SAR (Synthetic Aperture Radar) C-band for cloud-penetrating flood mapping; Sentinel-2 MSI MultiSpectral Optical (10m bands).
+- **Source File**: [\`artifacts/api-server/src/services/ingestion-engine.ts:435\`](file:///c:/Users/Dell/Downloads/DRAXELYRA-Response-OS/DRAXELYRA-Response-OS/artifacts/api-server/src/services/ingestion-engine.ts#L435-L480)
+- **Standard**: STAC API v1.0.0.
+- **Collections**: Sentinel-2 L2A (optical multi-spectral) & Sentinel-1 GRD (Synthetic Aperture Radar).
 `);
 
   // 12-data-integrations/10-waqi.md
@@ -739,27 +741,27 @@ DRAXELYRA incorporates a dual-provider multimodal AI architecture designed to ex
 \`\`\`mermaid
 flowchart TD
     subgraph Inputs["Multimodal Telemetry Inputs"]
-        IMG_PRE[Pre-Disaster Baseline Imagery]
-        IMG_POST[Post-Disaster Target Imagery]
-        VEC_OSM[OSM Critical Asset Attributes]
-        ENV_CTX[Hazard Type & Weather Conditions]
+        IMG_PRE["Pre-Disaster Baseline Imagery"]
+        IMG_POST["Post-Disaster Target Imagery"]
+        VEC_OSM["OSM Critical Asset Attributes"]
+        ENV_CTX["Hazard Type & Weather Conditions"]
     end
 
     subgraph Factory["AIProviderFactory (src/ai/AIProviderFactory.ts)"]
-        DECISION{GEMINI_API_KEY Available?}
+        DECISION{"GEMINI_API_KEY Available?"}
         P_GEMINI["GeminiMultimodalProvider (@google/genai)"]
         P_MOCK["MockVisionAssessmentProvider (Baseline CV Engine)"]
     end
 
     subgraph Engine["Inference & Schema Parsing"]
-        PROMPT[Catalog Prompt Template]
-        LLM[Model Execution responseMimeType=application/json]
-        ZOD[Zod DamageAssessmentOutputSchema]
+        PROMPT["Catalog Prompt Template"]
+        LLM["Model Execution responseMimeType=application/json"]
+        ZOD["Zod DamageAssessmentOutputSchema"]
     end
 
     subgraph Persistence["Storage & Decision Ledger"]
-        DB_LOG[(PostgreSQL: ai_decision_logs)]
-        CACHE[AICacheService: SHA-256 Hash Key]
+        DB_LOG[("PostgreSQL: ai_decision_logs")]
+        CACHE["AICacheService: SHA-256 Hash Key"]
     end
 
     Inputs --> Factory

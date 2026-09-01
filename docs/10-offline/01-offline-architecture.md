@@ -14,28 +14,29 @@ DRAXELYRA treats catastrophic network outages as a standard operational environm
 ```mermaid
 flowchart TD
     subgraph Client["Field Device Browser / PWA"]
-        UI[Field Observation Form]
+        UI["Field Observation Form"]
         IDB[("IndexedDB (draxelyra-offline / syncQueue)")]
-        SW[Service Worker (/sw.js)]
-        STATUS[Network Monitor navigator.onLine]
+        SW["Service Worker (/sw.js)"]
+        STATUS["Network Monitor navigator.onLine"]
     end
 
     subgraph Transport["Network Layer"]
-        CONN{Connection Status?}
+        CONN{"Connection Status?"}
     end
 
     subgraph Backend["API Server Gateway"]
-        API[POST /api/field/observations]
-        OCC[OCC Concurrency Checker]
-        DB[(PostgreSQL)]
+        API["POST /api/field/observations"]
+        OCC["OCC Concurrency Checker"]
+        DB[("PostgreSQL")]
     end
 
     UI --> IDB
     STATUS --> CONN
     CONN -->|Offline| IDB
-    CONN -->|Online Reconnection| FLUSH[syncAllPending Replay Worker]
+    CONN -->|Online Reconnection| FLUSH["syncAllPending Replay Worker"]
     FLUSH --> IDB
     FLUSH --> API --> OCC --> DB
+
 ```
 
 ---
