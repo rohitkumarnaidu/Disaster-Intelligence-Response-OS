@@ -1,5 +1,6 @@
 {
   "name": "@workspace/api-server",
+  "description": "DRAXELYRA API Server — Express 5 backend for Disaster Intelligence OS (Auth, RBAC, State Machines, Audit & Priority Scoring)",
   "version": "0.0.0",
   "private": true,
   "type": "module",

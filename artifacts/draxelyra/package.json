@@ -1,5 +1,6 @@
 {
   "name": "@workspace/draxelyra",
+  "description": "DRAXELYRA Command Center — React 19 + Vite frontend with MapLibre geospatial incident mapping & operational dispatch",
   "version": "0.0.0",
   "private": true,
   "type": "module",
