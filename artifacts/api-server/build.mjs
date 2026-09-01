@@ -28,6 +28,9 @@ async function buildAll() {
     // - uses native modules and loads them dynamically (e.g. sharp)
     // - use path traversal to read files (e.g. @google-cloud/secret-manager loads sibling .proto files)
     external: [
+      "@electric-sql/*",
+      "@electric-sql/pglite",
+      "pg",
       "*.node",
       "sharp",
       "better-sqlite3",
@@ -118,6 +121,20 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+
+  try {
+    const { copyFile, readdir } = await import("node:fs/promises");
+    const pglitePkg = path.dirname(globalThis.require.resolve("@electric-sql/pglite/package.json"));
+    const pgliteDist = path.join(pglitePkg, "dist");
+    const files = await readdir(pgliteDist);
+    for (const file of files) {
+      if (file.endsWith(".data") || file.endsWith(".wasm") || file.endsWith(".tar.gz")) {
+        await copyFile(path.join(pgliteDist, file), path.join(distDir, file));
+      }
+    }
+  } catch (e) {
+    // Ignore if resolution fails
+  }
 }
 
 buildAll().catch((err) => {

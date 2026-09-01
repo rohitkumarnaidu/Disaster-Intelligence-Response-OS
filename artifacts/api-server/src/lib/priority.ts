@@ -24,7 +24,11 @@ export function calculatePriority(
     case "emergency": criticalityScore = 100; break;
     case "bridge": criticalityScore = 85; break;
     case "gov":
-    case "utility": criticalityScore = 75; break;
+    case "utility":
+    case "substation":
+    case "power":
+    case "water":
+    case "telecom": criticalityScore = 75; break;
     case "school": criticalityScore = 70; break;
     case "residential": criticalityScore = 40; break;
     case "commercial": criticalityScore = 30; break;

@@ -88,7 +88,64 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       timestamp: new Date()
     };
 
-    await db.insert(evidence).values(newEvidence);
+    const { cases, auditEvents } = await import("@workspace/db");
+    const { eq } = await import("drizzle-orm");
+    const { enqueueOutboxEvent, dispatchCommittedEvent } = await import("../realtime/outbox");
+
+    const [c] = await db.select().from(cases).where(eq(cases.id, caseId));
+    let evidenceEvent: any = null;
+    let auditEventObj: any = null;
+
+    await db.transaction(async (tx: any) => {
+      await tx.insert(evidence).values(newEvidence);
+      
+      const auditId = `ae-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      await tx.insert(auditEvents).values({
+        id: auditId,
+        actorId: req.session.userId,
+        entityType: "CASE",
+        entityId: caseId,
+        action: "EVIDENCE_UPLOADED",
+        metadata: { evidenceId: id, type, uri, size: file.size },
+        timestamp: new Date(),
+      });
+
+      evidenceEvent = await enqueueOutboxEvent(tx, {
+        eventType: "EVIDENCE_UPLOADED",
+        entityType: "EVIDENCE",
+        entityId: id,
+        incidentId: c?.incidentId || null,
+        version: 1,
+        actorId: req.session.userId,
+        payload: {
+          ...newEvidence,
+          incidentId: c?.incidentId || null,
+          timestamp: newEvidence.timestamp.toISOString(),
+        },
+      });
+
+      auditEventObj = await enqueueOutboxEvent(tx, {
+        eventType: "AUDIT_EVENT_CREATED",
+        entityType: "AUDIT",
+        entityId: caseId,
+        incidentId: c?.incidentId || null,
+        version: 1,
+        actorId: req.session.userId,
+        payload: {
+          id: auditId,
+          action: "EVIDENCE_UPLOADED",
+          entityType: "CASE",
+          entityId: caseId,
+          actorId: req.session.userId,
+          metadata: { evidenceId: id, type },
+          timestamp: new Date().toISOString(),
+        },
+      });
+    });
+
+    if (evidenceEvent) dispatchCommittedEvent(evidenceEvent).catch(() => {});
+    if (auditEventObj) dispatchCommittedEvent(auditEventObj).catch(() => {});
+
     res.json({ success: true, evidence: newEvidence });
   } catch (error: any) {
     res.status(500).json({ error: { message: error.message } });

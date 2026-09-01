@@ -7,8 +7,30 @@ const router = Router();
 router.use(requireAuth);
 
 router.get("/command/summary", async (req, res) => {
-  // get active incident
-  const [incident] = await db.select().from(incidents).where(eq(incidents.status, "Active")).orderBy(desc(incidents.updatedAt)).limit(1);
+  // Check if specific incidentId requested, otherwise find active incident with cases or latest
+  const reqIncidentId = req.query.incidentId as string;
+  let incident: any = null;
+
+  if (reqIncidentId) {
+    const [found] = await db.select().from(incidents).where(eq(incidents.id, reqIncidentId)).limit(1);
+    incident = found;
+  }
+
+  if (!incident) {
+    // Prefer active incident with cases attached
+    const activeIncidents = await db.select().from(incidents).where(eq(incidents.status, "Active")).orderBy(desc(incidents.updatedAt)).limit(10);
+    for (const inc of activeIncidents) {
+      const caseCount = await db.select().from(cases).where(eq(cases.incidentId, inc.id)).limit(1);
+      if (caseCount.length > 0) {
+        incident = inc;
+        break;
+      }
+    }
+    if (!incident && activeIncidents.length > 0) {
+      incident = activeIncidents[0];
+    }
+  }
+
   if (!incident) return res.json({ metrics: {}, cases: [], tasks: [], activity: [] });
 
   const allCases = await db.select().from(cases).leftJoin(detections, eq(cases.detectionId, detections.id)).leftJoin(criticalAssets, eq(cases.assetId, criticalAssets.id)).where(eq(cases.incidentId, incident.id)).orderBy(desc(cases.priorityScore));
@@ -19,10 +41,24 @@ router.get("/command/summary", async (req, res) => {
   const highPriority = allCases.filter(c => (c.cases.priorityScore || 0) >= 75).length;
   const openTasks = allTasks.filter(t => t.status !== 'COMPLETED' && t.status !== 'CLOSED').length;
   const overdueTasks = allTasks.filter(t => t.dueAt && new Date(t.dueAt) < new Date() && t.status !== 'COMPLETED').length;
+
+  // Compute real confirmation rate from reviewed cases
+  const reviewedCases = allCases.filter(c => ['CONFIRMED', 'REJECTED', 'UNCERTAIN'].includes(c.cases.reviewState));
+  const confirmedCases = allCases.filter(c => c.cases.reviewState === 'CONFIRMED');
+  const confirmationRate = reviewedCases.length > 0
+    ? Math.round((confirmedCases.length / reviewedCases.length) * 100)
+    : 0;
+
+  // Compute real SLA compliance from completed tasks
+  const resolvedTasks = allTasks.filter(t => t.completedAt && (t.status === 'COMPLETED' || t.status === 'CLOSED' || t.status === 'VERIFIED'));
+  const onTimeTasks = resolvedTasks.filter(t => t.dueAt && t.completedAt && new Date(t.completedAt) <= new Date(t.dueAt));
+  const slaCompliance = resolvedTasks.length > 0
+    ? Math.round((onTimeTasks.length / resolvedTasks.length) * 100)
+    : 100;
   
   res.json({
     incident,
-    metrics: { backlog, highPriority, openTasks, overdueTasks, confirmationRate: 100, slaCompliance: 100 },
+    metrics: { backlog, highPriority, openTasks, overdueTasks, confirmationRate, slaCompliance },
     cases: allCases.map(c => ({
       id: c.cases.id,
       title: `${c.detections?.class || 'Unknown'} near ${c.critical_assets?.name || 'Asset'}`,
@@ -49,18 +85,109 @@ router.get("/command/summary", async (req, res) => {
 });
 
 router.post("/audit", async (req, res) => {
-  const { action, entityType, entityId, details } = req.body;
+  const { action, entityType, entityId, details, incidentId } = req.body;
   if (!action || !entityType || !entityId) return res.status(400).json({ error: "Missing required fields" });
-  await db.insert(auditEvents).values({
-    id: crypto.randomUUID(),
-    entityType,
-    entityId,
-    action,
-    actorId: req.session?.userId || "unknown",
-    timestamp: new Date(),
-    metadata: details ? { details } : {}
+  
+  const id = crypto.randomUUID();
+  const actorId = req.session?.userId || "unknown";
+  const timestamp = new Date();
+  const metadata = details ? { details } : {};
+
+  const { enqueueOutboxEvent, dispatchCommittedEvent } = await import("../realtime/outbox");
+  let auditEventObj: any = null;
+
+  await db.transaction(async (tx: any) => {
+    await tx.insert(auditEvents).values({
+      id,
+      entityType,
+      entityId,
+      action,
+      actorId,
+      timestamp,
+      metadata
+    });
+
+    auditEventObj = await enqueueOutboxEvent(tx, {
+      eventType: "AUDIT_EVENT_CREATED",
+      entityType: "AUDIT",
+      entityId,
+      incidentId: incidentId || null,
+      version: 1,
+      actorId,
+      payload: {
+        id,
+        action,
+        entityType,
+        entityId,
+        actorId,
+        metadata,
+        timestamp: timestamp.toISOString(),
+      },
+    });
   });
+
+  if (auditEventObj) dispatchCommittedEvent(auditEventObj).catch(() => {});
+
   res.json({ success: true });
+});
+
+/**
+ * GET /api/entities/:id/lineage
+ * General entity lineage resolution endpoint
+ */
+router.get("/entities/:id/lineage", async (req, res) => {
+  const entityId = req.params.id as string;
+
+  // Check if case
+  const [caseRow] = await db.select().from(cases).where(eq(cases.id, entityId));
+  if (caseRow) {
+    const { detections, criticalAssets, imageryAssets, processingJobs, evidence } = await import("@workspace/db");
+    const [c] = await db.select().from(cases)
+      .leftJoin(detections, eq(cases.detectionId, detections.id))
+      .leftJoin(criticalAssets, eq(cases.assetId, criticalAssets.id))
+      .where(eq(cases.id, entityId));
+
+    const [incident] = await db.select().from(incidents).where(eq(incidents.id, caseRow.incidentId));
+    let imageryAsset: any = null;
+    if (c?.detections?.imageryId) {
+      const [img] = await db.select().from(imageryAssets).where(eq(imageryAssets.id, c.detections.imageryId));
+      imageryAsset = img;
+    }
+
+    let processingJob: any = null;
+    if (c?.detections?.processingJobId) {
+      const [job] = await db.select().from(processingJobs).where(eq(processingJobs.id, c.detections.processingJobId));
+      processingJob = job;
+    }
+
+    const caseEvidence = await db.select().from(evidence).where(eq(evidence.caseId, entityId));
+    const caseAudit = await db.select().from(auditEvents).where(eq(auditEvents.entityId, entityId)).orderBy(desc(auditEvents.timestamp));
+
+    return res.json({
+      entityType: "CASE",
+      case: caseRow,
+      incident,
+      detection: c?.detections || null,
+      criticalAsset: c?.critical_assets || null,
+      processingJob,
+      imageryAsset,
+      evidence: caseEvidence,
+      auditTrail: caseAudit,
+    });
+  }
+
+  // Check if incident
+  const [incidentRow] = await db.select().from(incidents).where(eq(incidents.id, entityId));
+  if (incidentRow) {
+    const incidentAudit = await db.select().from(auditEvents).where(eq(auditEvents.entityId, entityId)).orderBy(desc(auditEvents.timestamp));
+    return res.json({
+      entityType: "INCIDENT",
+      incident: incidentRow,
+      auditTrail: incidentAudit,
+    });
+  }
+
+  res.status(404).json({ error: { code: "NOT_FOUND", message: `Entity ${entityId} not found` } });
 });
 
 export default router;

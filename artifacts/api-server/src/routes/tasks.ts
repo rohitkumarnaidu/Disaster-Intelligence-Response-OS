@@ -40,26 +40,71 @@ router.post("/", requireRole("System Admin", "Organization Admin", "Disaster Off
       assignedTeam,
       assignedUser,
       priority: Math.round(priority),
-      status: "UNASSIGNED",
+      status: assignedUser || assignedTeam ? "ASSIGNED" : "UNASSIGNED",
       createdAt: new Date(),
       dueAt,
       escalationAt,
       version: 1,
     };
 
-    await db.insert(tasks).values(newTask);
-    
-    await db.insert(auditEvents).values({
-      id: `ae-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-      actorId: req.session.userId,
-      entityType: "TASK",
-      entityId: id,
-      action: "CREATED",
-      metadata: { caseId },
-      timestamp: new Date()
+    const { enqueueOutboxEvent, dispatchCommittedEvent } = await import("../realtime/outbox");
+
+    let taskCreatedEvent: any = null;
+    let auditEventObj: any = null;
+
+    await db.transaction(async (tx: any) => {
+      await tx.insert(tasks).values(newTask);
+      
+      const auditId = `ae-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      await tx.insert(auditEvents).values({
+        id: auditId,
+        actorId: req.session.userId,
+        entityType: "TASK",
+        entityId: id,
+        action: "CREATED",
+        metadata: { caseId, title, assignedTeam, assignedUser },
+        timestamp: new Date()
+      });
+
+      taskCreatedEvent = await enqueueOutboxEvent(tx, {
+        eventType: "TASK_CREATED",
+        entityType: "TASK",
+        entityId: id,
+        incidentId: c.incidentId,
+        version: 1,
+        actorId: req.session.userId,
+        payload: {
+          ...newTask,
+          incidentId: c.incidentId,
+          createdAt: newTask.createdAt.toISOString(),
+          dueAt: dueAt.toISOString(),
+          escalationAt: escalationAt.toISOString(),
+        },
+      });
+
+      auditEventObj = await enqueueOutboxEvent(tx, {
+        eventType: "AUDIT_EVENT_CREATED",
+        entityType: "AUDIT",
+        entityId: id,
+        incidentId: c.incidentId,
+        version: 1,
+        actorId: req.session.userId,
+        payload: {
+          id: auditId,
+          action: "CREATED",
+          entityType: "TASK",
+          entityId: id,
+          actorId: req.session.userId,
+          metadata: { caseId },
+          timestamp: new Date().toISOString(),
+        },
+      });
     });
 
-    // We must transition the case to TASKED as well!
+    if (taskCreatedEvent) dispatchCommittedEvent(taskCreatedEvent).catch(() => {});
+    if (auditEventObj) dispatchCommittedEvent(auditEventObj).catch(() => {});
+
+    // Transition the case to TASKED
     await transitionCase(caseId, "TASKED", req.session.userId!, version || c.version, "Task assigned");
 
     res.status(201).json(newTask);
