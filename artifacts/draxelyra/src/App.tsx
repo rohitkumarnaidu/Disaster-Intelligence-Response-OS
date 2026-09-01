@@ -520,7 +520,7 @@ function CommandCenter() {
     }
   };
 
-  if (query.isLoading && !summary) {
+  if (query.isLoading && !summary && incidentsQuery.isLoading) {
     return <LoadingBlock />;
   }
 

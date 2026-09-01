@@ -7,16 +7,28 @@ import { INIT_SCHEMA_SQL } from "./init-schema";
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5433/draxelyra";
-
-// Dual-Engine Database Architecture:
-// 1. If explicit PGlite requested (or fallback triggered), uses embedded WebAssembly PostgreSQL engine.
-// 2. If live PostgreSQL server is reachable via DATABASE_URL, connects via standard pg.Pool.
+const hasExplicitDbUrl = Boolean(process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("localhost:5433"));
 
 let isInitialized = false;
 
 // Embedded PGlite instance for zero-dependency local / CI / test execution
 export const pgliteInstance = new PGlite();
+
+// Real PostgreSQL Pool if DATABASE_URL configured
+let realPool: pg.Pool | null = null;
+if (hasExplicitDbUrl) {
+  try {
+    realPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL?.includes("localhost") || process.env.DATABASE_URL?.includes("127.0.0.1")
+        ? false
+        : { rejectUnauthorized: false },
+      max: 10,
+    });
+  } catch (e) {
+    console.warn("Failed to construct pg.Pool, using PGlite fallback", e);
+  }
+}
 
 // Adapter to provide standard pg.Pool interface over PGlite
 export const pglitePoolAdapter = {
@@ -49,22 +61,32 @@ export const pglitePoolAdapter = {
   },
 };
 
+export const pool = realPool || (pglitePoolAdapter as any);
+export const db = (realPool
+  ? drizzleNodePg(realPool, { schema })
+  : drizzlePglite(pgliteInstance, { schema })) as ReturnType<typeof drizzlePglite<typeof schema>>;
+
 export async function initDb() {
   if (isInitialized) return;
   try {
-    // Attempt schema initialization on active engine
-    await pgliteInstance.exec(INIT_SCHEMA_SQL);
+    if (realPool) {
+      await realPool.query(INIT_SCHEMA_SQL);
+    } else {
+      await pgliteInstance.exec(INIT_SCHEMA_SQL);
+    }
     isInitialized = true;
   } catch (err: any) {
     console.warn("Schema initialization notice:", err.message);
+    if (realPool) {
+      try {
+        await pgliteInstance.exec(INIT_SCHEMA_SQL);
+      } catch (_) {}
+    }
   }
 }
 
 // Auto-initialize schema on load
 initDb().catch(() => {});
-
-export const pool = pglitePoolAdapter as any;
-export const db = drizzlePglite(pgliteInstance, { schema });
 
 export * from "./schema";
 export { INIT_SCHEMA_SQL };

@@ -17,21 +17,21 @@ router.get("/command/summary", async (req, res) => {
   }
 
   if (!incident) {
-    // Prefer active incident with cases attached
-    const activeIncidents = await db.select().from(incidents).where(eq(incidents.status, "Active")).orderBy(desc(incidents.updatedAt)).limit(10);
-    for (const inc of activeIncidents) {
+    // Prefer any active/available incident with cases attached
+    const allIncidents = await db.select().from(incidents).orderBy(desc(incidents.updatedAt)).limit(10);
+    for (const inc of allIncidents) {
       const caseCount = await db.select().from(cases).where(eq(cases.incidentId, inc.id)).limit(1);
       if (caseCount.length > 0) {
         incident = inc;
         break;
       }
     }
-    if (!incident && activeIncidents.length > 0) {
-      incident = activeIncidents[0];
+    if (!incident && allIncidents.length > 0) {
+      incident = allIncidents[0];
     }
   }
 
-  if (!incident) return res.json({ metrics: {}, cases: [], tasks: [], activity: [] });
+  if (!incident) return res.json({ metrics: { backlog: 0, highPriority: 0, openTasks: 0, overdueTasks: 0, confirmationRate: 0, slaCompliance: 100 }, cases: [], tasks: [], activity: [] });
 
   const allCases = await db.select().from(cases).leftJoin(detections, eq(cases.detectionId, detections.id)).leftJoin(criticalAssets, eq(cases.assetId, criticalAssets.id)).where(eq(cases.incidentId, incident.id)).orderBy(desc(cases.priorityScore));
   const allTasks = await db.select().from(tasks).orderBy(desc(tasks.priority));

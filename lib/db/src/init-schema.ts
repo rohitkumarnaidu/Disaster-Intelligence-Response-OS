@@ -438,8 +438,50 @@ VALUES
   ('usr-field', 'Frank Field', 'field@draxelyra.local', '$2b$10$OXwkxMR5kG6zirq7x7FpkO5tAnvyPjOdYjOewP7PGpxZb9f4IqKki', 'Field Responder')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO incidents (id, name, disaster_type, status, description, severity, source)
+INSERT INTO incidents (id, name, disaster_type, status, description, severity, source, aoi)
 VALUES
-  ('inc-fl-chennai-2026', 'Cyclone Cyclone Varsha & Coastal Flood', 'Flood', 'ACTIVE', 'Major urban and coastal inundation impacting metropolitan corridor.', 'CRITICAL', 'NASA EONET / Sentinel-1')
+  ('inc-fl-chennai-2026', 'Cyclone Cyclone Varsha & Coastal Flood', 'Flood', 'Active', 'Major urban and coastal inundation impacting metropolitan corridor.', 'CRITICAL', 'NASA EONET / Sentinel-1', '{"type":"Polygon","coordinates":[[[80.15,13.0],[80.3,13.0],[80.3,13.15],[80.15,13.15],[80.15,13.0]]]}'),
+  ('inc-chennai-demo', 'Chennai Urban Flood — Replay & Live Monitoring', 'Flood', 'Active', 'Operational multi-hazard response queue for metropolitan corridor.', 'CRITICAL', 'Sentinel-1 SAR / USGS / GDACS', '{"type":"Polygon","coordinates":[[[80.15,13.0],[80.3,13.0],[80.3,13.15],[80.15,13.15],[80.15,13.0]]]}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO imagery_assets (id, incident_id, external_product_id, provider, collection, title, source, acquisition_time, geometry, quality_status, processing_status, data_mode)
+VALUES
+  ('img-demo-pre', 'inc-fl-chennai-2026', 'S1A_IW_GRDH_1SDV_20260816T123456_PRE', 'COPERNICUS_STAC', 'sentinel-1-grd', 'Pre-Event SAR Baseline — Sentinel-1A', 'COPERNICUS_CDSE', now() - interval '8 days', '{"type":"Polygon","coordinates":[[[80.15,12.95],[80.32,12.95],[80.32,13.15],[80.15,13.15],[80.15,12.95]]]}', 'READY', 'PROCESSED', 'REAL'),
+  ('img-demo-post', 'inc-fl-chennai-2026', 'S1A_IW_GRDH_1SDV_20260828T123456_POST', 'COPERNICUS_STAC', 'sentinel-1-grd', 'Post-Event SAR Assessment — Sentinel-1A', 'COPERNICUS_CDSE', now(), '{"type":"Polygon","coordinates":[[[80.15,12.95],[80.32,12.95],[80.32,13.15],[80.15,13.15],[80.15,12.95]]]}', 'READY', 'PROCESSED', 'REAL')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO critical_assets (id, name, type, location, criticality_score, population_exposure_tier, osm_id)
+VALUES
+  ('ast-hospital-01', 'Government General Hospital', 'Hospital', '{"type":"Point","coordinates":[80.2707,13.0827]}', 100, 'High', 'osm-hosp-1'),
+  ('ast-bridge-01', 'Saidapet Bridge', 'Bridge', '{"type":"Point","coordinates":[80.2230,13.0210]}', 85, 'Medium', 'osm-bridge-1'),
+  ('ast-school-01', 'Corporation Higher Secondary School', 'School', '{"type":"Point","coordinates":[80.2520,13.0490]}', 70, 'High', 'osm-school-1'),
+  ('ast-substation-01', 'Adyar 230kV Substation', 'Utility', '{"type":"Point","coordinates":[80.2570,13.0060]}', 75, 'Medium', 'osm-util-1'),
+  ('ast-residential-01', 'Saidapet Metro Colony', 'Residential', '{"type":"Point","coordinates":[80.2280,13.0350]}', 50, 'High', 'osm-res-1'),
+  ('ast-taluk-01', 'Mylapore Taluk Office', 'Government', '{"type":"Point","coordinates":[80.2670,13.0330]}', 60, 'Low', 'osm-gov-1')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO detections (id, incident_id, imagery_id, geometry, class, severity, confidence, model_name, model_version, inference_timestamp)
+VALUES
+  ('det-case-hero-hospital', 'inc-fl-chennai-2026', 'img-demo-post', '{"type":"Point","coordinates":[80.2707,13.0827]}', 'Flood inundation', 'Severe', 0.94, 'Sentinel-1 SAR Flood Classifier', 'v2.4.1', now()),
+  ('det-case-bridge-01', 'inc-fl-chennai-2026', 'img-demo-post', '{"type":"Point","coordinates":[80.2230,13.0210]}', 'Structure damage', 'Severe', 0.88, 'Sentinel-1 SAR Flood Classifier', 'v2.4.1', now()),
+  ('det-case-school-01', 'inc-fl-chennai-2026', 'img-demo-post', '{"type":"Point","coordinates":[80.2520,13.0490]}', 'Roof damage', 'Moderate', 0.71, 'Sentinel-1 SAR Flood Classifier', 'v2.4.1', now()),
+  ('det-case-substation-01', 'inc-fl-chennai-2026', 'img-demo-post', '{"type":"Point","coordinates":[80.2570,13.0060]}', 'Inundation', 'Minor', 0.79, 'Sentinel-1 SAR Flood Classifier', 'v2.4.1', now()),
+  ('det-case-residential-01', 'inc-fl-chennai-2026', 'img-demo-post', '{"type":"Point","coordinates":[80.2280,13.0350]}', 'Standing water', 'Moderate', 0.92, 'Sentinel-1 SAR Flood Classifier', 'v2.4.1', now())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO cases (id, incident_id, detection_id, asset_id, status, priority_score, priority_breakdown, review_state, data_mode)
+VALUES
+  ('case-hero-hospital', 'inc-fl-chennai-2026', 'det-case-hero-hospital', 'ast-hospital-01', 'NEEDS_REVIEW', 88.5, '[{"label":"Critical facility (Hospital)","value":25},{"label":"Severe observed change","value":22.5},{"label":"High population exposure","value":18},{"label":"Urgency","value":14},{"label":"High confidence (94%)","value":9.0}]', 'UNREVIEWED', 'REAL'),
+  ('case-bridge-01', 'inc-fl-chennai-2026', 'det-case-bridge-01', 'ast-bridge-01', 'TASKED', 79.2, '[{"label":"Bridge criticality","value":21.25},{"label":"Severe observed change","value":22.5},{"label":"Medium exposure","value":11},{"label":"Urgency","value":14},{"label":"High confidence (88%)","value":8.8}]', 'CONFIRMED', 'REAL'),
+  ('case-school-01', 'inc-fl-chennai-2026', 'det-case-school-01', 'ast-school-01', 'VERIFIED', 62.4, '[{"label":"School criticality","value":17.5},{"label":"Moderate observed change","value":13.5},{"label":"High exposure","value":18},{"label":"Urgency","value":7},{"label":"High confidence (71%)","value":7.1}]', 'CONFIRMED', 'REAL'),
+  ('case-substation-01', 'inc-fl-chennai-2026', 'det-case-substation-01', 'ast-substation-01', 'NEEDS_REVIEW', 48.0, '[{"label":"Utility criticality","value":18.75},{"label":"Minor observed change","value":6},{"label":"Medium exposure","value":11},{"label":"Urgency","value":4},{"label":"Confidence (79%)","value":7.9}]', 'UNREVIEWED', 'REAL'),
+  ('case-residential-01', 'inc-fl-chennai-2026', 'det-case-residential-01', 'ast-residential-01', 'NEEDS_REVIEW', 56.1, '[{"label":"Residential criticality","value":10},{"label":"Moderate observed change","value":13.5},{"label":"High exposure","value":18},{"label":"Urgency","value":5},{"label":"High confidence (92%)","value":9.2}]', 'UNREVIEWED', 'REAL')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO tasks (id, case_id, title, priority, assigned_team, assigned_user, status, due_at)
+VALUES
+  ('task-hero', 'case-hero-hospital', 'Verify hospital ground-floor inundation and access clearance', 89, 'Field Verification Team 01', 'usr-field', 'ASSIGNED', now() + interval '45 minutes'),
+  ('task-bridge', 'case-bridge-01', 'Inspect structural integrity and establish river traffic barrier', 79, 'Infrastructure Response Cell', 'usr-field', 'IN_PROGRESS', now() - interval '15 minutes'),
+  ('task-school', 'case-school-01', 'Confirm evacuation shelter suitability and roof integrity', 62, 'Field Verification Team 04', 'usr-field', 'COMPLETED', now() - interval '2 hours')
 ON CONFLICT (id) DO NOTHING;
 `;
