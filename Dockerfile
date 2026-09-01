@@ -1,4 +1,4 @@
-﻿# Multi-stage Dockerfile for complete DRAXELYRA Monorepo
+# Multi-stage Dockerfile for complete DRAXELYRA Monorepo
 FROM node:22-alpine AS builder
 
 RUN corepack enable && corepack prepare pnpm@latest --activate

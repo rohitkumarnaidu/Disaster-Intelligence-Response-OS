@@ -1,20 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
-export function generateOverview(DOCS_DIR) {
-  const write = (relPath, content) => {
-    const fullPath = path.join(DOCS_DIR, relPath);
-    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
-  };
+function ensureDir(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+function writeFile(dir, relPath, content) {
+  const fullPath = path.join(dir, relPath);
+  ensureDir(path.dirname(fullPath));
+  fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
+}
+
+export function generateOverview(docsDir) {
+  console.log('Generating 01-overview and 02-getting-started...');
 
   // 01-overview/introduction.md
-  write('01-overview/introduction.md', `# Introduction to DRAXELYRA
-
-<span className="badge-implemented">Implemented</span> <span className="badge-dev">Development Replay</span>
-
-**DRAXELYRA** is a mission-critical **Disaster Intelligence & Response Operating System** designed for emergency operations centers (EOCs), geospatial intelligence analysts, incident commanders, and tactical field response teams.
-
 In rapid-onset disasters—such as urban flash floods, cyclones, and seismic events—command centers face an acute operational bottleneck: raw Earth Observation (EO) satellite passes and sensor feeds generate vast volumes of unverified damage signals that cannot be translated into rapid, auditable field operations. DRAXELYRA bridges this gap by converting post-event satellite imagery into **explainable priority queues**, **finite-state response tasks**, and **tamper-evident, field-verified outcomes**.
 
 \`\`\`mermaid
