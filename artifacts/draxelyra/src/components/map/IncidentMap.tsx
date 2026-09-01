@@ -243,7 +243,7 @@ export function IncidentMap({
         compact ? "h-[190px]" : "h-[500px]"
       }`}
     >
-      <Map ref={mapRef} {...mapProps}>
+      <Map ref={mapRef} mapLib={maplibregl} {...mapProps}>
         <NavigationControl position="bottom-right" />
 
         {/* AOI Extent Layer */}
