@@ -30,9 +30,31 @@ app.use(
     },
   })
 );
-app.use(cors({ origin: true, credentials: true }));
+
+// Explicit CORS origin validation
+const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  : ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS policy"));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret && process.env.NODE_ENV === "production") {
+  throw new Error("FATAL: SESSION_SECRET must be configured in production.");
+}
 
 app.use(
   session({
@@ -41,14 +63,14 @@ app.use(
       tableName: "session",
       createTableIfMissing: true,
     }),
-    secret: process.env.SESSION_SECRET || "draxelyra_default_secret",
+    secret: sessionSecret || "draxelyra_dev_session_secret",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      secure: "auto",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
 );
@@ -88,5 +110,3 @@ if (!frontendServed) {
 }
 
 export default app;
-
-
