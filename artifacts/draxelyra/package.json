@@ -79,6 +79,6 @@
   },
   "dependencies": {
     "maplibre-gl": "^6.5.0",
-    "react-map-gl": "^8.1.2"
+    "react-map-gl": "^8.1.3"
   }
 }
